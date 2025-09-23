@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="br.edu.fatec.api.controller.coordenacao.AndamentoCoordController"
+      spacing="0"
+      stylesheets="@/application.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="header">
+        <padding><Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/></padding>
+        <Label styleClass="logo" text="API/TG"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Home" onAction="#goHome"/>
+        <Button text="Sair" onAction="#logout"/>
+    </HBox>
+
+    <!-- Main Layout with Sidebar -->
+    <HBox VBox.vgrow="ALWAYS" spacing="16.0">
+        <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
+
+        <!-- Sidebar -->
+        <VBox prefWidth="240.0" spacing="8.0" styleClass="sidebar">
+            <Label styleClass="sidebar-title" text="Coordenador"/>
+            <Label styleClass="sidebar-group" text="GERAL"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goMapa" styleClass="sidebar-link" text="Mapa de Orientação"/>
+            <Button fx:id="btnAndamento" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
+        </VBox>
+
+        <!-- Main Content -->
+        <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
+
+            <!-- Breadcrumbs -->
+            <Label styleClass="subtle" text="Coordenador / Andamento Geral"/>
+
+            <!-- Título -->
+            <VBox spacing="6.0">
+                <Label styleClass="title" text="Coordenador — Andamento Geral"/>
+                <Label styleClass="subtitle" text="Acompanhe o progresso por aluno/curso e filtre por status."/>
+            </VBox>
+
+            <!-- KPIs -->
+            <GridPane hgap="12.0" vgap="12.0">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="33.33" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="33.33" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="33.33" hgrow="ALWAYS"/>
+                </columnConstraints>
+                <rowConstraints><RowConstraints vgrow="SOMETIMES"/></rowConstraints>
+
+                <VBox alignment="CENTER" GridPane.columnIndex="0" styleClass="kpi">
+                    <Label text="Alunos ativos"/>
+                    <Label fx:id="lblAlunosAtivos" styleClass="title" text="0"/>
+                </VBox>
+                <VBox alignment="CENTER" GridPane.columnIndex="1" styleClass="kpi">
+                    <Label text="Em dia"/>
+                    <Label fx:id="lblEmDia" styleClass="title" text="0"/>
+                </VBox>
+                <VBox alignment="CENTER" GridPane.columnIndex="2" styleClass="kpi">
+                    <Label text="Atrasados"/>
+                    <Label fx:id="lblAtrasados" styleClass="title" text="0"/>
+                </VBox>
+            </GridPane>
+
+            <!-- Filtros -->
+            <HBox spacing="8.0" alignment="CENTER_LEFT">
+                <Label text="Curso:"/>
+                <ChoiceBox fx:id="cbCurso"/>
+                <Label text="Status:"/>
+                <ChoiceBox fx:id="cbStatus"/>
+                <TextField fx:id="txtBusca" HBox.hgrow="ALWAYS" promptText="Buscar por aluno, orientador ou tema..."/>
+                <Button text="Limpar" onAction="#limparFiltros"/>
+            </HBox>
+
+            <!-- Tabela -->
+            <TableView fx:id="tblAndamento" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colCurso" text="Curso" prefWidth="160"/>
+                    <TableColumn fx:id="colAluno" text="Aluno" prefWidth="220"/>
+                    <TableColumn fx:id="colOrientador" text="Orientador" prefWidth="200"/>
+                    <TableColumn fx:id="colTema" text="Tema" prefWidth="300"/>
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="120"/>
+                    <TableColumn fx:id="colPercentual" text="\% Conclusão" prefWidth="160"/>
+                    <TableColumn fx:id="colAtualizado" text="Atualizado em" prefWidth="160"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </HBox>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER" spacing="12.0" styleClass="footer">
+        <padding><Insets top="12.0" right="12.0" bottom="12.0" left="16.0"/></padding>
+        <Label styleClass="subtle" text="Wireframe API 2025-2"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label styleClass="subtle" text="Módulo Coordenador"/>
+    </HBox>
+</VBox>
