@@ -33,18 +33,14 @@
             <Label styleClass="sidebar-group" text="GERAL"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Dashboard" onAction="#goDashboard"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Inbox" onAction="#goInbox"/>
 
             <Label styleClass="sidebar-group" text="TG"/>
+
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Markdown (Editor e Feedback)" onAction="#goEditor"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Comparar Versões" onAction="#goComparar"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Conclusão" onAction="#goConclusao"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Histórico" onAction="#goHistorico"/>
+
         </VBox>
 
         <!-- Main Content (card) -->
