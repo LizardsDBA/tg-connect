@@ -29,18 +29,12 @@
 
             <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goDashboard" styleClass="sidebar-link" text="Dashboard"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goInbox" styleClass="sidebar-link" text="Inbox"/>
 
             <Label styleClass="sidebar-group" text="TG"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goEditor" styleClass="sidebar-link" text="Markdown (Editor e Feedback)"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goComparar" styleClass="sidebar-link" text="Comparar Versões"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goConclusao" styleClass="sidebar-link" text="Conclusão"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goHistorico" styleClass="sidebar-link" text="Histórico"/>
         </VBox>
 
         <!-- Main Content -->
