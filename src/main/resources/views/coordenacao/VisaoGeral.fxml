@@ -31,15 +31,7 @@
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goMapa" styleClass="sidebar-link" text="Mapa de Orientação"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
 
-            <!-- (Opcional) adicione mais entradas conforme for criando as telas -->
-            <!--
-            <Label styleClass="sidebar-group" text="RELATÓRIOS"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goRelatorios" styleClass="sidebar-link" text="Relatórios"/>
-            -->
         </VBox>
 
         <!-- Main Content -->
