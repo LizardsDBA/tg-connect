@@ -33,6 +33,8 @@
             <Label styleClass="sidebar-group" text="GERAL"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Dashboard" onAction="#goDashboard"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goInbox" styleClass="sidebar-link" text="Inbox"/>
 
             <Label styleClass="sidebar-group" text="TG"/>
 
