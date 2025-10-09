@@ -26,11 +26,16 @@
         <VBox prefWidth="240.0" spacing="8.0" styleClass="sidebar">
             <Label styleClass="sidebar-title" text="Orientador"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
-
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
-            <Button fx:id="btnPainel" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goPainel" styleClass="sidebar-link" text="Painel"/>
+
+            <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goEditor" styleClass="sidebar-link" text="Editor (Feedback/Parecer)"/>
+            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
         </VBox>
 
         <!-- Main Content -->
