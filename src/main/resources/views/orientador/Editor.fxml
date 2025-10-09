@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="br.edu.fatec.api.controller.orientador.PainelOrientadorController"
+      fx:controller="br.edu.fatec.api.controller.orientador.EditorOrientadorController"
       spacing="0"
       stylesheets="@/application.css">
 
@@ -42,48 +43,50 @@
         <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
 
             <!-- Breadcrumbs -->
-            <Label styleClass="subtle" text="Orientador / Painel (Pendências)"/>
+            <Label styleClass="subtle" text="Orientador / Editor"/>
 
             <!-- Título -->
             <VBox spacing="6.0">
-                <Label styleClass="title" text="Orientador — Painel de Pendências"/>
-                <Label styleClass="subtitle" text="Acompanhe pedidos por aluno, prioridade e ação recomendada."/>
+                <Label styleClass="title" text="Orientador — Editor/Correção"/>
+                <Label styleClass="subtitle" text="Selecione um trecho do texto do aluno e registre seu feedback."/>
             </VBox>
 
-            <!-- Filtros (opcional simples) -->
-            <HBox spacing="8.0" alignment="CENTER_LEFT">
-                <Label text="Filtrar:"/>
-                <ChoiceBox fx:id="cbFiltroPrioridade"/>
-                <TextField fx:id="txtBuscaAluno" promptText="Buscar aluno..."/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Limpar" onAction="#limparFiltros"/>
-            </HBox>
+            <!-- Corpo: SplitPane com texto do aluno e painel de comentários -->
+            <SplitPane dividerPositions="0.55" VBox.vgrow="ALWAYS">
+                <!-- Coluna esquerda: texto do aluno (somente leitura) -->
+                <VBox spacing="8.0">
+                    <Label text="Texto do aluno" styleClass="subtitle"/>
+                    <TextArea fx:id="txtAluno" editable="false" wrapText="true" VBox.vgrow="ALWAYS"
+                              promptText="(conteúdo em Markdown da seção)"/>
+                </VBox>
 
-            <!-- Tabela -->
-            <TableView fx:id="tblPendencias" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="colAluno" text="Aluno" prefWidth="180"/>
-                    <TableColumn fx:id="colSecao" text="Seção" prefWidth="160"/>
-                    <TableColumn fx:id="colPedido" text="Pedido" prefWidth="300"/>
-                    <TableColumn fx:id="colPrioridade" text="Prioridade" prefWidth="120"/>
-                    <TableColumn fx:id="colAcoes" text="Ações" prefWidth="160"/>
-                </columns>
-            </TableView>
+                <!-- Coluna direita: comentários -->
+                <VBox spacing="8.0">
+                    <Label text="Feedback" styleClass="subtitle"/>
 
-            <!-- Ações rápidas -->
-            <HBox spacing="8.0" alignment="CENTER_RIGHT">
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Abrir Editor" onAction="#abrirEditor"/>
-                <Button text="Abrir Chat" onAction="#abrirChat"/>
-            </HBox>
+                    <ScrollPane fx:id="commentsScroll" fitToWidth="true" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                        <VBox fx:id="commentsSection" spacing="8.0" styleClass="comments-section"/>
+                    </ScrollPane>
+
+                    <VBox spacing="6.0">
+                        <Label text="Comentário / feedback" styleClass="field-label"/>
+                        <TextArea fx:id="txtMarkdown" promptText="Digite seu feedback… (use seleção do texto ao lado para vincular o trecho)"/>
+                        <HBox spacing="8.0" alignment="CENTER_RIGHT">
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="Comentar" onAction="#comentar" styleClass="btn-primary"/>
+                            <Button text="Voltar" onAction="#voltar"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </SplitPane>
         </VBox>
     </HBox>
 
     <!-- Footer -->
     <HBox alignment="CENTER" spacing="12.0" styleClass="footer">
         <padding><Insets top="12.0" right="12.0" bottom="12.0" left="16.0"/></padding>
-        <Label styleClass="subtle" text="TG Connect API 2025-2"/>
+        <Label styleClass="subtle" text="Wireframe API 2025-2"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label styleClass="subtle" text="Grupo LizardsDBA"/>
+        <Label styleClass="subtle" text="Módulo Orientador"/>
     </HBox>
 </VBox>
