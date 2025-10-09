@@ -346,3 +346,98 @@
 .similarity-label { }
 .similarity-progress-bar { }
 .similarity-percentage { -fx-font-weight: bold; }
+
+/* ===== TABS DO EDITOR (dentro do card) ===== */
+.editor-tabs {
+    -fx-background-color: transparent; /* o card já provê o fundo ao redor */
+}
+
+/* tira o fundo cinza nativo atrás das abas */
+.editor-tabs > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+/* linha discreta separando cabeçalho do conteúdo (mesma borda usada no app) */
+.editor-tabs > .tab-header-area {
+    -fx-border-color: #d6d6d6;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 0;
+}
+
+/* aba padrão (não selecionada): minimalista, mesma tipografia */
+.editor-tabs .tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent #d6d6d6 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 8 12;
+}
+.editor-tabs .tab .tab-label {
+    -fx-text-fill: #6f6f6f;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600; /* consistente com botões */
+}
+.editor-tabs .tab:hover .tab-label {
+    -fx-text-fill: #1a1a1a;
+}
+
+/* aba selecionada: fundo branco, cantos 12 no topo, mesma borda do card */
+.editor-tabs .tab:selected {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 12 12 0 0;              /* mesmo raio do .card */
+    -fx-border-color: #d6d6d6 #d6d6d6 white #d6d6d6;
+    -fx-border-width: 1px 1px 0 1px;
+}
+.editor-tabs .tab:selected .tab-label {
+    -fx-text-fill: #1a1a1a;
+}
+
+/* área de conteúdo: “continuação” do card (fundo branco, borda #d6d6d6, raio 12) */
+.editor-tabs > .tab-content-area {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 12 12 12;  /* emenda com a aba selecionada */
+    -fx-border-color: #d6d6d6;
+    -fx-border-radius: 0 12 12 12;
+    -fx-border-width: 1px;
+    -fx-padding: 14; /* casa com o padding do .card */
+}
+
+/* ScrollPanes internos sem “cinza” de fundo */
+.editor-tabs .scroll-pane,
+.editor-tabs .scroll-pane .viewport,
+.editor-tabs .scroll-pane .content {
+    -fx-background-color: transparent;
+}
+
+/* TitledPane “flat” combinando com o padrão do app */
+.editor-tabs .titled-pane > .title {
+    -fx-background-color: transparent;
+    -fx-border-color: #d6d6d6;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 8 0 8 0;
+}
+.editor-tabs .titled-pane > .content {
+    -fx-background-color: transparent;
+    -fx-padding: 8 0 0 0;
+}
+
+/* Inputs dentro das abas — exatamente seu padrão de campos */
+.editor-tabs .text-field,
+.editor-tabs .text-area {
+    -fx-background-color: white;
+    -fx-border-color: #d6d6d6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+.editor-tabs .text-field:focused,
+.editor-tabs .text-area:focused {
+    -fx-border-color: #3b7dd8;
+    -fx-border-width: 2px;
+}
