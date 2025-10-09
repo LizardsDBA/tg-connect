@@ -9,6 +9,7 @@ public class App extends Application {
     SceneManager.init(stage, 1200, 720, "/application.css");
     SceneManager.go("login/Login.fxml");
     stage.setTitle("API/TG - Plataforma");
+    stage.setMaximized(true);
     stage.show();
   }
   public static void main(String[] args){ launch(args); }

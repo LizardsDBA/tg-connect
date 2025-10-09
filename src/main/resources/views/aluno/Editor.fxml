@@ -26,7 +26,7 @@
             <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
         </padding>
 
-        <!-- Sidebar (mesmo padrão do DashboardAluno) -->
+        <!-- Sidebar -->
         <VBox prefWidth="240.0" spacing="8.0" styleClass="sidebar">
             <Label styleClass="sidebar-title" text="Aluno"/>
 
@@ -37,12 +37,10 @@
                     onAction="#goInbox" styleClass="sidebar-link" text="Inbox"/>
 
             <Label styleClass="sidebar-group" text="TG"/>
-
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Markdown (Editor e Feedback)" onAction="#goEditor"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Comparar Versões" onAction="#goComparar"/>
-
         </VBox>
 
         <!-- Main Content (card) -->
@@ -52,14 +50,14 @@
             <VBox spacing="6.0">
                 <Label styleClass="title" text="Aluno — Editor"/>
                 <Label styleClass="subtitle"
-                       text="Escreva em Markdown e acompanhe o feedback do orientador."/>
+                       text="Preencha cada aba. O Markdown final será montado automaticamente."/>
             </VBox>
 
             <!-- Editor + Comentários -->
             <HBox spacing="12.0" VBox.vgrow="ALWAYS">
 
                 <!-- Coluna do Editor -->
-                <VBox HBox.hgrow="ALWAYS" spacing="6.0" VBox.vgrow="ALWAYS">
+                <VBox  HBox.hgrow="ALWAYS" spacing="6.0" VBox.vgrow="ALWAYS">
                     <HBox styleClass="markdown-toolbar" alignment="CENTER_LEFT" spacing="6.0">
                         <Button text="B" onAction="#toggleBold"/>
                         <Button text="I" onAction="#toggleItalic"/>
@@ -67,18 +65,309 @@
                         <Button text="H1" onAction="#insertH1"/>
                         <Button text="Link" onAction="#insertLink"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="Preview" onAction="#preview"/>
-                        <Button text="Salvar" onAction="#salvarVersao"/>
+                        <Button text="Preview" onAction="#preview">
+                            <tooltip>
+                                <Tooltip text="Pré-visualizar Markdown montado"/>
+                            </tooltip>
+                        </Button>
+                        <Button text="Salvar (aba atual)" onAction="#salvarVersao">
+                            <tooltip>
+                                <Tooltip text="Salva apenas a aba ativa"/>
+                            </tooltip>
+                        </Button>
                     </HBox>
 
-                    <TextArea fx:id="markdownEditor" VBox.vgrow="ALWAYS"
-                              promptText="Escreva seu conteúdo aqui..."
-                              styleClass="markdown-editor"/>
+                    <!-- TabPane com 9 abas -->
+                    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" styleClass="editor-tabs">
+
+                        <!-- ABA 1 - APRESENTAÇÃO DO ALUNO -->
+                        <Tab  text="1) Apresentação" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+
+                                        <TitledPane text="Informações Pessoais" expanded="true">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taInfoPessoais" promptText="Nome, curso, semestre, RA..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <TitledPane text="Histórico Acadêmico" expanded="false">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taHistoricoAcad" promptText="Formações, certificações..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <TitledPane text="Motivação para Ingressar na FATEC" expanded="false">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taMotivacao" promptText="Motivações e objetivos..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <TitledPane text="Histórico Profissional" expanded="false">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taHistoricoProf" promptText="Experiências, estágios..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <TitledPane text="Contatos" expanded="false">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taContatos" promptText="E-mail, GitHub, LinkedIn..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <TitledPane text="Principais Conhecimentos" expanded="false">
+                                            <content>
+                                                <VBox spacing="6.0">
+                                                    <padding>
+                                                        <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                    </padding>
+                                                    <TextArea fx:id="taConhecimentos" promptText="Stacks, linguagens, ferramentas..."/>
+                                                </VBox>
+                                            </content>
+                                        </TitledPane>
+
+                                        <Button text="Salvar Apresentação" onAction="#salvarAba1"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <!-- ABAS 2 a 7 - PROJETOS API (1º a 6º) -->
+                        <Tab text="2) API 1º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi1Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi1Problema" promptText="Problema (mín. 3 linhas)"/>
+                                        <TextArea fx:id="taApi1Solucao" promptText="Solução (≈5 linhas; tipo do sistema)"/>
+                                        <TextField fx:id="tfApi1Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi1Tecnologias" promptText="Tecnologias (tabela/itens)"/>
+                                        <TextArea fx:id="taApi1Contrib" promptText="Contribuições pessoais (≥5 linhas; papel Scrum)"/>
+                                        <TextArea fx:id="taApi1Hard" promptText="Hard skills (tabela/itens)"/>
+                                        <TextArea fx:id="taApi1Soft" promptText="Soft skills (caso real)"/>
+                                        <Button text="Salvar API 1º" onAction="#salvarAba2"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <Tab text="3) API 2º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi2Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi2Problema" promptText="Problema"/>
+                                        <TextArea fx:id="taApi2Solucao" promptText="Solução"/>
+                                        <TextField fx:id="tfApi2Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi2Tecnologias" promptText="Tecnologias"/>
+                                        <TextArea fx:id="taApi2Contrib" promptText="Contribuições pessoais"/>
+                                        <TextArea fx:id="taApi2Hard" promptText="Hard skills"/>
+                                        <TextArea fx:id="taApi2Soft" promptText="Soft skills"/>
+                                        <Button text="Salvar API 2º" onAction="#salvarAba3"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <Tab text="4) API 3º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi3Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi3Problema" promptText="Problema"/>
+                                        <TextArea fx:id="taApi3Solucao" promptText="Solução"/>
+                                        <TextField fx:id="tfApi3Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi3Tecnologias" promptText="Tecnologias"/>
+                                        <TextArea fx:id="taApi3Contrib" promptText="Contribuições pessoais"/>
+                                        <TextArea fx:id="taApi3Hard" promptText="Hard skills"/>
+                                        <TextArea fx:id="taApi3Soft" promptText="Soft skills"/>
+                                        <Button text="Salvar API 3º" onAction="#salvarAba4"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <Tab text="5) API 4º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi4Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi4Problema" promptText="Problema"/>
+                                        <TextArea fx:id="taApi4Solucao" promptText="Solução"/>
+                                        <TextField fx:id="tfApi4Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi4Tecnologias" promptText="Tecnologias"/>
+                                        <TextArea fx:id="taApi4Contrib" promptText="Contribuições pessoais"/>
+                                        <TextArea fx:id="taApi4Hard" promptText="Hard skills"/>
+                                        <TextArea fx:id="taApi4Soft" promptText="Soft skills"/>
+                                        <Button text="Salvar API 4º" onAction="#salvarAba5"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <Tab text="6) API 5º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi5Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi5Problema" promptText="Problema"/>
+                                        <TextArea fx:id="taApi5Solucao" promptText="Solução"/>
+                                        <TextField fx:id="tfApi5Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi5Tecnologias" promptText="Tecnologias"/>
+                                        <TextArea fx:id="taApi5Contrib" promptText="Contribuições pessoais"/>
+                                        <TextArea fx:id="taApi5Hard" promptText="Hard skills"/>
+                                        <TextArea fx:id="taApi5Soft" promptText="Soft skills"/>
+                                        <Button text="Salvar API 5º" onAction="#salvarAba6"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <Tab text="7) API 6º" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+                                        <TextField fx:id="tfApi6Empresa" promptText="Empresa Parceira"/>
+                                        <TextArea fx:id="taApi6Problema" promptText="Problema"/>
+                                        <TextArea fx:id="taApi6Solucao" promptText="Solução"/>
+                                        <TextField fx:id="tfApi6Repo" promptText="Link do repositório (GitHub)"/>
+                                        <TextArea fx:id="taApi6Tecnologias" promptText="Tecnologias"/>
+                                        <TextArea fx:id="taApi6Contrib" promptText="Contribuições pessoais"/>
+                                        <TextArea fx:id="taApi6Hard" promptText="Hard skills"/>
+                                        <TextArea fx:id="taApi6Soft" promptText="Soft skills"/>
+                                        <Button text="Salvar API 6º" onAction="#salvarAba7"/>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <!-- ABA 8 - TABELA RESUMO (GridPane com 3 colunas × 6 linhas) -->
+                        <Tab text="8) Tabela Resumo" closable="false">
+                            <ScrollPane fitToWidth="true">
+                                <content>
+                                    <VBox spacing="8.0">
+                                        <padding>
+                                            <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        </padding>
+
+                                        <GridPane hgap="8.0" vgap="8.0">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="20"/>
+                                                <ColumnConstraints percentWidth="30"/>
+                                                <ColumnConstraints percentWidth="50"/>
+                                            </columnConstraints>
+
+                                            <!-- Cabeçalho -->
+                                            <Label text="Semestre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                            <Label text="Empresa Parceira" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                            <Label text="Solução Desenvolvida" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 1 -->
+                                            <TextField fx:id="tfSem1" promptText="1º" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp1" promptText="Empresa..." GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol1" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 2 -->
+                                            <TextField fx:id="tfSem2" promptText="2º" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp2" promptText="Empresa..." GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol2" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 3 -->
+                                            <TextField fx:id="tfSem3" promptText="3º" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp3" promptText="Empresa..." GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol3" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 4 -->
+                                            <TextField fx:id="tfSem4" promptText="4º" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp4" promptText="Empresa..." GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol4" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 5 -->
+                                            <TextField fx:id="tfSem5" promptText="5º" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp5" promptText="Empresa..." GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol5" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="5" GridPane.columnIndex="2"/>
+
+                                            <!-- Linha 6 -->
+                                            <TextField fx:id="tfSem6" promptText="6º" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                                            <TextField fx:id="tfEmp6" promptText="Empresa..." GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                                            <TextArea fx:id="taSol6" promptText="Solução..." prefRowCount="2" GridPane.rowIndex="6" GridPane.columnIndex="2"/>
+                                        </GridPane>
+
+                                        <HBox spacing="8.0">
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Button text="Salvar Tabela Resumo" onAction="#salvarAba8"/>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </ScrollPane>
+                        </Tab>
+
+                        <!-- ABA 9 - CONSIDERAÇÕES FINAIS -->
+                        <Tab text="9) Considerações Finais" closable="false">
+                            <VBox spacing="8.0">
+                                <padding>
+                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                </padding>
+                                <TextArea fx:id="taConclusoes" promptText="Conclusões finais..."/>
+                                <Button text="Salvar Considerações" onAction="#salvarAba9"/>
+                            </VBox>
+                        </Tab>
+
+                    </TabPane>
                 </VBox>
 
                 <!-- Coluna de Comentários -->
                 <ScrollPane fitToWidth="true" prefWidth="320.0">
-                    <VBox fx:id="commentsSection" spacing="8.0" styleClass="comments-section"/>
+                    <content>
+                        <VBox fx:id="commentsSection" spacing="8.0" styleClass="comments-section"/>
+                    </content>
                 </ScrollPane>
             </HBox>
         </VBox>
