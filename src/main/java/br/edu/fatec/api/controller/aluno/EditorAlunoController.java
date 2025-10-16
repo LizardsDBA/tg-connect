@@ -11,6 +11,11 @@ import br.edu.fatec.api.nav.SceneManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// imports
+import br.edu.fatec.api.model.auth.User;
+import br.edu.fatec.api.nav.Session;
+import br.edu.fatec.api.service.EditorAlunoService;
+
 public class EditorAlunoController {
 
     // ====== UI base (sidebar etc.)
@@ -42,7 +47,7 @@ public class EditorAlunoController {
     @FXML private TextArea taApi6Problema, taApi6Solucao, taApi6Tecnologias, taApi6Contrib, taApi6Hard, taApi6Soft;
     @FXML private TextField tfApi6Repo;
 
-    // ====== ABA 8 - Tabela Resumo (GridPane com TextFields/TextAreas)
+    // ====== ABA 8 - Tabela Resumo
     @FXML private TextField tfSem1, tfSem2, tfSem3, tfSem4, tfSem5, tfSem6;
     @FXML private TextField tfEmp1, tfEmp2, tfEmp3, tfEmp4, tfEmp5, tfEmp6;
     @FXML private TextArea taSol1, taSol2, taSol3, taSol4, taSol5, taSol6;
@@ -53,9 +58,9 @@ public class EditorAlunoController {
     // ====== Estado
     private TextInputControl focusedTextInput; // usado pela toolbar
 
-    // ====== Simulação de persistência em memória (sem BD)
-    // chave = numero_aba (1..9) | valor = markdown da seção
-    private final Map<Integer, String> secoesMem = new LinkedHashMap<>();
+    // ====== Botão salvar tudo + service
+    @FXML private Button btnSalvarTudo; // (se tiver fx:id no FXML)
+    private final EditorAlunoService service = new EditorAlunoService();
 
     // ====== Navegação (inalterada)
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
@@ -70,6 +75,90 @@ public class EditorAlunoController {
     // ====== Ciclo de vida
     @FXML
     public void initialize() {
+        // Se não estiver logado, volta ao login
+        User u = Session.getUser();
+        if (u == null) {
+            SceneManager.go("login/Login.fxml");
+            return;
+        }
+
+        // Pré-carrega a última versão nos campos
+        try {
+            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+            service.carregarTudo(trabalhoId).ifPresent(d -> {
+                // Aba 1
+                if (taInfoPessoais != null)   taInfoPessoais.setText(d.infoPessoais);
+                if (taHistoricoAcad != null)  taHistoricoAcad.setText(d.historicoAcad);
+                if (taMotivacao != null)      taMotivacao.setText(d.motivacao);
+                if (taHistoricoProf != null)  taHistoricoProf.setText(d.historicoProf);
+                if (taContatos != null)       taContatos.setText(d.contatos);
+                if (taConhecimentos != null)  taConhecimentos.setText(d.conhecimentos);
+                if (taConclusoes != null)     taConclusoes.setText(d.consideracoes); // Aba 9
+
+                // APIs 1..6
+                if (tfApi1Empresa != null) tfApi1Empresa.setText(d.api1Empresa);
+                if (taApi1Problema != null) taApi1Problema.setText(d.api1Problema);
+                if (taApi1Solucao != null) taApi1Solucao.setText(d.api1Solucao);
+                if (tfApi1Repo != null) tfApi1Repo.setText(d.api1Repo);
+                if (taApi1Tecnologias != null) taApi1Tecnologias.setText(d.api1Tecnologias);
+                if (taApi1Contrib != null) taApi1Contrib.setText(d.api1Contrib);
+                if (taApi1Hard != null) taApi1Hard.setText(d.api1Hard);
+                if (taApi1Soft != null) taApi1Soft.setText(d.api1Soft);
+
+                if (tfApi2Empresa != null) tfApi2Empresa.setText(d.api2Empresa);
+                if (taApi2Problema != null) taApi2Problema.setText(d.api2Problema);
+                if (taApi2Solucao != null) taApi2Solucao.setText(d.api2Solucao);
+                if (tfApi2Repo != null) tfApi2Repo.setText(d.api2Repo);
+                if (taApi2Tecnologias != null) taApi2Tecnologias.setText(d.api2Tecnologias);
+                if (taApi2Contrib != null) taApi2Contrib.setText(d.api2Contrib);
+                if (taApi2Hard != null) taApi2Hard.setText(d.api2Hard);
+                if (taApi2Soft != null) taApi2Soft.setText(d.api2Soft);
+
+                if (tfApi3Empresa != null) tfApi3Empresa.setText(d.api3Empresa);
+                if (taApi3Problema != null) taApi3Problema.setText(d.api3Problema);
+                if (taApi3Solucao != null) taApi3Solucao.setText(d.api3Solucao);
+                if (tfApi3Repo != null) tfApi3Repo.setText(d.api3Repo);
+                if (taApi3Tecnologias != null) taApi3Tecnologias.setText(d.api3Tecnologias);
+                if (taApi3Contrib != null) taApi3Contrib.setText(d.api3Contrib);
+                if (taApi3Hard != null) taApi3Hard.setText(d.api3Hard);
+                if (taApi3Soft != null) taApi3Soft.setText(d.api3Soft);
+
+                if (tfApi4Empresa != null) tfApi4Empresa.setText(d.api4Empresa);
+                if (taApi4Problema != null) taApi4Problema.setText(d.api4Problema);
+                if (taApi4Solucao != null) taApi4Solucao.setText(d.api4Solucao);
+                if (tfApi4Repo != null) tfApi4Repo.setText(d.api4Repo);
+                if (taApi4Tecnologias != null) taApi4Tecnologias.setText(d.api4Tecnologias);
+                if (taApi4Contrib != null) taApi4Contrib.setText(d.api4Contrib);
+                if (taApi4Hard != null) taApi4Hard.setText(d.api4Hard);
+                if (taApi4Soft != null) taApi4Soft.setText(d.api4Soft);
+
+                if (tfApi5Empresa != null) tfApi5Empresa.setText(d.api5Empresa);
+                if (taApi5Problema != null) taApi5Problema.setText(d.api5Problema);
+                if (taApi5Solucao != null) taApi5Solucao.setText(d.api5Solucao);
+                if (tfApi5Repo != null) tfApi5Repo.setText(d.api5Repo);
+                if (taApi5Tecnologias != null) taApi5Tecnologias.setText(d.api5Tecnologias);
+                if (taApi5Contrib != null) taApi5Contrib.setText(d.api5Contrib);
+                if (taApi5Hard != null) taApi5Hard.setText(d.api5Hard);
+                if (taApi5Soft != null) taApi5Soft.setText(d.api5Soft);
+
+                if (tfApi6Empresa != null) tfApi6Empresa.setText(d.api6Empresa);
+                if (taApi6Problema != null) taApi6Problema.setText(d.api6Problema);
+                if (taApi6Solucao != null) taApi6Solucao.setText(d.api6Solucao);
+                if (tfApi6Repo != null) tfApi6Repo.setText(d.api6Repo);
+                if (taApi6Tecnologias != null) taApi6Tecnologias.setText(d.api6Tecnologias);
+                if (taApi6Contrib != null) taApi6Contrib.setText(d.api6Contrib);
+                if (taApi6Hard != null) taApi6Hard.setText(d.api6Hard);
+                if (taApi6Soft != null) taApi6Soft.setText(d.api6Soft);
+
+                // Aba 8: preencher campos a partir do markdown do resumo
+                if (d.resumoMd != null && !d.resumoMd.isBlank()) {
+                    preencherResumoAPartirDoMarkdown(d.resumoMd);
+                }
+            });
+        } catch (Exception e) {
+            alertWarn("Falha ao carregar a última versão: " + e.getMessage());
+        }
+
         hookFocusHandlers();
         applyTips();
     }
@@ -91,7 +180,42 @@ public class EditorAlunoController {
         if (taApi1Problema != null) taApi1Problema.setTooltip(new Tooltip("Descreva o problema (mín. 3 linhas)."));
         if (taApi1Solucao != null) taApi1Solucao.setTooltip(new Tooltip("Explique a solução (≈5 linhas; tipo do sistema)."));
         if (tfApi1Repo != null) tfApi1Repo.setTooltip(new Tooltip("URL do repositório no GitHub."));
-        // Adicione mais tooltips conforme necessário nas demais abas…
+    }
+
+    private void insertAround(String wrapper){
+        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
+        if (target == null) return;
+        String sel = target.getSelectedText();
+        if (sel == null || sel.isEmpty()) sel = "texto";
+        replaceSelection(target, wrapper + sel + wrapper);
+    }
+
+    private void insertAtCaret(String text){
+        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
+        if (target == null) return;
+        replaceSelection(target, text);
+    }
+
+    private void replaceSelection(TextInputControl target, String text){
+        var i = target.getSelection();
+        target.replaceText(i.getStart(), i.getEnd(), text);
+        target.positionCaret(i.getStart() + text.length());
+    }
+
+    private TextInputControl getFirstVisibleTextInput(){
+        Node content = tabPane.getSelectionModel().getSelectedItem().getContent();
+        return findFirst(content);
+    }
+
+    private TextInputControl findFirst(Node n){
+        if (n instanceof TextInputControl tic) return tic;
+        if (n instanceof Parent p){
+            for (Node c : p.getChildrenUnmodifiable()){
+                TextInputControl r = findFirst(c);
+                if (r != null) return r;
+            }
+        }
+        return null;
     }
 
     // ====== Toolbar – Markdown sobre o campo focado
@@ -109,73 +233,65 @@ public class EditorAlunoController {
         a.showAndWait();
     }
 
-    public void salvarVersao(){
-        int idx = tabPane.getSelectionModel().getSelectedIndex();
-        switch (idx) {
-            case 0 -> salvarAba1();
-            case 1 -> salvarAba2();
-            case 2 -> salvarAba3();
-            case 3 -> salvarAba4();
-            case 4 -> salvarAba5();
-            case 5 -> salvarAba6();
-            case 6 -> salvarAba7();
-            case 7 -> salvarAba8();
-            case 8 -> salvarAba9();
-            default -> {}
+    // ====== Salvar TUDO (único handler chamado pelo botão da toolbar)
+    public void salvarTudo() {
+        try {
+            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+
+            EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
+
+            // Aba 1:
+            d.infoPessoais   = val(taInfoPessoais);
+            d.historicoAcad  = val(taHistoricoAcad);
+            d.motivacao      = val(taMotivacao);
+            d.historicoProf  = val(taHistoricoProf);
+            d.contatos       = val(taContatos);
+            d.conhecimentos  = val(taConhecimentos);
+
+            // Abas 2..7 (API 1..6):
+            d.api1Empresa=val(tfApi1Empresa); d.api1Problema=val(taApi1Problema); d.api1Solucao=val(taApi1Solucao); d.api1Repo=val(tfApi1Repo);
+            d.api1Tecnologias=val(taApi1Tecnologias); d.api1Contrib=val(taApi1Contrib); d.api1Hard=val(taApi1Hard); d.api1Soft=val(taApi1Soft);
+
+            d.api2Empresa=val(tfApi2Empresa); d.api2Problema=val(taApi2Problema); d.api2Solucao=val(taApi2Solucao); d.api2Repo=val(tfApi2Repo);
+            d.api2Tecnologias=val(taApi2Tecnologias); d.api2Contrib=val(taApi2Contrib); d.api2Hard=val(taApi2Hard); d.api2Soft=val(taApi2Soft);
+
+            d.api3Empresa=val(tfApi3Empresa); d.api3Problema=val(taApi3Problema); d.api3Solucao=val(taApi3Solucao); d.api3Repo=val(tfApi3Repo);
+            d.api3Tecnologias=val(taApi3Tecnologias); d.api3Contrib=val(taApi3Contrib); d.api3Hard=val(taApi3Hard); d.api3Soft=val(taApi3Soft);
+
+            d.api4Empresa=val(tfApi4Empresa); d.api4Problema=val(taApi4Problema); d.api4Solucao=val(taApi4Solucao); d.api4Repo=val(tfApi4Repo);
+            d.api4Tecnologias=val(taApi4Tecnologias); d.api4Contrib=val(taApi4Contrib); d.api4Hard=val(taApi4Hard); d.api4Soft=val(taApi4Soft);
+
+            d.api5Empresa=val(tfApi5Empresa); d.api5Problema=val(taApi5Problema); d.api5Solucao=val(taApi5Solucao); d.api5Repo=val(tfApi5Repo);
+            d.api5Tecnologias=val(taApi5Tecnologias); d.api5Contrib=val(taApi5Contrib); d.api5Hard=val(taApi5Hard); d.api5Soft=val(taApi5Soft);
+
+            d.api6Empresa=val(tfApi6Empresa); d.api6Problema=val(taApi6Problema); d.api6Solucao=val(taApi6Solucao); d.api6Repo=val(tfApi6Repo);
+            d.api6Tecnologias=val(taApi6Tecnologias); d.api6Contrib=val(taApi6Contrib); d.api6Hard=val(taApi6Hard); d.api6Soft=val(taApi6Soft);
+
+            // Aba 8:
+            d.resumoMd = montarMdResumo();
+
+            // Aba 9:
+            d.consideracoesFinais = val(taConclusoes);
+
+            // MD consolidado (preview):
+            d.mdCompleto = montarMarkdownCompleto();
+
+            String novaVersao = service.salvarTudo(trabalhoId, d);
+
+            Alert ok = new Alert(Alert.AlertType.INFORMATION);
+            ok.setHeaderText("Salvo com sucesso!");
+            ok.setContentText("Nova versão: " + novaVersao);
+            ok.showAndWait();
+
+        } catch (Exception ex) {
+            Alert err = new Alert(Alert.AlertType.ERROR);
+            err.setHeaderText("Falha ao salvar");
+            err.setContentText(ex.getMessage());
+            err.showAndWait();
         }
     }
 
-    private void insertAround(String wrapper){
-        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
-        if (target == null) return;
-        String sel = target.getSelectedText();
-        if (sel == null || sel.isEmpty()) sel = "texto";
-        replaceSelection(target, wrapper + sel + wrapper);
-    }
-    private void insertAtCaret(String text){
-        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
-        if (target == null) return;
-        replaceSelection(target, text);
-    }
-    private void replaceSelection(TextInputControl target, String text){
-        var i = target.getSelection();
-        target.replaceText(i.getStart(), i.getEnd(), text);
-        target.positionCaret(i.getStart() + text.length());
-    }
-    private TextInputControl getFirstVisibleTextInput(){
-        Node content = tabPane.getSelectionModel().getSelectedItem().getContent();
-        return findFirst(content);
-    }
-    private TextInputControl findFirst(Node n){
-        if (n instanceof TextInputControl tic) return tic;
-        if (n instanceof Parent p){
-            for (Node c : p.getChildrenUnmodifiable()){
-                TextInputControl r = findFirst(c);
-                if (r != null) return r;
-            }
-        }
-        return null;
-    }
-
-    // ====== Salvar por ABA (memória)
-    public void salvarAba1(){ secoesMem.put(1, montarMdAba1()); feedbackOk(); }
-    public void salvarAba2(){ secoesMem.put(2, montarMdProjeto(1)); feedbackOk(); }
-    public void salvarAba3(){ secoesMem.put(3, montarMdProjeto(2)); feedbackOk(); }
-    public void salvarAba4(){ secoesMem.put(4, montarMdProjeto(3)); feedbackOk(); }
-    public void salvarAba5(){ secoesMem.put(5, montarMdProjeto(4)); feedbackOk(); }
-    public void salvarAba6(){ secoesMem.put(6, montarMdProjeto(5)); feedbackOk(); }
-    public void salvarAba7(){ secoesMem.put(7, montarMdProjeto(6)); feedbackOk(); }
-    public void salvarAba8(){ secoesMem.put(8, montarMdResumo()); feedbackOk(); }
-    public void salvarAba9(){ secoesMem.put(9, montarMdConclusoes()); feedbackOk(); }
-
-    private void feedbackOk(){
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setHeaderText(null);
-        a.setContentText("Seção salva (memória) com sucesso.");
-        a.showAndWait();
-    }
-
-    // ====== Montagem de Markdown (por seção)
+    // ====== Montagem de Markdown (por seção) — mantém seu modelo atual
     private String montarMdAba1(){
         StringBuilder sb = new StringBuilder();
         sb.append("# APRESENTAÇÃO DO ALUNO\n\n");
@@ -231,12 +347,6 @@ public class EditorAlunoController {
         if (!contrib.isBlank()) sb.append("### Contribuições Pessoais\n").append(contrib).append("\n\n");
         if (!hard.isBlank()) sb.append("### Hard Skills\n").append(hard).append("\n\n");
         if (!soft.isBlank()) sb.append("### Soft Skills\n").append(soft).append("\n\n");
-
-        /* ===== (VALIDAÇÃO OPCIONAL – DESCOMENTAR QUANDO FOR ATIVAR)
-        if (linhas(problema) < 3) { warn("Problema deve ter ao menos 3 linhas."); }
-        if (linhas(solucao) < 5) { warn("Solução deve ter ~5 linhas."); }
-        if (!repo.isBlank() && !repo.matches("^https://github\\.com/.+/.+")) { warn("Repositório deve ser uma URL GitHub válida."); }
-        */
         return sb.toString();
     }
 
@@ -244,7 +354,7 @@ public class EditorAlunoController {
         String header = "## Tabela Resumo dos Projetos API\n\n"
                 + "| Semestre | Empresa Parceira | Solução Desenvolvida |\n|---|---|---|\n";
 
-        if (tfSem1 != null){ // se os campos da opção B existem
+        if (tfSem1 != null){
             String[][] rows = {
                     {val(tfSem1), val(tfEmp1), val(taSol1)},
                     {val(tfSem2), val(tfEmp2), val(taSol2)},
@@ -258,8 +368,6 @@ public class EditorAlunoController {
                     .collect(Collectors.joining("\n"));
             return header + corpo + "\n\n";
         }
-
-        // Fallback vazio (não deve ocorrer)
         return header + "|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n\n";
     }
 
@@ -270,40 +378,74 @@ public class EditorAlunoController {
     private String montarMarkdownCompleto(){
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= 9; i++){
-            String md = secoesMem.get(i);
-            if (md != null && !md.isBlank()) {
-                sb.append(md);
-                if (!md.endsWith("\n")) sb.append("\n");
-            } else {
-                sb.append(switch (i){
-                    case 1 -> montarMdAba1();
-                    case 2 -> montarMdProjeto(1);
-                    case 3 -> montarMdProjeto(2);
-                    case 4 -> montarMdProjeto(3);
-                    case 5 -> montarMdProjeto(4);
-                    case 6 -> montarMdProjeto(5);
-                    case 7 -> montarMdProjeto(6);
-                    case 8 -> montarMdResumo();
-                    case 9 -> montarMdConclusoes();
-                    default -> "";
-                });
-            }
+            sb.append(switch (i){
+                case 1 -> montarMdAba1();
+                case 2 -> montarMdProjeto(1);
+                case 3 -> montarMdProjeto(2);
+                case 4 -> montarMdProjeto(3);
+                case 5 -> montarMdProjeto(4);
+                case 6 -> montarMdProjeto(5);
+                case 7 -> montarMdProjeto(6);
+                case 8 -> montarMdResumo();
+                case 9 -> montarMdConclusoes();
+                default -> "";
+            });
         }
         return sb.toString();
     }
 
+    // ====== Parse do resumo_md para os campos da Aba 8
+    private void preencherResumoAPartirDoMarkdown(String md) {
+        List<String[]> linhas = extrairLinhasTabela(md);
+        int linha = 0;
+        for (String[] cols : linhas) {
+            if (cols.length < 3) continue;
+            linha++;
+            switch (linha) {
+                case 1 -> { if (tfSem1!=null) tfSem1.setText(cols[0]); if (tfEmp1!=null) tfEmp1.setText(cols[1]); if (taSol1!=null) taSol1.setText(cols[2]); }
+                case 2 -> { if (tfSem2!=null) tfSem2.setText(cols[0]); if (tfEmp2!=null) tfEmp2.setText(cols[1]); if (taSol2!=null) taSol2.setText(cols[2]); }
+                case 3 -> { if (tfSem3!=null) tfSem3.setText(cols[0]); if (tfEmp3!=null) tfEmp3.setText(cols[1]); if (taSol3!=null) taSol3.setText(cols[2]); }
+                case 4 -> { if (tfSem4!=null) tfSem4.setText(cols[0]); if (tfEmp4!=null) tfEmp4.setText(cols[1]); if (taSol4!=null) taSol4.setText(cols[2]); }
+                case 5 -> { if (tfSem5!=null) tfSem5.setText(cols[0]); if (tfEmp5!=null) tfEmp5.setText(cols[1]); if (taSol5!=null) taSol5.setText(cols[2]); }
+                case 6 -> { if (tfSem6!=null) tfSem6.setText(cols[0]); if (tfEmp6!=null) tfEmp6.setText(cols[1]); if (taSol6!=null) taSol6.setText(cols[2]); }
+                default -> { /* ignora linhas extras */ }
+            }
+            if (linha >= 6) break;
+        }
+    }
+
+    private List<String[]> extrairLinhasTabela(String md) {
+        List<String[]> out = new ArrayList<>();
+        boolean dentro = false;
+        boolean headerVisto = false;
+        for (String raw : md.split("\\R")) {
+            String line = raw.trim();
+            if (!line.startsWith("|")) {
+                if (dentro) break; // saiu da tabela
+                continue;
+            }
+            // linha de separadores --- (ativa modo tabela)
+            if (line.matches("\\|\\s*-+\\s*\\|.*")) { dentro = true; continue; }
+            // primeira linha com '|' deve ser o header; marca e segue
+            if (!headerVisto) { headerVisto = true; continue; }
+            if (!dentro) continue;
+
+            // linha de dados: remove bordas e separa por '|'
+            String inner = line;
+            if (inner.startsWith("|")) inner = inner.substring(1);
+            if (inner.endsWith("|")) inner = inner.substring(0, inner.length()-1);
+            String[] cols = Arrays.stream(inner.split("\\|"))
+                    .map(String::trim)
+                    .toArray(String[]::new);
+            out.add(cols);
+        }
+        return out;
+    }
+
+    // ====== utils
     private static String val(TextInputControl c){ return (c == null || c.getText()==null) ? "" : c.getText().trim(); }
     private static String safe(String s){ return s == null ? "" : s.trim().replace("\n"," "); }
-    private static int linhas(String s){
-        if (s == null || s.isBlank()) return 0;
-        return (int) Arrays.stream(s.split("\\R")).filter(t -> !t.isBlank()).count();
-    }
-    private void warn(String msg){
-        Alert a = new Alert(Alert.AlertType.WARNING);
-        a.setHeaderText("Validação");
-        a.setContentText(msg);
-        a.showAndWait();
-    }
+    private void alertWarn(String msg){ Alert a = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK); a.setHeaderText(null); a.showAndWait(); }
     private void appendIfNotEmpty(StringBuilder sb, String titulo, TextArea ta){
         String t = val(ta);
         if (!t.isBlank()){
