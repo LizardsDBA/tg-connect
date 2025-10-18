@@ -1,5 +1,6 @@
 package br.edu.fatec.api.controller.aluno;
 
+import br.edu.fatec.api.controller.aluno.InboxAlunoController;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
@@ -28,13 +29,11 @@ public class DashboardAlunoController {
 
         // Carrega KPIs do aluno logado
         service.carregarKpis(u.getId()).ifPresentOrElse(k -> {
-            // percentual é double no service; arredondo para int para manter seu setConclusao(int)
             int pct = (int) Math.round(k.percentual());
             setConclusao(pct);
             setPendencias(k.pendencias());
             setUltimaVersao(k.ultimaVersao());
         }, () -> {
-            // fallback seguro
             setConclusao(0);
             setPendencias(0);
             setUltimaVersao("—");
@@ -45,11 +44,21 @@ public class DashboardAlunoController {
     private void setPendencias(int n) { lblPendencias.setText(Integer.toString(n)); }
     private void setUltimaVersao(String v) { lblUltimaVersao.setText(v); }
 
-    // Navegação (mantida)
+    // Navegação
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goDashboard(){ SceneManager.go("aluno/Dashboard.fxml"); }
-    public void goInbox(){ SceneManager.go("aluno/Inbox.fxml"); }
+
+    public void goInbox(){
+        SceneManager.go("aluno/Inbox.fxml", c -> {
+            var ctrl = (InboxAlunoController) c;
+            User u = Session.getUser();
+            if (u == null) { SceneManager.go("login/Login.fxml"); return; }
+            ctrl.setAlunoContext(u.getId());
+            ctrl.onReady();
+        });
+    }
+
     public void goEditor(){ SceneManager.go("aluno/Editor.fxml"); }
     public void goComparar(){ SceneManager.go("aluno/Comparar.fxml"); }
     public void goConclusao(){ SceneManager.go("aluno/Conclusao.fxml"); }
