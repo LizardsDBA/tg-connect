@@ -197,7 +197,7 @@ public class EditorOrientadorController {
         if (parte == null || trabalhoIdSelecionado == null || alunoSelecionadoId == null) return;
 
         String versao = versaoAtual(parte);
-        String texto = txtComentario.getText().trim();
+        String texto = "FEEDBACK\nReferente a: " + parte + "\n" + txtComentario.getText().trim();
         if (texto.isBlank()) return;
 
         Long destinatarioId = alunoSelecionadoId;

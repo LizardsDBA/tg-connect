@@ -56,13 +56,13 @@
             <HBox alignment="CENTER_LEFT" spacing="12.0">
                 <children>
                     <Label text="Aluno:" />
-                    <Label fx:id="lblAluno" text="—" />
-                    <Label text=" • Parte:" />
-                    <Label fx:id="lblParte" text="—" />
-                    <Label text=" • Versão:" />
-                    <Label fx:id="lblVersao" text="—" />
-                    <Label text=" • Status:" />
-                    <Label fx:id="lblStatus" text="—" />
+                    <Label fx:id="lblAluno" text=" " />
+                    <Label text=" |   Parte:" />
+                    <Label fx:id="lblParte" text=" " />
+                    <Label text=" |   Versão:" />
+                    <Label fx:id="lblVersao" text=" " />
+                    <Label text=" |   Status:" />
+                    <Label fx:id="lblStatus" text=" " />
                 </children>
             </HBox>
 
