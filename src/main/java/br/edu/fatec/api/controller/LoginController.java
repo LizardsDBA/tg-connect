@@ -1,5 +1,6 @@
 package br.edu.fatec.api.controller;
 
+import br.edu.fatec.api.controller.aluno.EditorAlunoController;
 import br.edu.fatec.api.dao.JdbcLoginDao;
 import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.model.auth.User;

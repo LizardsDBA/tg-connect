@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS tg_apresentacao (
     consideracoes_finais     LONGTEXT NULL,
     created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     apresentacao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
-    consideraçao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
+    consideracao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
     UNIQUE KEY uk_apresentacao_trab_versao (trabalho_id, versao)
     ) ENGINE=InnoDB;

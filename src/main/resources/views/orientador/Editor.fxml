@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.2-ea"
+<VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="br.edu.fatec.api.controller.orientador.EditorOrientadorController"
       spacing="0"
@@ -19,7 +19,7 @@
         <Button text="Sair" onAction="#logout"/>
     </HBox>
 
-    <!-- Main Layout with Sidebar -->
+    <!-- Main (Sidebar + Content) -->
     <HBox VBox.vgrow="ALWAYS" spacing="16.0">
         <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
 
@@ -39,46 +39,78 @@
                     onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
         </VBox>
 
-        <!-- Main Content -->
+        <!-- Main Content Card -->
         <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
 
             <!-- Breadcrumbs -->
-            <Label styleClass="subtle" text="Orientador / Editor"/>
+            <Label styleClass="subtle" text="Orientador / Feedback"/>
 
             <!-- Título -->
             <VBox spacing="6.0">
-                <Label styleClass="title" text="Orientador — Editor/Correção"/>
-                <Label styleClass="subtitle" text="Selecione um trecho do texto do aluno e registre seu feedback."/>
+                <Label styleClass="title" text="Orientador — Feedback"/>
+                <Label styleClass="subtitle" text="Converse com seus alunos (1 canal por aluno)."/>
             </VBox>
 
-            <!-- Corpo: SplitPane com texto do aluno e painel de comentários -->
-            <SplitPane dividerPositions="0.55" VBox.vgrow="ALWAYS">
-                <!-- Coluna esquerda: texto do aluno (somente leitura) -->
-                <VBox spacing="8.0">
-                    <Label text="Texto do aluno" styleClass="subtitle"/>
-                    <TextArea fx:id="txtAluno" editable="false" wrapText="true" VBox.vgrow="ALWAYS"
-                              promptText="(conteúdo em Markdown da seção)"/>
+            <!-- Barra de status (aluno/parte/versão/status) -->
+            <HBox spacing="12.0" alignment="CENTER_LEFT">
+                <children>
+                    <Label text="Aluno:"/>
+                    <Label fx:id="lblAluno" text="—"/>
+                    <Label text=" • Parte:"/>
+                    <Label fx:id="lblParte" text="—"/>
+                    <Label text=" • Versão:"/>
+                    <Label fx:id="lblVersao" text="—"/>
+                    <Label text=" • Status:"/>
+                    <Label fx:id="lblStatus" text="—"/>
+                </children>
+            </HBox>
+
+            <!-- Abas das Partes (no topo do conteúdo) -->
+            <TabPane fx:id="tabPartes" tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                    <Tab text="Apresentação" fx:id="tabApresentacao"/>
+                    <Tab text="API 1" fx:id="tabApi1"/>
+                    <Tab text="API 2" fx:id="tabApi2"/>
+                    <Tab text="API 3" fx:id="tabApi3"/>
+                    <Tab text="API 4" fx:id="tabApi4"/>
+                    <Tab text="API 5" fx:id="tabApi5"/>
+                    <Tab text="API 6" fx:id="tabApi6"/>
+                    <Tab text="Resumo" fx:id="tabResumo"/>
+                    <Tab text="Considerações finais" fx:id="tabFinais"/>
+                </tabs>
+            </TabPane>
+
+            <!-- Conteúdo dividido: lista de alunos (esq) + preview/ações (dir) -->
+            <HBox spacing="16.0" VBox.vgrow="ALWAYS">
+
+                <!-- Lista de orientandos -->
+                <VBox spacing="8.0" prefWidth="320.0">
+                    <Label text="Orientandos"/>
+                    <TextField fx:id="txtBuscaAluno" promptText="Buscar por nome..."/>
+                    <TableView fx:id="tblAlunos" prefHeight="560">
+                        <columns>
+                            <TableColumn fx:id="colNome" text="Nome" prefWidth="280"/>
+                        </columns>
+                    </TableView>
                 </VBox>
 
-                <!-- Coluna direita: comentários -->
-                <VBox spacing="8.0">
-                    <Label text="Feedback" styleClass="subtitle"/>
+                <!-- Preview + Comentário + Ações -->
+                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                    <Label text="Preview (Markdown) — somente leitura"/>
+                    <TextArea fx:id="txtPreview" editable="false" wrapText="true" VBox.vgrow="ALWAYS" prefRowCount="22"/>
 
-                    <ScrollPane fx:id="commentsScroll" fitToWidth="true" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
-                        <VBox fx:id="commentsSection" spacing="8.0" styleClass="comments-section"/>
-                    </ScrollPane>
-
-                    <VBox spacing="6.0">
-                        <Label text="Comentário / feedback" styleClass="field-label"/>
-                        <TextArea fx:id="txtMarkdown" promptText="Digite seu feedback… (use seleção do texto ao lado para vincular o trecho)"/>
-                        <HBox spacing="8.0" alignment="CENTER_RIGHT">
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Button text="Comentar" onAction="#comentar" styleClass="btn-primary"/>
-                            <Button text="Voltar" onAction="#voltar"/>
-                        </HBox>
-                    </VBox>
+                    <Label text="Comentário para o aluno (aparecerá na tela de Chat)"/>
+                    <HBox spacing="12">
+                        <TextArea fx:id="txtComentario" promptText="Escreva seu comentário..."
+                                  prefRowCount="3" HBox.hgrow="ALWAYS"/>
+                        <VBox spacing="8" alignment="TOP_RIGHT">
+                            <Button fx:id="btnEnviarComentario" text="Enviar comentário" maxWidth="Infinity"/>
+                            <Button fx:id="btnConcluirParte" text="Marcar como concluída" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
                 </VBox>
-            </SplitPane>
+
+            </HBox>
         </VBox>
     </HBox>
 
