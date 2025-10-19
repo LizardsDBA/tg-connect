@@ -128,6 +128,7 @@ public class EditorOrientadorController {
                         tabPartes.getSelectionModel().selectedItemProperty()
                 )
         );
+
     }
 
     private static boolean isBlank(String s) {

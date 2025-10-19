@@ -7,18 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * DAO único (facade) para a Tela de Feedback do Orientador.
- * - Lista orientandos do professor
- * - Carrega última versão por parte (sem timestamp)
- * - Envia comentário (Mensagens -> Chat externo)
- * - Marca parte como Concluída (status por versão, não reabre)
- *
- * Alinhado ao schema MySQL de tg_connect:
- *   • tg_apresentacao.apresentacao_versao_validada / consideracoes_versao_validada
- *   • tg_secao.status (BOOLEAN)
- *   • tg_resumo.status (BOOLEAN)
- */
 public class JdbcFeedbackDao {
 
     // ====== PARTES do TG ======
@@ -116,15 +104,15 @@ public class JdbcFeedbackDao {
                     p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
             case FINAIS -> execUpdate(
-                    "UPDATE tg_apresentacao SET consideracoes_versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
+                    "UPDATE tg_apresentacao SET consideracao_versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
                     p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
             case RESUMO -> execUpdate(
-                    "UPDATE tg_resumo SET status = TRUE WHERE trabalho_id = ? AND versao = ?",
+                    "UPDATE tg_resumo SET versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
                     p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
             default -> execUpdate(
-                    "UPDATE tg_secao SET status = TRUE WHERE trabalho_id = ? AND semestre_api = ? AND versao = ?",
+                    "UPDATE tg_secao SET versao_validada = TRUE WHERE trabalho_id = ? AND semestre_api = ? AND versao = ?",
                     p -> { p.setLong(1, trabalhoId); p.setInt(2, apiIndex(parte)); p.setString(3, versao); });
         };
     }
@@ -142,7 +130,6 @@ public class JdbcFeedbackDao {
                    COALESCE(historico_profissional,'')   AS historico_profissional,
                    COALESCE(contatos_email,'')           AS contatos_email,
                    COALESCE(principais_conhecimentos,'') AS principais_conhecimentos,
-                   COALESCE(consideracoes_finais,'')     AS consideracoes_finais,
                    apresentacao_versao_validada          AS concluida
               FROM tg_apresentacao
              WHERE trabalho_id = ?
@@ -292,7 +279,7 @@ public class JdbcFeedbackDao {
     }
 
     private String buildApresentacaoMarkdown(ResultSet rs) throws SQLException {
-        StringBuilder sb = new StringBuilder("# Apresentação\n\n");
+        StringBuilder sb = new StringBuilder("# Apresentação do aluno\n\n");
 
         String nomeCompleto = rs.getString("nome_completo");
         Integer idade = (Integer) rs.getObject("idade");
@@ -302,7 +289,6 @@ public class JdbcFeedbackDao {
         String histProf = rs.getString("historico_profissional");
         String contatos = rs.getString("contatos_email");
         String conhecimentos = rs.getString("principais_conhecimentos");
-        String finais = rs.getString("consideracoes_finais");
 
         if (notBlank(nomeCompleto)) sb.append("## Informações pessoais\n").append(nomeCompleto).append("\n\n");
         if (notBlank(curso)) sb.append("## Curso\n").append(curso).append("\n\n");
@@ -310,9 +296,8 @@ public class JdbcFeedbackDao {
         if (notBlank(histAcad)) sb.append("## Histórico Acadêmico\n").append(histAcad).append("\n\n");
         if (notBlank(motiv)) sb.append("## Motivação FATEC\n").append(motiv).append("\n\n");
         if (notBlank(histProf)) sb.append("## Histórico Profissional\n").append(histProf).append("\n\n");
-        if (notBlank(conhecimentos)) sb.append("## Principais conhecimentos\n").append(conhecimentos).append("\n\n");
         if (notBlank(contatos)) sb.append("## Contatos\n").append(contatos).append("\n\n");
-        if (notBlank(finais)) sb.append("## Considerações finais (texto original)\n").append(finais).append("\n\n");
+        if (notBlank(conhecimentos)) sb.append("## Principais conhecimentos\n").append(conhecimentos).append("\n\n");
         return sb.toString();
     }
 
