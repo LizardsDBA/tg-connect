@@ -72,7 +72,13 @@ Selecione um trecho aqui e adicione um comentário ao lado.
     public void goEditor(){ SceneManager.go("orientador/Editor.fxml"); }
     public void goParecer(){ SceneManager.go("orientador/Parecer.fxml"); }
     public void goImportar(){ SceneManager.go("orientador/Importar.fxml"); }
-    public void goChat(){ SceneManager.go("orientador/Chat.fxml"); }
+    // (ALTERADO POR MATHEUS - adicionado callback onReady)
+    public void goChat() {
+        SceneManager.go("orientador/Chat.fxml", c -> {
+            ChatOrientadorController ctrl = (ChatOrientadorController) c;
+            ctrl.onReady();
+        });
+    }
 
     // === Helpers de UI (bubbles simples) ===
     private void appendSystemNote(String text) {
