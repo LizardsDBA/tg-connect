@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS tg_apresentacao (
     principais_conhecimentos LONGTEXT NULL,
     consideracoes_finais     LONGTEXT NULL,
     created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    apresentacao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
+    consideracao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
     UNIQUE KEY uk_apresentacao_trab_versao (trabalho_id, versao)
     ) ENGINE=InnoDB;
@@ -111,6 +113,7 @@ CREATE TABLE IF NOT EXISTS tg_secao (
     conteudo_md       LONGTEXT NULL,
     created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME NULL,
+    versao_validada   BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
     UNIQUE KEY uk_trab_versao_semestre_api (trabalho_id, versao, semestre_api),
     KEY idx_secao_trab_versao (trabalho_id, versao)
@@ -124,6 +127,7 @@ CREATE TABLE IF NOT EXISTS tg_resumo (
     kpis          DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- percentual de conclusão
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    versao_validada   BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
     UNIQUE KEY uk_resumo_trab_versao (trabalho_id, versao)
     ) ENGINE=InnoDB;
