@@ -23,6 +23,7 @@ public class EditorAlunoController {
 
     // ====== Toolbar e TabPane
     @FXML private TabPane tabPane;
+    @FXML private Label lbStatusAba; // <--- ADIÇÃO: label já inserido no FXML
 
     // ====== ABA 1 - Apresentação
     @FXML private TextArea taInfoPessoais;
@@ -169,6 +170,31 @@ public class EditorAlunoController {
 
         hookFocusHandlers();
         applyTips();
+        wireTabStatus(); // <--- ADIÇÃO: inicializa o indicador dinâmico
+    }
+
+    private void wireTabStatus(){
+        if (tabPane == null) return;
+        tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) refreshTabStatus(newV.intValue());
+        });
+        refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
+    }
+
+    private void refreshTabStatus(int idx){
+        if (lbStatusAba == null) return;
+        int abaNumero = idx + 1; // 1..9
+        String statusTxt = "Pendente Validação";
+        try {
+            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+            boolean validada = service.isAbaValidada(trabalhoId, abaNumero);
+            statusTxt = validada ? "Concluída" : "Pendente Validação";
+        } catch (Exception ignore){ /* mantém default */ }
+        lbStatusAba.setText("Aba " + abaNumero + " - Status: " + statusTxt);
+
+        // opcional: classes CSS
+        lbStatusAba.getStyleClass().removeAll("badge-ok","badge-pendente");
+        lbStatusAba.getStyleClass().add(statusTxt.equals("Concluída") ? "badge-ok" : "badge-pendente");
     }
 
     private void hookFocusHandlers() {
@@ -290,6 +316,9 @@ public class EditorAlunoController {
             ok.setHeaderText("Salvo com sucesso!");
             ok.setContentText("Nova versão: " + novaVersao);
             ok.showAndWait();
+
+            // Atualiza o badge de status após salvar (a versão nova já copia validações)
+            refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
 
         } catch (Exception ex) {
             Alert err = new Alert(Alert.AlertType.ERROR);

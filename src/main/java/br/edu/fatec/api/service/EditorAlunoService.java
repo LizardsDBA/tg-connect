@@ -131,7 +131,6 @@ public class EditorAlunoService {
 
         validarObrigatorios(d);
 
-        // String versaoAtual = fetchVersaoAtual(trabalhoId); // não é usado; só calculamos a próxima
         String novaVersao = proximaVersaoFromDb(trabalhoId);
 
         try (Connection con = Database.get()) {
@@ -169,7 +168,10 @@ public class EditorAlunoService {
             // 4) Versão consolidada (para comparação)
             versoesDao.insertCompleto(con, trabalhoId, "COMPLETO", novaVersao, d.mdCompleto, null);
 
-            // 5) Atualiza versao_atual no TG
+            // 5) Copiar flags de validação da última versão para a nova (se existirem)
+            copiarFlagsValidacaoDaUltimaVersaoParaNova(con, trabalhoId, novaVersao);
+
+            // 6) Atualiza versao_atual no TG
             tgDao.updateVersaoAtual(con, trabalhoId, novaVersao);
 
             con.commit();
@@ -198,7 +200,6 @@ public class EditorAlunoService {
     }
 
     public Optional<DadosEditorLeitura> carregarTudo(long trabalhoId) {
-        // versão atual (SQL direto para evitar métodos ambíguos)
         String versao = fetchVersaoAtual(trabalhoId);
         if (versao == null || versao.isBlank()) return Optional.empty();
 
@@ -206,13 +207,11 @@ public class EditorAlunoService {
 
         // apresentação
         apDao.findByTrabalhoIdAndVersao(trabalhoId, versao).ifPresent(a -> {
-            // ATENÇÃO: hoje não armazenamos o bloco "infoPessoais" completo no banco.
-            // Só derivamos e guardamos "nome_completo". Então aqui preenchemos com fallback.
-            d.infoPessoais  = nz(a.nomeCompleto);           // fallback mínimo
+            d.infoPessoais  = nz(a.nomeCompleto);
             d.historicoAcad = nz(a.historicoAcad);
             d.motivacao     = nz(a.motivacao);
             d.historicoProf = nz(a.historicoProf);
-            d.contatos      = nz(a.contatosEmailOuLivre);    // este é o campo correto
+            d.contatos      = nz(a.contatosEmailOuLivre);
             d.conhecimentos = nz(a.conhecimentos);
             d.consideracoes = nz(a.consideracoes);
         });
@@ -236,7 +235,7 @@ public class EditorAlunoService {
             }
         }
 
-        // resumo (usar getter porque o campo do DTO é privado)
+        // resumo
         resumoDao.findByTrabalhoIdAndVersao(trabalhoId, versao)
                 .ifPresent(r -> d.resumoMd = nz(r.resumoMd()));
 
@@ -254,8 +253,44 @@ public class EditorAlunoService {
                 if (rs.next()) return rs.getString(1);
             }
         } catch (Exception e) {
-            // silencioso: se não tiver, devolve null e o caller trata
+            // silencioso
         }
         return null;
+    }
+
+    // ====== NOVO: indicador de validação por aba ======
+    public boolean isAbaValidada(long trabalhoId, int abaNumero) throws SQLException {
+        String versao = fetchVersaoAtual(trabalhoId);
+        if (versao == null || versao.isBlank()) return false;
+
+        // 1: apresentação.apresentacao_versao_validada
+        if (abaNumero == 1) {
+            return apDao.getApresentacaoValidada(trabalhoId, versao) == 1;
+        }
+        // 9: apresentação.consideracao_versao_validada
+        if (abaNumero == 9) {
+            return apDao.getConsideracaoValidada(trabalhoId, versao) == 1;
+        }
+        // 8: resumo.versao_validada
+        if (abaNumero == 8) {
+            return resumoDao.getValidacaoResumo(trabalhoId, versao) == 1;
+        }
+        // 2..7: secao(semestre=1..6).versao_validada
+        if (abaNumero >= 2 && abaNumero <= 7) {
+            int semestre = abaNumero - 1;
+            Integer v = secaoDao.getValidacaoSecao(trabalhoId, versao, semestre);
+            return v != null && v == 1;
+        }
+        return false;
+    }
+
+    // ====== NOVO: copiar flags de validação da última versão para a nova ======
+    private void copiarFlagsValidacaoDaUltimaVersaoParaNova(Connection con, long trabalhoId, String novaVersao) throws SQLException {
+        // Apresentação (aba 1 e 9)
+        apDao.copyValidacaoFromUltimaVersao(con, trabalhoId, novaVersao);
+        // Resumo (aba 8)
+        resumoDao.copyValidacaoFromUltimaVersao(con, trabalhoId, novaVersao);
+        // Seções API (abas 2..7)
+        secaoDao.copyValidacaoFromUltimaVersao(con, trabalhoId, novaVersao);
     }
 }

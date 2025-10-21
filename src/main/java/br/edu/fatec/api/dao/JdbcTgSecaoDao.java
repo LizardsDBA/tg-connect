@@ -10,17 +10,17 @@ import java.util.Optional;
 public class JdbcTgSecaoDao implements TgSecaoDao {
 
     private static final String SQL_FIND =
-            "SELECT trabalho_id,semestre_api,ano,semestre_letivo,empresa_parceira,problema," +
+            "SELECT trabalho_id,semestre_api,empresa_parceira,problema," +
                     " solucao_resumo,link_repositorio,tecnologias,contribuicoes,hard_skills,soft_skills,conteudo_md " +
                     "FROM tg_secao WHERE trabalho_id=? AND semestre_api=? " +
                     "ORDER BY created_at DESC LIMIT 1";
 
     private static final String SQL_UPSERT =
-            "INSERT INTO tg_secao(trabalho_id,semestre_api,ano,semestre_letivo,empresa_parceira,problema," +
+            "INSERT INTO tg_secao(trabalho_id,semestre_api,empresa_parceira,problema," +
                     " solucao_resumo,link_repositorio,tecnologias,contribuicoes,hard_skills,soft_skills,conteudo_md) " +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) " +
                     "ON DUPLICATE KEY UPDATE " +
-                    " ano=VALUES(ano), semestre_letivo=VALUES(semestre_letivo), empresa_parceira=VALUES(empresa_parceira)," +
+                    "empresa_parceira=VALUES(empresa_parceira)," +
                     " problema=VALUES(problema), solucao_resumo=VALUES(solucao_resumo), link_repositorio=VALUES(link_repositorio)," +
                     " tecnologias=VALUES(tecnologias), contribuicoes=VALUES(contribuicoes), hard_skills=VALUES(hard_skills)," +
                     " soft_skills=VALUES(soft_skills), conteudo_md=VALUES(conteudo_md)";
@@ -132,4 +132,62 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
         } catch (Exception e) { e.printStackTrace(); }
         return out;
     }
+
+    // ======= NOVO: suporte a validação =======
+
+    /** Retorna 0/1 do campo versao_validada da seção (por trabalho/versão/semestre). */
+    public Integer getValidacaoSecao(long trabalhoId, String versao, int semestreApi) {
+        final String sql = """
+        SELECT COALESCE(CAST(versao_validada AS SIGNED), 0) AS flag
+          FROM tg_secao
+         WHERE trabalho_id=? AND versao=? AND semestre_api=?
+         LIMIT 1
+    """;
+        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            ps.setInt(3, semestreApi);
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int v = rs.getInt(1);       // lê como inteiro, sem cast de Object
+                    if (rs.wasNull()) return 0;
+                    return v;
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    /** Copia o flag versao_validada das seções da última versão anterior para a nova, por semestre. */
+    public void copyValidacaoFromUltimaVersao(Connection con, long trabalhoId, String novaVersao) throws SQLException {
+        final String sql = """
+        UPDATE tg_secao AS n
+        LEFT JOIN (
+            SELECT t.trabalho_id, t.semestre_api, t.versao_validada
+            FROM (
+                SELECT s.trabalho_id, s.semestre_api, s.versao_validada,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY s.trabalho_id, s.semestre_api
+                           ORDER BY s.created_at DESC, s.id DESC
+                       ) AS rn
+                FROM tg_secao s
+                WHERE s.trabalho_id = ? AND s.versao <> ?
+            ) t
+            WHERE t.rn = 1
+        ) AS src
+          ON src.trabalho_id = n.trabalho_id
+         AND src.semestre_api = n.semestre_api
+        SET n.versao_validada = COALESCE(src.versao_validada, 0)
+        WHERE n.trabalho_id = ? AND n.versao = ?
+    """;
+        try (var ps = con.prepareStatement(sql)) {
+            int i = 1;
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.executeUpdate();
+        }
+    }
+
 }

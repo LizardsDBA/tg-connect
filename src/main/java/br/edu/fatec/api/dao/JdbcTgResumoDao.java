@@ -32,8 +32,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
             ps.setLong(1, trabalhoId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Observação: no contrato da interface, kpis é String.
-                    // Vamos devolver como string formatada do DECIMAL.
                     BigDecimal k = rs.getBigDecimal(3);
                     String kpisStr = (k == null) ? null : k.stripTrailingZeros().toPlainString();
                     return Optional.of(new ResumoDto(
@@ -49,7 +47,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
 
     @Override
     public boolean upsert(long trabalhoId, String resumoMd, String kpisStr) {
-        // Não usamos mais upsert; manter compatibilidade retornando false
         return false;
     }
 
@@ -86,7 +83,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
             ps.setString(2, versao);
             ps.setString(3, resumoMd);
 
-            // kpis é DECIMAL(5,2). Se vier null/vazio, grava 0.00
             BigDecimal kpis = null;
             if (kpisStr != null && !kpisStr.isBlank()) {
                 try {
@@ -102,4 +98,56 @@ public class JdbcTgResumoDao implements TgResumoDao {
             ps.executeUpdate();
         }
     }
+
+    // ======= NOVO: suporte a validação =======
+
+    /** Retorna 0/1 do campo versao_validada da versão informada. */
+    public int getValidacaoResumo(long trabalhoId, String versao) {
+        final String sql = """
+            SELECT COALESCE(versao_validada,0)
+              FROM tg_resumo
+             WHERE trabalho_id=? AND versao=?
+             LIMIT 1
+        """;
+        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    /** Copia o flag versao_validada da última versão anterior para a nova. */
+    public void copyValidacaoFromUltimaVersao(Connection con, long trabalhoId, String novaVersao) throws SQLException {
+        final String sql = """
+        UPDATE tg_resumo AS n
+        LEFT JOIN (
+            SELECT t.trabalho_id, t.versao_validada
+            FROM (
+                SELECT r.trabalho_id, r.versao_validada,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY r.trabalho_id
+                           ORDER BY r.updated_at DESC, r.id DESC
+                       ) AS rn
+                FROM tg_resumo r
+                WHERE r.trabalho_id = ? AND r.versao <> ?
+            ) t
+            WHERE t.rn = 1
+        ) AS src
+          ON src.trabalho_id = n.trabalho_id
+        SET n.versao_validada = COALESCE(src.versao_validada, 0)
+        WHERE n.trabalho_id = ? AND n.versao = ?
+    """;
+        try (var ps = con.prepareStatement(sql)) {
+            int i = 1;
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.executeUpdate();
+        }
+    }
+
 }

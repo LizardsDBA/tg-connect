@@ -9,7 +9,7 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
 
     private static final String SQL_FIND =
             "SELECT trabalho_id,nome_completo,idade,curso,historico_academico,motivacao_fatec," +
-                    " historico_profissional,contatos_email,contatos_github,contatos_linkedin," +
+                    " historico_profissional,contatos_email," +
                     " principais_conhecimentos,consideracoes_finais " +
                     "FROM tg_apresentacao WHERE trabalho_id=? " +
                     "ORDER BY created_at DESC LIMIT 1";
@@ -17,14 +17,13 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
     private static final String SQL_UPSERT =
             "INSERT INTO tg_apresentacao(" +
                     " trabalho_id,nome_completo,idade,curso,historico_academico,motivacao_fatec," +
-                    " historico_profissional,contatos_email,contatos_github,contatos_linkedin," +
+                    " historico_profissional,contatos_email," +
                     " principais_conhecimentos,consideracoes_finais) " +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,?,?) " +
                     "ON DUPLICATE KEY UPDATE " +
                     " nome_completo=VALUES(nome_completo), idade=VALUES(idade), curso=VALUES(curso)," +
                     " historico_academico=VALUES(historico_academico), motivacao_fatec=VALUES(motivacao_fatec)," +
                     " historico_profissional=VALUES(historico_profissional), contatos_email=VALUES(contatos_email)," +
-                    " contatos_github=VALUES(contatos_github), contatos_linkedin=VALUES(contatos_linkedin)," +
                     " principais_conhecimentos=VALUES(principais_conhecimentos), consideracoes_finais=VALUES(consideracoes_finais)";
 
     @Override
@@ -84,13 +83,12 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
         try (var ps = con.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
             ps.setString(2, versao);
-            // Derivar nome do bloco livre (fallback se não achar)
             String nomeBloco = (infoPessoais == null) ? "" : infoPessoais.trim();
             ps.setString(3, nomeBloco);
             ps.setString(4, historicoAcad);
             ps.setString(5, motivacao);
             ps.setString(6, historicoProf);
-            ps.setString(7, contatos);          // hoje guardamos "contatos" livres aqui
+            ps.setString(7, contatos);
             ps.setString(8, conhecimentos);
             ps.setString(9, consideracoes);
             ps.executeUpdate();
@@ -98,7 +96,6 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
     }
 
     private String extrairNome(String infoPessoais) {
-        // TODO (futuro): regex "**Nome completo:** (.*)$"
         return null;
     }
 
@@ -150,4 +147,79 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
         } catch (Exception e) { e.printStackTrace(); }
         return Optional.empty();
     }
+
+    // ======= NOVO: suporte a validação =======
+
+    /** Retorna 0/1 do campo apresentacao_versao_validada da versão informada. */
+    public int getApresentacaoValidada(long trabalhoId, String versao) {
+        final String sql = """
+            SELECT COALESCE(apresentacao_versao_validada,0)
+              FROM tg_apresentacao
+             WHERE trabalho_id=? AND versao=?
+             LIMIT 1
+        """;
+        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    /** Retorna 0/1 do campo consideracao_versao_validada da versão informada. */
+    public int getConsideracaoValidada(long trabalhoId, String versao) {
+        final String sql = """
+            SELECT COALESCE(consideracao_versao_validada,0)
+              FROM tg_apresentacao
+             WHERE trabalho_id=? AND versao=?
+             LIMIT 1
+        """;
+        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    /** Copia os 2 flags (apresentacao / consideracao) da última versão anterior para a nova. */
+    public void copyValidacaoFromUltimaVersao(Connection con, long trabalhoId, String novaVersao) throws SQLException {
+        final String sql = """
+        UPDATE tg_apresentacao AS n
+        LEFT JOIN (
+            SELECT t.trabalho_id,
+                   t.apresentacao_versao_validada,
+                   t.consideracao_versao_validada
+            FROM (
+                SELECT a.trabalho_id,
+                       a.apresentacao_versao_validada,
+                       a.consideracao_versao_validada,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY a.trabalho_id
+                           ORDER BY a.created_at DESC, a.id DESC
+                       ) AS rn
+                FROM tg_apresentacao a
+                WHERE a.trabalho_id = ? AND a.versao <> ?
+            ) t
+            WHERE t.rn = 1
+        ) AS src
+          ON src.trabalho_id = n.trabalho_id
+        SET n.apresentacao_versao_validada = COALESCE(src.apresentacao_versao_validada, 0),
+            n.consideracao_versao_validada = COALESCE(src.consideracao_versao_validada, 0)
+        WHERE n.trabalho_id = ? AND n.versao = ?
+    """;
+        try (var ps = con.prepareStatement(sql)) {
+            int i = 1;
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.setLong(i++, trabalhoId);
+            ps.setString(i++, novaVersao);
+            ps.executeUpdate();
+        }
+    }
+
 }
