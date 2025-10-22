@@ -23,12 +23,12 @@
         <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
 
         <!-- Sidebar -->
-        <VBox prefWidth="240.0" spacing="8.0" styleClass="sidebar">
+        <VBox minWidth="240.0" spacing="8.0" styleClass="sidebar">
             <Label styleClass="sidebar-title" text="Orientador"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button fx:id="btnPainel" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goPainel" styleClass="sidebar-link" text="Painel"/>
 
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
@@ -47,14 +47,13 @@
             <!-- Título -->
             <VBox spacing="6.0">
                 <Label styleClass="title" text="Orientador — Painel de Pendências"/>
-                <Label styleClass="subtitle" text="Acompanhe pedidos por aluno, prioridade e ação recomendada."/>
+                <Label styleClass="subtitle" text="Acompanhe o progresso de cada aluno na versão atual."/>
             </VBox>
 
-            <!-- Filtros (opcional simples) -->
+            <!-- Filtros simples -->
             <HBox spacing="8.0" alignment="CENTER_LEFT">
-                <Label text="Filtrar:"/>
-                <ChoiceBox fx:id="cbFiltroPrioridade"/>
-                <TextField fx:id="txtBuscaAluno" promptText="Buscar aluno..."/>
+                <Label text="Buscar:"/>
+                <TextField fx:id="txtBuscaAluno" promptText="Nome do aluno..."/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="Limpar" onAction="#limparFiltros"/>
             </HBox>
@@ -62,11 +61,14 @@
             <!-- Tabela -->
             <TableView fx:id="tblPendencias" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colAluno" text="Aluno" prefWidth="180"/>
-                    <TableColumn fx:id="colSecao" text="Seção" prefWidth="160"/>
-                    <TableColumn fx:id="colPedido" text="Pedido" prefWidth="300"/>
-                    <TableColumn fx:id="colPrioridade" text="Prioridade" prefWidth="120"/>
-                    <TableColumn fx:id="colAcoes" text="Ações" prefWidth="160"/>
+                    <TableColumn fx:id="colAluno" text="Aluno" prefWidth="200"/>
+                    <TableColumn fx:id="colTitulo" text="Título" prefWidth="220"/>
+                    <TableColumn fx:id="colTema" text="Tema" prefWidth="220"/>
+                    <TableColumn fx:id="colVersao" text="Versão" prefWidth="90"/>
+                    <TableColumn fx:id="colValidadas" text="Validadas" prefWidth="110"/>
+                    <TableColumn fx:id="colPendencias" text="Pendências" prefWidth="110"/>
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="140"/>
+                    <TableColumn fx:id="colProgresso" text="Progresso" prefWidth="180"/>
                 </columns>
             </TableView>
 

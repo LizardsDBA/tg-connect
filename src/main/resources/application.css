@@ -446,3 +446,33 @@
 .status-badge { -fx-font-weight: bold; }
 .badge-ok { -fx-text-fill: #0a7a0a; }
 .badge-pendente { -fx-text-fill: #b35a00; }
+
+/* ===== Barra de Progresso colorida ===== */
+
+/* Reset e padding menor */
+.progress-bar {
+    -fx-accent: #4CAF50; /* verde padrão */
+    -fx-background-insets: 0;
+    -fx-padding: 1;
+}
+
+/* Vermelho até 30% */
+.progress-bar:low {
+    -fx-accent: #e74c3c; /* vermelho */
+}
+
+/* Amarelo entre 30% e 70% */
+.progress-bar:medium {
+    -fx-accent: #f1c40f; /* amarelo */
+}
+
+/* Verde acima de 70% */
+.progress-bar:high {
+    -fx-accent: #2ecc71; /* verde */
+}
+
+/* Label ao lado da barra */
+.table-cell .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #444;
+}
