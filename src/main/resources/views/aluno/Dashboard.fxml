@@ -34,7 +34,7 @@
 
             <Label styleClass="sidebar-group" text="TG"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    onAction="#goEditor" styleClass="sidebar-link" text="Markdown (Editor e Feedback)"/>
+                    onAction="#goEditor" styleClass="sidebar-link" text="Editor de TG"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goComparar" styleClass="sidebar-link" text="Comparar Versões"/>
         </VBox>
