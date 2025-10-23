@@ -31,6 +31,7 @@ public class VisaoGeralCoordController {
     private void setOrientadores(int n){ if (lblOrientadores != null) lblOrientadores.setText(Integer.toString(n)); }
 
     // ===== Navegação =====
+    public void goHomeOrient(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
 

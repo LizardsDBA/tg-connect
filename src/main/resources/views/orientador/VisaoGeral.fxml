@@ -16,6 +16,7 @@
         </padding>
         <Label styleClass="logo" text="API/TG" />
         <Region HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnSouCoordenador" text="Sou Coordenador" onAction="#goHomeCoord"/>
         <Button onAction="#goHome" text="Home" />
         <Button onAction="#logout" text="Sair" />
     </HBox>

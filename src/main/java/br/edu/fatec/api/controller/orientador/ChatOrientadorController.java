@@ -18,6 +18,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import br.edu.fatec.api.model.auth.Role;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ import java.util.List;
 public class ChatOrientadorController {
 
     @FXML private Button btnChat;
+    @FXML private Button btnSouCoordenador;
 
     // COMPONENTES FXML
     // Suporte para TableView
@@ -103,6 +105,13 @@ public class ChatOrientadorController {
             lstAlunos.getSelectionModel().selectedItemProperty().addListener((obs, old, novo) -> {
                 if (novo != null) selecionarPorNome(novo);
             });
+        }
+
+        User u = Session.getUser();
+        boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
+        if (btnSouCoordenador != null) {
+            btnSouCoordenador.setVisible(isCoord);
+            btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
         }
     }
 
@@ -517,6 +526,8 @@ public class ChatOrientadorController {
     }
 
     // NAVEGAÇÃO
+
+    public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
 
     public void goHome() {
         stopPolling();

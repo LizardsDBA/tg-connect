@@ -12,10 +12,14 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
+import br.edu.fatec.api.model.auth.Role;
+
 public class PainelOrientadorController {
 
     // Sidebar – rota ativa
     @FXML private Button btnPainel;
+    @FXML private Button btnSouCoordenador;
+
 
     // Filtros
     @FXML private TextField txtBuscaAluno;
@@ -120,6 +124,12 @@ public class PainelOrientadorController {
                     q.isEmpty() || row.getAluno().toLowerCase().contains(q)
             );
         });
+
+        boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
+        if (btnSouCoordenador != null) {
+            btnSouCoordenador.setVisible(isCoord);
+            btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
+        }
     }
 
     // ===== Ações da tabela/toolbar =====
@@ -140,6 +150,7 @@ public class PainelOrientadorController {
     }
 
     // ===== Navegação =====
+    public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goVisaoGeral(){ SceneManager.go("orientador/VisaoGeral.fxml"); }

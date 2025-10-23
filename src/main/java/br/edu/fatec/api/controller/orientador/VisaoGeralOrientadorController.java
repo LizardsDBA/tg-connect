@@ -4,11 +4,15 @@ import br.edu.fatec.api.nav.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import br.edu.fatec.api.model.auth.Role;
+import br.edu.fatec.api.model.auth.User;
+import br.edu.fatec.api.nav.Session;
 
 public class VisaoGeralOrientadorController {
 
     // Sidebar – rota ativa
     @FXML private Button btnVisaoGeral;
+    @FXML private Button btnSouCoordenador;
 
     // KPIs
     @FXML private Label lblPendentes;
@@ -23,7 +27,14 @@ public class VisaoGeralOrientadorController {
             btnVisaoGeral.getStyleClass().add("active");
         }
 
-        // TODO: popular a partir do service (SQLite)
+        User u = Session.getUser();
+        boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
+        if (btnSouCoordenador != null) {
+            btnSouCoordenador.setVisible(isCoord);
+            btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
+        }
+
+        // TODO: popular a partir do service (MySQL)
         setPendentes(0);
         setHoje(0);
         setAtrasados(0);
@@ -49,7 +60,7 @@ public class VisaoGeralOrientadorController {
             ctrl.onReady();
         });
     }
-
+    public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
 }

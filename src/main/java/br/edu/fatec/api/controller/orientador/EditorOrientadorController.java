@@ -15,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import br.edu.fatec.api.model.auth.Role;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -44,6 +45,7 @@ public class EditorOrientadorController {
     @FXML private TextArea txtPreview;
     @FXML private TextArea txtComentario;
     @FXML private Button btnEnviarComentario, btnConcluirParte;
+    @FXML private Button btnSouCoordenador;
 
     // ====== Estado da tela ======
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
@@ -128,6 +130,13 @@ public class EditorOrientadorController {
                         tabPartes.getSelectionModel().selectedItemProperty()
                 )
         );
+
+        User u = Session.getUser();
+        boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
+        if (btnSouCoordenador != null) {
+            btnSouCoordenador.setVisible(isCoord);
+            btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
+        }
 
     }
 
@@ -335,6 +344,7 @@ public class EditorOrientadorController {
     }
 
     // ===== Navegação =====
+    public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
 
