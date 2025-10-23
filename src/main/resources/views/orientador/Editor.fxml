@@ -36,12 +36,13 @@
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goPainel" styleClass="sidebar-link" text="Painel" />
 
             <Label styleClass="sidebar-group" text="FERRAMENTAS" />
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Editor (Feedback/Parecer)" />
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Feedback" />
             <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat" />
         </VBox>
 
         <!-- Main Content Card -->
         <VBox spacing="16.0" styleClass="card" HBox.hgrow="ALWAYS">
+
 
             <!-- Breadcrumbs -->
             <Label styleClass="subtle" text="Orientador / Feedback" />
@@ -92,7 +93,7 @@
 
                 <!-- Lista de orientandos -->
                 <VBox prefWidth="320.0" spacing="8.0">
-                    <Label text="Orientandos" />
+                    <Label text="Alunos Orientados" />
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar por nome..." />
                     <TableView fx:id="tblAlunos" prefHeight="560">
                         <columns>
@@ -123,7 +124,7 @@
     <!-- Footer -->
     <HBox alignment="CENTER" spacing="12.0" styleClass="footer">
         <padding><Insets bottom="12.0" left="16.0" right="12.0" top="12.0" /></padding>
-        <Label styleClass="subtle" text="Wireframe API 2025-2" />
+        <Label styleClass="subtle" text="TG Connect API 2025-2" />
         <Region HBox.hgrow="ALWAYS" />
         <Label styleClass="subtle" text="Módulo Orientador" />
     </HBox>
