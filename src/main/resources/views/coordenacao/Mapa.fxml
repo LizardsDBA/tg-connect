@@ -14,6 +14,7 @@
         <padding><Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/></padding>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Sou Orientador" onAction="#goHomeOrient"/>
         <Button text="Home" onAction="#goHome"/>
         <Button text="Sair" onAction="#logout"/>
     </HBox>

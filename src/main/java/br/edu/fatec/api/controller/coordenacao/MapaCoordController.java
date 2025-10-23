@@ -77,6 +77,7 @@ public class MapaCoordController {
     }
 
     /* ===== Navegação ===== */
+    public void goHomeOrient(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goVisaoGeral(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
