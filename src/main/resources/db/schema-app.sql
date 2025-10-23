@@ -199,15 +199,15 @@ CREATE TABLE IF NOT EXISTS entregas (
 
 -- Usuários
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Aluno exemplo', 'aluno@exemplo.com', SHA2('123456',256), 'ALUNO'
+SELECT 'Beatriz Santos Figueiredo', 'aluno@exemplo.com', SHA2('123456',256), 'ALUNO'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='aluno@exemplo.com');
 
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Orientadorexemplo', 'orientador@exemplo.com', SHA2('123456',256), 'ORIENTADOR'
+SELECT 'Professor Emanuel Mineda', 'orientador@exemplo.com', SHA2('123456',256), 'ORIENTADOR'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='orientador@exemplo.com');
 
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Coordenadora exemplo', 'coordenador@exemplo.com', SHA2('123456',256), 'COORDENADOR'
+SELECT 'Coordenador', 'coordenador@exemplo.com', SHA2('123456',256), 'COORDENADOR'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='coordenador@exemplo.com');
 
 -- Orientação (ativa)
@@ -700,23 +700,23 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 
 -- Novos Usuários
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Aluno 2', 'aluno2@exemplo.com', SHA2('123456',256), 'ALUNO'
+SELECT 'Mariana Lopes Andrade', 'aluno2@exemplo.com', SHA2('123456',256), 'ALUNO'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='aluno2@exemplo.com');
 
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Aluno 3', 'aluno3@exemplo.com', SHA2('123456',256), 'ALUNO'
+SELECT 'Rafael Sousa Menezes', 'aluno3@exemplo.com', SHA2('123456',256), 'ALUNO'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='aluno3@exemplo.com');
 
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Aluno 4', 'aluno4@exemplo.com', SHA2('123456',256), 'ALUNO'
+SELECT 'Camila Ferreira Duarte', 'aluno4@exemplo.com', SHA2('123456',256), 'ALUNO'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='aluno4@exemplo.com');
 
 INSERT INTO usuarios (nome, email, senha_hash, tipo)
-SELECT 'Orientador 2', 'orientador2@exemplo.com', SHA2('123456',256), 'ORIENTADOR'
+SELECT 'Professora Adriana Jacinto', 'orientador2@exemplo.com', SHA2('123456',256), 'ORIENTADOR'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='orientador2@exemplo.com');
 
 -- =========================
--- SEEDS ALUNO 2 (orientador@exemplo.com)
+-- SEEDS Mariana Lopes Andrade (orientador@exemplo.com)
 -- =========================
 SET @aluno2_id := (SELECT id FROM usuarios WHERE email='aluno2@exemplo.com');
 SET @orientador1_id := (SELECT id FROM usuarios WHERE email='orientador@exemplo.com'); -- Usando o orientador existente
@@ -732,14 +732,14 @@ SELECT @aluno2_id, @orientador1_id, TRUE
 
 -- TG
 INSERT INTO trabalhos_graduacao (aluno_id, orientador_id, titulo, tema, versao_atual, percentual_conclusao)
-SELECT @aluno2_id, @orientador1_id, 'Portfólio TG - Aluno 2', 'Histórico de APIs - Aluno 2', 'v1', 0.00
+SELECT @aluno2_id, @orientador1_id, 'Portfólio TG - Mariana Lopes Andrade', 'Histórico de APIs - Mariana Lopes Andrade', 'v1', 0.00
     WHERE @aluno2_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM trabalhos_graduacao t WHERE t.aluno_id = @aluno2_id);
 
 SET @tg2_id := (SELECT id FROM trabalhos_graduacao WHERE aluno_id=@aluno2_id);
 
 -- =========================
--- SEEDS ALUNO 3 (orientador2@exemplo.com)
+-- SEEDS Rafael Sousa Menezes (orientador2@exemplo.com)
 -- =========================
 SET @aluno3_id := (SELECT id FROM usuarios WHERE email='aluno3@exemplo.com');
 SET @orientador2_id := (SELECT id FROM usuarios WHERE email='orientador2@exemplo.com'); -- Usando o novo orientador
@@ -755,14 +755,14 @@ SELECT @aluno3_id, @orientador2_id, TRUE
 
 -- TG
 INSERT INTO trabalhos_graduacao (aluno_id, orientador_id, titulo, tema, versao_atual, percentual_conclusao)
-SELECT @aluno3_id, @orientador2_id, 'Portfólio TG - Aluno 3', 'Histórico de APIs - Aluno 3', 'v1', 0.00
+SELECT @aluno3_id, @orientador2_id, 'Portfólio TG - Rafael Sousa Menezes', 'Histórico de APIs - Rafael Sousa Menezes', 'v1', 0.00
     WHERE @aluno3_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM trabalhos_graduacao t WHERE t.aluno_id = @aluno3_id);
 
 SET @tg3_id := (SELECT id FROM trabalhos_graduacao WHERE aluno_id=@aluno3_id);
 
 -- =========================
--- SEEDS ALUNO 4 (orientador2@exemplo.com)
+-- SEEDS Camila Ferreira Duarte (orientador2@exemplo.com)
 -- =========================
 SET @aluno4_id := (SELECT id FROM usuarios WHERE email='aluno4@exemplo.com');
 -- @orientador2_id já foi definido acima
@@ -778,7 +778,7 @@ SELECT @aluno4_id, @orientador2_id, TRUE
 
 -- TG
 INSERT INTO trabalhos_graduacao (aluno_id, orientador_id, titulo, tema, versao_atual, percentual_conclusao)
-SELECT @aluno4_id, @orientador2_id, 'Portfólio TG - Aluno 4', 'Histórico de APIs - Aluno 4', 'v1', 0.00
+SELECT @aluno4_id, @orientador2_id, 'Portfólio TG - Camila Ferreira Duarte', 'Histórico de APIs - Camila Ferreira Duarte', 'v1', 0.00
     WHERE @aluno4_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM trabalhos_graduacao t WHERE t.aluno_id = @aluno4_id);
 
@@ -787,11 +787,11 @@ SET @tg4_id := (SELECT id FROM trabalhos_graduacao WHERE aluno_id=@aluno4_id);
 
 -- =========================================================
 -- =========================================================
--- SEEDS TG v1 (ALUNO 2)
+-- SEEDS TG v1 (Mariana Lopes Andrade)
 -- =========================================================
 -- =========================================================
 
--- Apresentação v1 (Aluno 2)
+-- Apresentação v1 (Mariana Lopes Andrade)
 INSERT INTO tg_apresentacao (
     trabalho_id, versao, nome_completo, idade, curso,
     historico_academico, motivacao_fatec, historico_profissional,
@@ -799,7 +799,7 @@ INSERT INTO tg_apresentacao (
 )
 SELECT
     @tg2_id, 'v1',
-    '- **Nome completo:** Aluno 2 \n
+    '- **Nome completo:** Mariana Lopes Andrade \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal)',
@@ -833,7 +833,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
     SELECT 1 FROM tg_apresentacao ap WHERE ap.trabalho_id = @tg2_id AND ap.versao='v1'
 );
 
--- Resumo v1 (Aluno 2)
+-- Resumo v1 (Mariana Lopes Andrade)
 INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
 SELECT
     @tg2_id, 'v1',
@@ -853,7 +853,7 @@ SELECT
     WHERE @tg2_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg2_id AND r.versao='v1');
 
--- Seções API 1..6 (v1) (Aluno 2)
+-- Seções API 1..6 (v1) (Mariana Lopes Andrade)
 INSERT INTO tg_secao (
     trabalho_id, versao, semestre_api, empresa_parceira, problema,
     solucao_resumo, link_repositorio, tecnologias, contribuicoes, hard_skills, soft_skills, conteudo_md
@@ -1097,14 +1097,14 @@ Além disso, demonstrei **colaboração** ao revisar códigos de outros membros 
     WHERE @tg2_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_secao s WHERE s.trabalho_id=@tg2_id AND s.versao='v1' AND s.semestre_api=6);
 
--- Versão consolidada v1 (COMPLETO) (Aluno 2)
+-- Versão consolidada v1 (COMPLETO) (Mariana Lopes Andrade)
 INSERT INTO versoes_trabalho (trabalho_id, secao, versao, conteudo_md, comentario)
 SELECT
     @tg2_id, 'COMPLETO', 'v1',
     '# APRESENTAÇÃO DO ALUNO \n
 \n
 ## Informações Pessoais \n
-- **Nome completo:** Aluno 2 \n
+- **Nome completo:** Mariana Lopes Andrade \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal) \n
@@ -1251,11 +1251,11 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 
 -- =========================================================
 -- =========================================================
--- SEEDS TG v1 (ALUNO 3)
+-- SEEDS TG v1 (Rafael Sousa Menezes)
 -- =========================================================
 -- =========================================================
 
--- Apresentação v1 (Aluno 3)
+-- Apresentação v1 (Rafael Sousa Menezes)
 INSERT INTO tg_apresentacao (
     trabalho_id, versao, nome_completo, idade, curso,
     historico_academico, motivacao_fatec, historico_profissional,
@@ -1263,7 +1263,7 @@ INSERT INTO tg_apresentacao (
 )
 SELECT
     @tg3_id, 'v1',
-    '- **Nome completo:** Aluno 3 \n
+    '- **Nome completo:** Rafael Sousa Menezes \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal)',
@@ -1297,7 +1297,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
     SELECT 1 FROM tg_apresentacao ap WHERE ap.trabalho_id = @tg3_id AND ap.versao='v1'
 );
 
--- Resumo v1 (Aluno 3)
+-- Resumo v1 (Rafael Sousa Menezes)
 INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
 SELECT
     @tg3_id, 'v1',
@@ -1317,7 +1317,7 @@ SELECT
     WHERE @tg3_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg3_id AND r.versao='v1');
 
--- Seções API 1..6 (v1) (Aluno 3)
+-- Seções API 1..6 (v1) (Rafael Sousa Menezes)
 INSERT INTO tg_secao (
     trabalho_id, versao, semestre_api, empresa_parceira, problema,
     solucao_resumo, link_repositorio, tecnologias, contribuicoes, hard_skills, soft_skills, conteudo_md
@@ -1561,14 +1561,14 @@ Além disso, demonstrei **colaboração** ao revisar códigos de outros membros 
     WHERE @tg3_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_secao s WHERE s.trabalho_id=@tg3_id AND s.versao='v1' AND s.semestre_api=6);
 
--- Versão consolidada v1 (COMPLETO) (Aluno 3)
+-- Versão consolidada v1 (COMPLETO) (Rafael Sousa Menezes)
 INSERT INTO versoes_trabalho (trabalho_id, secao, versao, conteudo_md, comentario)
 SELECT
     @tg3_id, 'COMPLETO', 'v1',
     '# APRESENTAÇÃO DO ALUNO \n
 \n
 ## Informações Pessoais \n
-- **Nome completo:** Aluno 3 \n
+- **Nome completo:** Rafael Sousa Menezes \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal) \n
@@ -1715,11 +1715,11 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 
 -- =========================================================
 -- =========================================================
--- SEEDS TG v1 (ALUNO 4)
+-- SEEDS TG v1 (Camila Ferreira Duarte)
 -- =========================================================
 -- =========================================================
 
--- Apresentação v1 (Aluno 4)
+-- Apresentação v1 (Camila Ferreira Duarte)
 INSERT INTO tg_apresentacao (
     trabalho_id, versao, nome_completo, idade, curso,
     historico_academico, motivacao_fatec, historico_profissional,
@@ -1727,7 +1727,7 @@ INSERT INTO tg_apresentacao (
 )
 SELECT
     @tg4_id, 'v1',
-    '- **Nome completo:** Aluno 4 \n
+    '- **Nome completo:** Camila Ferreira Duarte \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal)',
@@ -1761,7 +1761,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
     SELECT 1 FROM tg_apresentacao ap WHERE ap.trabalho_id = @tg4_id AND ap.versao='v1'
 );
 
--- Resumo v1 (Aluno 4)
+-- Resumo v1 (Camila Ferreira Duarte)
 INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
 SELECT
     @tg4_id, 'v1',
@@ -1781,7 +1781,7 @@ SELECT
     WHERE @tg4_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg4_id AND r.versao='v1');
 
--- Seções API 1..6 (v1) (Aluno 4)
+-- Seções API 1..6 (v1) (Camila Ferreira Duarte)
 INSERT INTO tg_secao (
     trabalho_id, versao, semestre_api, empresa_parceira, problema,
     solucao_resumo, link_repositorio, tecnologias, contribuicoes, hard_skills, soft_skills, conteudo_md
@@ -2025,14 +2025,14 @@ Além disso, demonstrei **colaboração** ao revisar códigos de outros membros 
     WHERE @tg4_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_secao s WHERE s.trabalho_id=@tg4_id AND s.versao='v1' AND s.semestre_api=6);
 
--- Versão consolidada v1 (COMPLETO) (Aluno 4)
+-- Versão consolidada v1 (COMPLETO) (Camila Ferreira Duarte)
 INSERT INTO versoes_trabalho (trabalho_id, secao, versao, conteudo_md, comentario)
 SELECT
     @tg4_id, 'COMPLETO', 'v1',
     '# APRESENTAÇÃO DO ALUNO \n
 \n
 ## Informações Pessoais \n
-- **Nome completo:** Aluno 4 \n
+- **Nome completo:** Camila Ferreira Duarte \n
 - **Idade:** 28 anos \n
 - **Cidade:** São José dos Campos – SP \n
 - **Curso:** Tecnólogo em Banco de Dados (FATEC São José dos Campos – Prof. Jessen Vidal) \n
