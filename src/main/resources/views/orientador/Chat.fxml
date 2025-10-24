@@ -15,7 +15,7 @@
         <padding><Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/></padding>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="btnSouCoordenador" text="Sou Coordenador" onAction="#goHomeCoord"/>
+        <Button fx:id="btnSouCoordenador" styleClass="btn-trade" text="Sou Coordenador" onAction="#goHomeCoord"/>
         <Button text="Home" onAction="#goHome"/>
         <Button text="Sair" onAction="#logout"/>
     </HBox>

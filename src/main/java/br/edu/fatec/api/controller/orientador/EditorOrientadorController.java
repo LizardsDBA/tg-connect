@@ -41,7 +41,7 @@ public class EditorOrientadorController {
     @FXML private TabPane tabPartes;
     @FXML private Tab tabApresentacao, tabApi1, tabApi2, tabApi3, tabApi4, tabApi5, tabApi6, tabResumo, tabFinais;
 
-    @FXML private Label lblAluno, lblParte, lblVersao, lblStatus;
+    @FXML private Label lblAluno, lblVersao, lblStatus;
     @FXML private TextArea txtPreview;
     @FXML private TextArea txtComentario;
     @FXML private Button btnEnviarComentario, btnConcluirParte;
@@ -138,6 +138,7 @@ public class EditorOrientadorController {
             btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
         }
 
+
     }
 
     private static boolean isBlank(String s) {
@@ -186,15 +187,15 @@ public class EditorOrientadorController {
             ConteudoParteDTO dto = dao.carregarUltimaVersao(trabalhoIdSelecionado, parte);
 
             // Labels
-            lblParte.setText(labelParte(parte));
             lblVersao.setText(dto.versao() != null ? dto.versao() : "—");
-            lblStatus.setText(Boolean.TRUE.equals(dto.concluida()) ? "Concluída" : "Em revisão");
 
             // Preview
             txtPreview.setText(dto.markdown() != null ? dto.markdown() : "");
 
             // Guarda a versão corrente por parte
             if (dto.versao() != null) setVersaoAtual(parte, dto.versao());
+
+            atualizarStatusAtual();
 
         } catch (SQLException e) {
             erro("Falha ao carregar a parte " + parte + ".", e);
@@ -235,6 +236,7 @@ public class EditorOrientadorController {
             boolean ok = dao.marcarComoConcluida(trabalhoIdSelecionado, parte, versao);
             if (ok) {
                 lblStatus.setText("Concluída");
+                atualizarStatusAtual();
                 info("Parte marcada como concluída.");
             } else {
                 erro("Nenhum registro atualizado. Verifique parte/versão.", null);
@@ -342,6 +344,27 @@ public class EditorOrientadorController {
             return it;
         }
     }
+
+    private void atualizarStatusAtual() {
+        if (lblStatus == null) return;
+        Parte parte = parteSelecionada();
+
+        String versao = versaoAtual(parte);
+
+        try {
+            boolean validada = dao.verificarConclusao(trabalhoIdSelecionado, parte, versao);
+            String statusTxt = validada ? "Concluída" : "Pendente Validação";
+            lblStatus.setText(statusTxt);
+            lblStatus.getStyleClass().removeAll("badge-ok","badge-pendente");
+            lblStatus.getStyleClass().add(validada ? "badge-ok" : "badge-pendente");
+        } catch (SQLException e) {
+            // Em caso de erro de banco, manter pendente
+            lblStatus.setText("Pendente Validação");
+            lblStatus.getStyleClass().removeAll("badge-ok","badge-pendente");
+            lblStatus.getStyleClass().add("badge-pendente");
+        }
+    }
+
 
     // ===== Navegação =====
     public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
