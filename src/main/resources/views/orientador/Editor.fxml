@@ -20,7 +20,7 @@
         <padding><Insets bottom="10.0" left="16.0" right="16.0" top="10.0" /></padding>
         <Label styleClass="logo" text="API/TG" />
         <Region HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnSouCoordenador" text="Sou Coordenador" onAction="#goHomeCoord"/>
+        <Button fx:id="btnSouCoordenador" onAction="#goHomeCoord" styleClass="btn-trade" text="Sou Coordenador" />
         <Button onAction="#goHome" text="Home" />
         <Button onAction="#logout" text="Sair" />
     </HBox>
@@ -59,23 +59,15 @@
                 <children>
                     <Label text="Aluno:" />
                     <Label fx:id="lblAluno" text=" " />
-                    <Label text=" |   Parte:" />
-                    <Label fx:id="lblParte" text=" " />
                     <Label text=" |   Versão:" />
                     <Label fx:id="lblVersao" text=" " />
                     <Label text=" |   Status:" />
-                    <Label fx:id="lblStatus" text=" " />
+                    <Label fx:id="lblStatus" text=" " styleClass="" />
                 </children>
             </HBox>
 
             <!-- Abas das Partes (no topo do conteúdo) -->
-            <TabPane fx:id="tabPartes"
-                     styleClass="editor-tabs"
-                     side="TOP"
-                     tabClosingPolicy="UNAVAILABLE"
-                     minHeight="40.0"
-                     prefHeight="52.0"
-                     maxHeight="Infinity">
+            <TabPane fx:id="tabPartes" maxHeight="Infinity" minHeight="40.0" prefHeight="52.0" side="TOP" styleClass="editor-tabs" tabClosingPolicy="UNAVAILABLE">
                 <tabs>
                     <Tab fx:id="tabApresentacao" text="Apresentação" />
                     <Tab fx:id="tabApi1" text="API 1" />
@@ -98,7 +90,7 @@
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar por nome..." />
                     <TableView fx:id="tblAlunos" prefHeight="560">
                         <columns>
-                            <TableColumn fx:id="colNome" prefWidth="280" text="Nome" />
+                            <TableColumn fx:id="colNome" editable="false" prefWidth="315.0" resizable="false" sortable="false" text="Nome" />
                         </columns>
                     </TableView>
                 </VBox>

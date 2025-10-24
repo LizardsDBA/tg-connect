@@ -146,6 +146,9 @@
     -fx-background-color: #f2f7ff;
     -fx-border-color: #cfe0ff;
 }
+.list-cell:selected .text{
+    -fx-fill: #000;
+}
 
 /* ===== TABELAS ===== */
 .table-view {
@@ -166,6 +169,10 @@
 }
 .table-row-cell:selected {
     -fx-background-color: #f2f7ff;
+}
+.table-row-cell:selected .text,
+.table-cell:selected .text {
+    -fx-fill: #000;
 }
 
 /* ===== BARRAS DE PROGRESSO ===== */
@@ -385,11 +392,12 @@
 
 /* aba selecionada: fundo branco, cantos 12 no topo, mesma borda do card */
 .editor-tabs .tab:selected {
-    -fx-background-color: white;
+    -fx-background-color: #f2f7ff;
     -fx-background-insets: 0;
-    -fx-background-radius: 12 12 0 0;              /* mesmo raio do .card */
-    -fx-border-color: #d6d6d6 #d6d6d6 white #d6d6d6;
+    -fx-background-radius: 12 12 0 0;
+    -fx-border-radius: 12 12 0 0;
     -fx-border-width: 1px 1px 0 1px;
+    -fx-border-color: #d6d6d6 #d6d6d6 transparent #d6d6d6;
 }
 .editor-tabs .tab:selected .tab-label {
     -fx-text-fill: #1a1a1a;
@@ -476,3 +484,9 @@
     -fx-font-weight: bold;
     -fx-text-fill: #444;
 }
+
+.btn-trade{
+    -fx-background-color: #cfe0ff;
+    -fx-border-color: #69a7ff;
+}
+

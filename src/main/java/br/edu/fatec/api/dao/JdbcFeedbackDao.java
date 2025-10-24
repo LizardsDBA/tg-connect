@@ -117,6 +117,51 @@ public class JdbcFeedbackDao {
         };
     }
 
+    public boolean verificarConclusao(Long trabalhoId, Parte parte, String versao) throws SQLException {
+        if (trabalhoId == null || parte == null || versao == null || versao.isBlank()) {
+            return false;
+        }
+
+        String sql;
+        switch (parte) {
+            case APRESENTACAO -> {
+                sql = "SELECT apresentacao_versao_validada FROM tg_apresentacao WHERE trabalho_id = ? AND versao = ?";
+            }
+            case RESUMO -> {
+                sql = "SELECT versao_validada FROM tg_resumo WHERE trabalho_id = ? AND versao = ?";
+            }
+            case FINAIS -> {
+                sql = "SELECT consideracao_versao_validada FROM tg_apresentacao WHERE trabalho_id = ? AND versao = ?";
+            }
+            default -> {
+                // APIs 1..6 → tg_secao.versao_validada por trabalho/versão/semestre_api
+                int semestreApi = apiIndex(parte);
+                sql = "SELECT versao_validada FROM tg_secao WHERE trabalho_id = ? AND versao = ? AND semestre_api = ?";
+            }
+        }
+
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+
+            // se for API, precisamos de mais um parâmetro
+            if (parte.name().startsWith("API")) {
+                ps.setInt(3, apiIndex(parte));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean(1); // MySQL TINYINT(1) → boolean
+                }
+            }
+        }
+
+        // Nenhum registro encontrado → ainda não concluído
+        return false;
+    }
+
     // ====== Implementações por parte ======
 
     private ConteudoParteDTO carregarApresentacaoUltima(Long trabalhoId) throws SQLException {
