@@ -76,7 +76,7 @@
             <!-- Ações rápidas -->
             <HBox spacing="8.0" alignment="CENTER_RIGHT">
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Abrir Editor" onAction="#abrirEditor"/>
+                <Button text="Abrir Feedback" onAction="#abrirEditor"/>
                 <Button text="Abrir Chat" onAction="#abrirChat"/>
             </HBox>
         </VBox>
