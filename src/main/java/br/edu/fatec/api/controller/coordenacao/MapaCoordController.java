@@ -7,8 +7,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import br.edu.fatec.api.controller.BaseController;
 
-public class MapaCoordController {
+public class MapaCoordController extends BaseController {
 
     // Sidebar – rota ativa
     @FXML private Button btnMapa;
@@ -28,6 +29,10 @@ public class MapaCoordController {
         // Ativa rota na sidebar
         if (btnMapa != null && !btnMapa.getStyleClass().contains("active")) {
             btnMapa.getStyleClass().add("active");
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         // Colunas
