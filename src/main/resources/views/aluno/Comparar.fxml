@@ -14,6 +14,7 @@
         <padding>
             <Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/>
         </padding>
+        <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="Home" onAction="#goHome"/>
@@ -21,13 +22,13 @@
     </HBox>
 
     <!-- Main Layout with Sidebar -->
-    <HBox VBox.vgrow="ALWAYS" spacing="16.0">
+    <HBox fx:id="mainLayout" VBox.vgrow="ALWAYS" spacing="16.0">
         <padding>
             <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
         </padding>
 
         <!-- Sidebar (mesmo padrão do DashboardAluno) -->
-        <VBox prefWidth="240.0" spacing="8.0" styleClass="sidebar">
+        <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
             <Label styleClass="sidebar-title" text="Aluno"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"

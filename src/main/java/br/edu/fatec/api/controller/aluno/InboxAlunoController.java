@@ -15,13 +15,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-
+import br.edu.fatec.api.controller.BaseController;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InboxAlunoController {
+public class InboxAlunoController extends BaseController {
 
     @FXML private Label lblPeerName, lblStatus;
     @FXML private ScrollPane chatScroll;
@@ -62,6 +62,11 @@ public class InboxAlunoController {
 
     @FXML
     private void initialize() {
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
+        }
+
         // Setup visual apenas — NÃO acessar BD aqui (alunoId ainda pode estar null)
         lblPeerName.setText("(carregando orientador...)");
         lblStatus.setText(""); // status online está fora do escopo

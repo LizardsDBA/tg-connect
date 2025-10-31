@@ -7,7 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import br.edu.fatec.api.nav.SceneManager;
-
+import br.edu.fatec.api.controller.BaseController;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,7 +16,7 @@ import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.Session;
 import br.edu.fatec.api.service.EditorAlunoService;
 
-public class EditorAlunoController {
+public class EditorAlunoController extends BaseController {
 
     // ====== UI base (sidebar etc.)
     @FXML private VBox commentsSection;
@@ -89,6 +89,10 @@ public class EditorAlunoController {
         if (u == null) {
             SceneManager.go("login/Login.fxml");
             return;
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         // Pré-carrega a última versão nos campos
