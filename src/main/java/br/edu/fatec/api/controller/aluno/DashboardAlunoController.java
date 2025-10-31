@@ -5,11 +5,12 @@ import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
 import br.edu.fatec.api.service.DashboardAlunoService;
+import br.edu.fatec.api.controller.BaseController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
-public class DashboardAlunoController {
+public class DashboardAlunoController extends BaseController {
 
     @FXML private Button btnDashboard;
     @FXML private Label lblConclusao, lblPendencias, lblUltimaVersao;
@@ -19,6 +20,10 @@ public class DashboardAlunoController {
     @FXML
     private void initialize() {
         if (btnDashboard != null) btnDashboard.getStyleClass().add("active");
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
+        }
 
         // Garante que veio do login
         User u = Session.getUser();

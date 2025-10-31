@@ -11,10 +11,11 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import br.edu.fatec.api.controller.BaseController;
 
 import br.edu.fatec.api.model.auth.Role;
 
-public class PainelOrientadorController {
+public class PainelOrientadorController extends BaseController {
 
     // Sidebar – rota ativa
     @FXML private Button btnPainel;
@@ -40,6 +41,9 @@ public class PainelOrientadorController {
         }
         if (tblPendencias != null) {
             tblPendencias.setPlaceholder(new Label("Sem pendências no momento."));
+        }
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         // Bindings das colunas simples

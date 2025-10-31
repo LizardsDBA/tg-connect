@@ -19,6 +19,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import br.edu.fatec.api.model.auth.Role;
+import br.edu.fatec.api.controller.BaseController;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ import java.util.List;
  * @author Matheus
  * @date 18/10/2025
  */
-public class ChatOrientadorController {
+public class ChatOrientadorController extends BaseController {
 
     @FXML private Button btnChat;
     @FXML private Button btnSouCoordenador;
@@ -85,6 +86,10 @@ public class ChatOrientadorController {
 
         if (btnChat != null && !btnChat.getStyleClass().contains("active")) {
             btnChat.getStyleClass().add("active");
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         //Alias para compatibilidade

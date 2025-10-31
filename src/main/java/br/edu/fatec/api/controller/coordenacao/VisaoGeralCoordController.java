@@ -4,8 +4,9 @@ import br.edu.fatec.api.nav.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import br.edu.fatec.api.controller.BaseController;
 
-public class VisaoGeralCoordController {
+public class VisaoGeralCoordController extends BaseController {
 
     // Sidebar – rota ativa
     @FXML private Button btnVisaoGeral;
@@ -18,6 +19,10 @@ public class VisaoGeralCoordController {
         // Marca a rota ativa na sidebar
         if (btnVisaoGeral != null && !btnVisaoGeral.getStyleClass().contains("active")) {
             btnVisaoGeral.getStyleClass().add("active");
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         // TODO: puxar de um service/DAO (placeholders)

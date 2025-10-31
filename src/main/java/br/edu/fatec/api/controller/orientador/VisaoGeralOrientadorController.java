@@ -7,8 +7,9 @@ import javafx.scene.control.Label;
 import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.Session;
+import br.edu.fatec.api.controller.BaseController;
 
-public class VisaoGeralOrientadorController {
+public class VisaoGeralOrientadorController extends BaseController {
 
     // Sidebar – rota ativa
     @FXML private Button btnVisaoGeral;
@@ -25,6 +26,10 @@ public class VisaoGeralOrientadorController {
         // Destaca rota ativa
         if (btnVisaoGeral != null && !btnVisaoGeral.getStyleClass().contains("active")) {
             btnVisaoGeral.getStyleClass().add("active");
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         User u = Session.getUser();
