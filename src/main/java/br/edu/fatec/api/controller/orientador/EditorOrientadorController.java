@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import br.edu.fatec.api.model.auth.Role;
+import br.edu.fatec.api.controller.BaseController;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  * - Envio de comentário -> Mensagens (Chat externo)
  * - Marcar parte como Concluída (status por versão; não reabre)
  */
-public class EditorOrientadorController {
+public class EditorOrientadorController extends BaseController {
 
     // ====== UI: Sidebar/Main ======
     @FXML private TextField txtBuscaAluno;
@@ -73,6 +74,10 @@ public class EditorOrientadorController {
             carregarOrientandos(); // pode chamar direto se quiser
         } else {
             System.err.println("Nenhum usuário logado encontrado na sessão.");
+        }
+
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setText("☰");
         }
 
         // Tabela de alunos (apenas Nome)
