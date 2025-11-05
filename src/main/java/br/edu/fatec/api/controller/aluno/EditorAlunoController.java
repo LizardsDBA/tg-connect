@@ -220,14 +220,6 @@ public class EditorAlunoController extends BaseController {
         if (tfApi1Repo != null) tfApi1Repo.setTooltip(new Tooltip("URL do repositório no GitHub."));
     }
 
-    private void insertAround(String wrapper){
-        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
-        if (target == null) return;
-        String sel = target.getSelectedText();
-        if (sel == null || sel.isEmpty()) sel = "texto";
-        replaceSelection(target, wrapper + sel + wrapper);
-    }
-
     private void insertAtCaret(String text){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
@@ -255,13 +247,36 @@ public class EditorAlunoController extends BaseController {
         }
         return null;
     }
+    private void insertAroundBold(String wrapper){
+        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
+        if (target == null) return;
+        String sel = target.getSelectedText();
+        if (sel == null || sel.isEmpty()) sel = "Negrito";
+        replaceSelection(target, wrapper + sel + wrapper);
+    }
+
+    private void insertAroundItalic(String wrapper){
+        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
+        if (target == null) return;
+        String sel = target.getSelectedText();
+        if (sel == null || sel.isEmpty()) sel = "Italico";
+        replaceSelection(target, wrapper + sel + wrapper);
+    }
+
+    private void insertAroundUnderline(String wrapper){
+        TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
+        if (target == null) return;
+        String sel = target.getSelectedText();
+        if (sel == null || sel.isEmpty()) sel = "Sublinhado";
+        replaceSelection(target, wrapper + sel + wrapper);
+    }
 
     // ====== Toolbar – Markdown sobre o campo focado
-    public void toggleBold(){ insertAround("**"); }
-    public void toggleItalic(){ insertAround("*"); }
-    public void toggleUnderline(){ insertAround("__"); }
+    public void toggleBold(){ insertAroundBold("**"); }
+    public void toggleItalic(){ insertAroundItalic("*"); }
+    public void toggleUnderline(){ insertAroundUnderline("__"); }
     public void insertH1(){ insertAtCaret("\n# Título\n"); }
-    public void insertLink(){ insertAtCaret("[texto](https://)"); }
+    public void insertLink(){ insertAtCaret("[Texto](https://)"); }
 
     public void preview(){
         String md = montarMarkdownCompleto();
