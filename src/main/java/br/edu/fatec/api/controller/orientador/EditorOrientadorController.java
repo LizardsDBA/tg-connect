@@ -1,12 +1,18 @@
 package br.edu.fatec.api.controller.orientador;
 
+import br.edu.fatec.api.controller.BaseController;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ConteudoParteDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.OrientandoDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.Parte;
+import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,76 +21,104 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import br.edu.fatec.api.model.auth.Role;
-import br.edu.fatec.api.controller.BaseController;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Tela Editor do Orientador (Feedback/Parecer)
- * Padrão: Header + Sidebar + Footer (layout no FXML)
- * - Lista orientandos do professor (esquerda)
- * - Abas no topo para partes (Apresentação, API1..6, Resumo, Finais)
- * - Preview Markdown (somente leitura)
- * - Envio de comentário -> Mensagens (Chat externo)
- * - Marcar parte como Concluída (status por versão; não reabre)
- */
 public class EditorOrientadorController extends BaseController {
 
-    // ====== UI: Sidebar/Main ======
+    // ===== Header/Sidebar comuns =====
+    @FXML private Button btnToggleSidebar;
+    @FXML private Button btnSouCoordenador;
+
+    // ===== Lista de alunos =====
     @FXML private TextField txtBuscaAluno;
     @FXML private TableView<OrientandoTableItem> tblAlunos;
-    @FXML private TableColumn<OrientandoTableItem, String> colNome; // somente nome
+    @FXML private TableColumn<OrientandoTableItem, String> colNome;
 
+    // ===== Abas/labels principais =====
     @FXML private TabPane tabPartes;
     @FXML private Tab tabApresentacao, tabApi1, tabApi2, tabApi3, tabApi4, tabApi5, tabApi6, tabResumo, tabFinais;
 
     @FXML private Label lblAluno, lblVersao, lblStatus;
-    @FXML private TextArea txtPreview;
-    @FXML private TextArea txtComentario;
-    @FXML private Button btnEnviarComentario, btnConcluirParte;
-    @FXML private Button btnSouCoordenador;
 
-    // ====== Estado da tela ======
+    // ===== Campos Apresentação (exemplos; adicione os demais conforme for usar) =====
+    @FXML private TextArea txtNomeCompleto;
+    @FXML private WebView  webNomeCompleto;
+    @FXML private Label    lblNomeCompletoStatus;
+
+    @FXML private TextArea txtCurso;
+    @FXML private WebView  webCurso;
+    @FXML private Label    lblCursoStatus;
+
+    @FXML private TextArea txtHistoricoAcademico;
+    @FXML private WebView  webHistoricoAcademico;
+    @FXML private Label    lblHistoricoAcademicoStatus;
+
+    // ===== Resumo =====
+    @FXML private TextArea txtResumoMd;
+    @FXML private WebView  webResumo;
+    @FXML private Label    lblResumoVersaoStatus;
+
+    // ===== Comentário (Chat) =====
+    @FXML private TextArea txtComentario;
+    @FXML private Button btnEnviarComentario;
+
+    // ===== Estado =====
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
     private final ObservableList<OrientandoTableItem> alunos = FXCollections.observableArrayList();
 
-    private Long professorId;               // injetado após login
-    private Long alunoSelecionadoId;        // aluno atual
-    private Long trabalhoIdSelecionado;     // TG do aluno atual
+    private Long professorId;
+    private Long alunoSelecionadoId;
+    private Long trabalhoIdSelecionado;
 
-    // Versão corrente por parte (exibe em label e reusa no concluir/comentar)
-    private String versaoApresentacao;
-    private String versaoApi1, versaoApi2, versaoApi3, versaoApi4, versaoApi5, versaoApi6;
-    private String versaoResumo;
-    private String versaoFinais;
+    // Última versão carregada por parte (rótulo)
+    private String versaoAtual;
 
-    // ====== Ciclo de vida ======
+    // Markdown engine
+    private Parser mdParser;
+    private HtmlRenderer mdRenderer;
+
     @FXML
     public void initialize() {
+        initMarkdown();
+        initUserAndLoad();
+        initTabelaAlunos();
+        initBuscaFiltro();
+        initAbas();
+        initBotoes();
+    }
 
+    private void initMarkdown() {
+        MutableDataSet opts = new MutableDataSet();
+        opts.set(Parser.EXTENSIONS, List.of(TablesExtension.create()));
+        mdParser = Parser.builder(opts).build();
+        mdRenderer = HtmlRenderer.builder(opts).build();
+    }
+
+    private void initUserAndLoad() {
         User user = Session.getUser();
-
         if (user != null) {
-            Long professorId = user.getId(); // ✅ aqui você pega o ID do orientador logado
-            this.professorId = professorId;
-            carregarOrientandos(); // pode chamar direto se quiser
-        } else {
-            System.err.println("Nenhum usuário logado encontrado na sessão.");
+            this.professorId = user.getId();
+            carregarOrientandos();
+            boolean isCoord = (user.getRole() == Role.COORDENADOR);
+            if (btnSouCoordenador != null) {
+                btnSouCoordenador.setVisible(isCoord);
+                btnSouCoordenador.setManaged(isCoord);
+            }
         }
+        if (btnToggleSidebar != null) btnToggleSidebar.setText("☰");
+    }
 
-        if (btnToggleSidebar != null) {
-            btnToggleSidebar.setText("☰");
-        }
-
-        // Tabela de alunos (apenas Nome)
+    private void initTabelaAlunos() {
         colNome.setCellValueFactory(c -> c.getValue().nomeProperty);
         tblAlunos.setItems(alunos);
 
-        // Duplo clique / Enter para selecionar aluno
         tblAlunos.setRowFactory(tv -> {
             TableRow<OrientandoTableItem> row = new TableRow<>();
             row.setOnMouseClicked(evt -> {
@@ -98,22 +132,22 @@ public class EditorOrientadorController extends BaseController {
                 if (it != null) selecionarAluno(it);
             }
         });
+    }
 
-        // Filtro local (por nome)
+    private void initBuscaFiltro() {
         txtBuscaAluno.textProperty().addListener((obs, o, v) -> filtrarAlunos(v));
+    }
 
-        // Troca de aba -> recarrega parte
-        tabPartes.getSelectionModel().selectedItemProperty()
-                .addListener((obs, oldTab, newTab) -> {
-                    if (newTab != null) {
-                        Parte parte = parteFromTab(newTab);
-                        carregarParte(parte);
-                    }
-                });
+    private void initAbas() {
+        tabPartes.getSelectionModel().selectedItemProperty().addListener((obs, oldT, newT) -> {
+            if (newT != null) {
+                carregarParte(parteFromTab(newT));
+            }
+        });
+    }
 
-        // Botões (regras de disponibilidade)
+    private void initBotoes() {
         btnEnviarComentario.setOnAction(e -> enviarComentario());
-        btnConcluirParte.setOnAction(e -> marcarConcluida());
 
         btnEnviarComentario.disableProperty().bind(
                 Bindings.createBooleanBinding(
@@ -123,38 +157,14 @@ public class EditorOrientadorController extends BaseController {
                         txtComentario.textProperty()
                 )
         );
-        btnConcluirParte.disableProperty().bind(
-                Bindings.createBooleanBinding(
-                        () -> alunoSelecionadoId == null
-                                || trabalhoIdSelecionado == null
-                                || parteSelecionada() == null
-                                || isBlank(lblVersao.getText())  // habilita quando existir versão carregada
-                        ,
-                        lblVersao.textProperty(),
-                        tblAlunos.getSelectionModel().selectedItemProperty(),
-                        tabPartes.getSelectionModel().selectedItemProperty()
-                )
-        );
-
-        User u = Session.getUser();
-        boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
-        if (btnSouCoordenador != null) {
-            btnSouCoordenador.setVisible(isCoord);
-            btnSouCoordenador.setManaged(isCoord); // evita “buraco” no layout quando oculto
-        }
-
-
     }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty() || "—".equals(s.trim());
+    private void enviarComentario() {
     }
 
-    // ====== Fluxos principais ======
     private void carregarOrientandos() {
         alunos.clear();
         if (professorId == null) return;
-
         try {
             var lista = dao.listarOrientandos(professorId).stream()
                     .map(OrientandoTableItem::from)
@@ -168,95 +178,105 @@ public class EditorOrientadorController extends BaseController {
     private void selecionarAluno(OrientandoTableItem it) {
         this.alunoSelecionadoId = it.alunoId.get();
         lblAluno.setText(it.nomeProperty.get());
-
         try {
             this.trabalhoIdSelecionado = dao.obterTrabalhoIdPorAluno(alunoSelecionadoId);
         } catch (SQLException e) {
-            erro("Não foi possível localizar o Trabalho de Graduação para o aluno selecionado.", e);
+            erro("Não foi possível localizar o Trabalho de Graduação.", e);
             return;
         }
-
-        // reset das versões conhecidas
-        versaoApresentacao = versaoResumo = versaoFinais = null;
-        versaoApi1 = versaoApi2 = versaoApi3 = versaoApi4 = versaoApi5 = versaoApi6 = null;
-
-        // seleciona aba padrão e carrega
+        // Seleciona aba padrão
         tabPartes.getSelectionModel().select(tabApresentacao);
         carregarParte(Parte.APRESENTACAO);
     }
 
     private void carregarParte(Parte parte) {
-        if (trabalhoIdSelecionado == null) return;
+        if (trabalhoIdSelecionado == null || parte == null) return;
 
         try {
             ConteudoParteDTO dto = dao.carregarUltimaVersao(trabalhoIdSelecionado, parte);
 
-            // Labels
-            lblVersao.setText(dto.versao() != null ? dto.versao() : "—");
+            // Versão e markdown (garantidos)
+            this.versaoAtual = dto.versao();
+            lblVersao.setText(versaoAtual != null ? versaoAtual : "—");
 
-            // Preview
-            txtPreview.setText(dto.markdown() != null ? dto.markdown() : "");
+            String md = (dto.markdown() == null) ? "" : dto.markdown();
 
-            // Guarda a versão corrente por parte
-            if (dto.versao() != null) setVersaoAtual(parte, dto.versao());
+            // Atualiza badge/label de status da versão atual
+            boolean validada = (versaoAtual != null) && dao.verificarConclusao(trabalhoIdSelecionado, parte, versaoAtual);
+            atualizarStatusVisual(validada);
 
-            atualizarStatusAtual();
+            switch (parte) {
+                case APRESENTACAO -> {
+                    // Mostramos o consolidado no card "Histórico acadêmico" (tem WebView disponível)
+                    setTextArea(txtHistoricoAcademico, md);
+                    renderMarkdown(webHistoricoAcademico, md);
 
-        } catch (SQLException e) {
-            erro("Falha ao carregar a parte " + parte + ".", e);
-        }
-    }
+                    // Limpa os demais cards até termos os campos individuais mapeados
+                    setTextArea(txtNomeCompleto, "");
+                    renderMarkdown(webNomeCompleto, "");
+                    setTextArea(txtCurso, "");
+                    renderMarkdown(webCurso, "");
+                }
 
-    private void enviarComentario() {
-        Parte parte = parteSelecionada();
-        if (parte == null || trabalhoIdSelecionado == null || alunoSelecionadoId == null) return;
+                case RESUMO -> {
+                    setTextArea(txtResumoMd, md);
+                    renderMarkdown(webResumo, md);
+                }
 
-        String versao = versaoAtual(parte);
-        String texto = "FEEDBACK\nReferente a: " + parte + "\n" + txtComentario.getText().trim();
-        if (texto.isBlank()) return;
-
-        Long destinatarioId = alunoSelecionadoId;
-        Long remetenteId = professorId;
-
-        try {
-            dao.enviarComentario(trabalhoIdSelecionado, remetenteId, destinatarioId, parte, versao, texto);
-            txtComentario.clear();
-            info("Comentário enviado! O aluno verá na tela de Chat.");
-        } catch (SQLException e) {
-            erro("Falha ao enviar comentário.", e);
-        }
-    }
-
-    private void marcarConcluida() {
-        Parte parte = parteSelecionada();
-        if (parte == null) return;
-
-        String versao = versaoAtual(parte);
-        if (versao == null || versao.isBlank()) {
-            erro("Não há versão carregada para esta parte.", null);
-            return;
-        }
-
-        try {
-            boolean ok = dao.marcarComoConcluida(trabalhoIdSelecionado, parte, versao);
-            if (ok) {
-                lblStatus.setText("Concluída");
-                atualizarStatusAtual();
-                info("Parte marcada como concluída.");
-            } else {
-                erro("Nenhum registro atualizado. Verifique parte/versão.", null);
+                default -> {
+                    // APIs 1..6 e FINAIS: layout por campo ainda não está no FXML desta versão
+                    // (quando você inserir os cards por campo nas abas de API/Finais, basta renderizar como acima)
+                    // Aqui só atualizamos o status visual.
+                }
             }
+
         } catch (SQLException e) {
-            erro("Erro ao marcar como concluída.", e);
+            erro("Falha ao carregar parte.", e);
         }
     }
 
-    // ====== Util ======
-    private Parte parteSelecionada() {
-        Tab t = tabPartes.getSelectionModel().getSelectedItem();
-        if (t == null) return null;
-        return parteFromTab(t);
+    private void atualizarStatusVisual(boolean validada) {
+        if (lblStatus == null) return;
+        lblStatus.setText(validada ? "Concluída" : "Pendente Validação");
+        lblStatus.getStyleClass().removeAll("badge-ok","badge-pendente");
+        lblStatus.getStyleClass().add(validada ? "badge-ok" : "badge-pendente");
     }
+
+
+
+    private void setTextArea(TextArea ta, String txt) {
+        if (ta != null) ta.setText(txt != null ? txt : "");
+    }
+
+    private void renderMarkdown(WebView webView, String markdown) {
+        if (webView == null) return;
+
+        String md = (markdown == null) ? "" : markdown;
+        String htmlBody = mdRenderer.render(mdParser.parse(md));
+
+        String page =
+                "<!doctype html><html><head>" +
+                        "<meta charset='UTF-8'>" +
+                        "<style>" +
+                        "  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 10px; }" +
+                        "  pre, code { white-space: pre-wrap; }" +
+                        "  table { border-collapse: collapse; width: 100%; }" +
+                        "  th, td { border: 1px solid #ddd; padding: 6px; }" +
+                        "  h1,h2,h3 { margin-top: 0.8em; }" +
+                        "</style>" +
+                        "</head><body>" +
+                        htmlBody +
+                        "</body></html>";
+
+        webView.getEngine().loadContent(page);
+    }
+
+    // ===== Ações Aprovar/Reprovar (stubs visuais por enquanto) =====
+    @FXML private void onAprovarCampo() { info("Aprovação por campo: em breve (depende do DAO com *_status)."); }
+    @FXML private void onReprovarCampo() { info("Reprovação por campo: em breve (depende do DAO com *_status)."); }
+
+    @FXML private void onAprovarResumoVersao() { info("Aprovar versão do Resumo: em breve (tri-state)."); }
+    @FXML private void onReprovarResumoVersao() { info("Reprovar versão do Resumo: em breve (tri-state)."); }
 
     private Parte parteFromTab(Tab t) {
         if (t == tabApresentacao) return Parte.APRESENTACAO;
@@ -271,20 +291,8 @@ public class EditorOrientadorController extends BaseController {
         return null;
     }
 
-    private String labelParte(Parte p) {
-        return switch (p) {
-            case APRESENTACAO -> "Apresentação";
-            case RESUMO -> "Resumo";
-            case FINAIS -> "Considerações finais";
-            default -> p.name().replace("API", "API ");
-        };
-    }
-
     private void filtrarAlunos(String filtro) {
-        if (filtro == null || filtro.isBlank()) {
-            tblAlunos.setItems(alunos);
-            return;
-        }
+        if (filtro == null || filtro.isBlank()) { tblAlunos.setItems(alunos); return; }
         final String f = filtro.toLowerCase(Locale.ROOT).trim();
         var filtrados = alunos.stream()
                 .filter(a -> a.nomeProperty.get().toLowerCase(Locale.ROOT).contains(f))
@@ -306,86 +314,24 @@ public class EditorOrientadorController extends BaseController {
         a.showAndWait();
     }
 
-    // ====== Versões correntes ======
-    private void setVersaoAtual(Parte p, String versao) {
-        switch (p) {
-            case APRESENTACAO -> versaoApresentacao = versao;
-            case API1 -> versaoApi1 = versao;
-            case API2 -> versaoApi2 = versao;
-            case API3 -> versaoApi3 = versao;
-            case API4 -> versaoApi4 = versao;
-            case API5 -> versaoApi5 = versao;
-            case API6 -> versaoApi6 = versao;
-            case RESUMO -> versaoResumo = versao;
-            case FINAIS -> versaoFinais = versao;
-        }
-    }
-
-    private String versaoAtual(Parte p) {
-        return switch (p) {
-            case APRESENTACAO -> versaoApresentacao;
-            case API1 -> versaoApi1;
-            case API2 -> versaoApi2;
-            case API3 -> versaoApi3;
-            case API4 -> versaoApi4;
-            case API5 -> versaoApi5;
-            case API6 -> versaoApi6;
-            case RESUMO -> versaoResumo;
-            case FINAIS -> versaoFinais;
-        };
-    }
-
-    // ====== Item da Tabela de Alunos (apenas Nome) ======
+    // ===== Item da Tabela de Alunos =====
     public static class OrientandoTableItem {
         private final SimpleLongProperty alunoId = new SimpleLongProperty();
         private final SimpleStringProperty nomeProperty = new SimpleStringProperty();
-        private Long trabalhoId;
-
         public static OrientandoTableItem from(OrientandoDTO d) {
             OrientandoTableItem it = new OrientandoTableItem();
             it.alunoId.set(Objects.requireNonNullElse(d.alunoId(), 0L));
             it.nomeProperty.set(Objects.requireNonNullElse(d.nome(), "—"));
-            it.trabalhoId = d.trabalhoId();
             return it;
         }
     }
-
-    private void atualizarStatusAtual() {
-        if (lblStatus == null) return;
-        Parte parte = parteSelecionada();
-
-        String versao = versaoAtual(parte);
-
-        try {
-            boolean validada = dao.verificarConclusao(trabalhoIdSelecionado, parte, versao);
-            String statusTxt = validada ? "Concluída" : "Pendente Validação";
-            lblStatus.setText(statusTxt);
-            lblStatus.getStyleClass().removeAll("badge-ok","badge-pendente");
-            lblStatus.getStyleClass().add(validada ? "badge-ok" : "badge-pendente");
-        } catch (SQLException e) {
-            // Em caso de erro de banco, manter pendente
-            lblStatus.setText("Pendente Validação");
-            lblStatus.getStyleClass().removeAll("badge-ok","badge-pendente");
-            lblStatus.getStyleClass().add("badge-pendente");
-        }
-    }
-
 
     // ===== Navegação =====
     public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
-
     public void goVisaoGeral(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void goPainel(){ SceneManager.go("orientador/Painel.fxml"); }
-    public void goNotificacoes(){ SceneManager.go("orientador/Notificacoes.fxml"); }
     public void goEditor(){ SceneManager.go("orientador/Editor.fxml"); }
-    public void goParecer(){ SceneManager.go("orientador/Parecer.fxml"); }
-    public void goImportar(){ SceneManager.go("orientador/Importar.fxml"); }
-    public void goChat() {
-        SceneManager.go("orientador/Chat.fxml", c -> {
-            ChatOrientadorController ctrl = (ChatOrientadorController) c;
-            ctrl.onReady();
-        });
-    }
+    public void goChat(){ SceneManager.go("orientador/Chat.fxml"); }
 }

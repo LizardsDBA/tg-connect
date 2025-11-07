@@ -74,63 +74,97 @@ CREATE TABLE IF NOT EXISTS pareceres (
     ) ENGINE=InnoDB;
 
 -- =========================================================
--- TABELAS DO TG (versionadas)
--- (sem ano/semestre_letivo em tg_secao; contatos_email = bloco inteiro)
+-- TABELAS DO TG (versionadas) — NOVO PADRÃO *_status
 -- =========================================================
+
 CREATE TABLE IF NOT EXISTS tg_apresentacao (
-                                               id                           BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                               trabalho_id                  BIGINT NOT NULL,
-                                               versao                       VARCHAR(20) NOT NULL,
-    nome_completo                LONGTEXT NULL,
-    idade                        INT NULL,
-    curso                        LONGTEXT NULL,
-    historico_academico          LONGTEXT NULL,
-    motivacao_fatec              LONGTEXT NULL,
-    historico_profissional       LONGTEXT NULL,
-    contatos_email               LONGTEXT NULL,
-    principais_conhecimentos     LONGTEXT NULL,
-    consideracoes_finais         LONGTEXT NULL,
-    created_at                   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    apresentacao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
-    consideracao_versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
-    UNIQUE KEY uk_apresentacao_trab_versao (trabalho_id, versao)
-    ) ENGINE=InnoDB;
+   id                           BIGINT AUTO_INCREMENT PRIMARY KEY,
+   trabalho_id                  BIGINT NOT NULL,
+   versao                       VARCHAR(20) NOT NULL,
+
+-- Campos de conteúdo (todos em Markdown)
+   nome_completo                LONGTEXT NULL,
+   idade                        INT NULL,
+   curso                        VARCHAR(150) NULL,
+   historico_academico          LONGTEXT NULL,
+   motivacao_fatec              LONGTEXT NULL,
+   historico_profissional       LONGTEXT NULL,
+   contatos_email               LONGTEXT NULL,
+   principais_conhecimentos     LONGTEXT NULL,
+   consideracoes_finais         LONGTEXT NULL,
+
+-- Status por campo (0 pendente, 1 aprovado, 2 reprovado)
+   nome_completo_status            TINYINT NOT NULL DEFAULT 0 CHECK (nome_completo_status IN (0,1,2)),
+   idade_status                    TINYINT NOT NULL DEFAULT 0 CHECK (idade_status IN (0,1,2)),
+   curso_status                    TINYINT NOT NULL DEFAULT 0 CHECK (curso_status IN (0,1,2)),
+   historico_academico_status      TINYINT NOT NULL DEFAULT 0 CHECK (historico_academico_status IN (0,1,2)),
+   motivacao_fatec_status          TINYINT NOT NULL DEFAULT 0 CHECK (motivacao_fatec_status IN (0,1,2)),
+   historico_profissional_status   TINYINT NOT NULL DEFAULT 0 CHECK (historico_profissional_status IN (0,1,2)),
+   contatos_email_status           TINYINT NOT NULL DEFAULT 0 CHECK (contatos_email_status IN (0,1,2)),
+   principais_conhecimentos_status TINYINT NOT NULL DEFAULT 0 CHECK (principais_conhecimentos_status IN (0,1,2)),
+   consideracoes_finais_status     TINYINT NOT NULL DEFAULT 0 CHECK (consideracoes_finais_status IN (0,1,2)),
+
+   created_at                   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+   FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
+   UNIQUE KEY uk_apresentacao_trab_versao (trabalho_id, versao)
+) ENGINE=InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS tg_secao (
-                                        id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                        trabalho_id       BIGINT NOT NULL,
-                                        versao            VARCHAR(20) NOT NULL,
-    semestre_api      TINYINT NOT NULL CHECK (semestre_api BETWEEN 1 AND 6),
-    empresa_parceira  VARCHAR(150) NULL,
-    problema          LONGTEXT NULL,
-    solucao_resumo    LONGTEXT NULL,
-    link_repositorio  VARCHAR(300) NULL,
-    tecnologias       LONGTEXT NULL,
-    contribuicoes     LONGTEXT NULL,
-    hard_skills       LONGTEXT NULL,
-    soft_skills       LONGTEXT NULL,
-    conteudo_md       LONGTEXT NULL,
-    created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        DATETIME NULL,
-    versao_validada   BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
-    UNIQUE KEY uk_trab_versao_semestre_api (trabalho_id, versao, semestre_api),
-    KEY idx_secao_trab_versao (trabalho_id, versao)
-    ) ENGINE=InnoDB;
+id                BIGINT AUTO_INCREMENT PRIMARY KEY,
+trabalho_id       BIGINT NOT NULL,
+versao            VARCHAR(20) NOT NULL,
+
+semestre_api      TINYINT NOT NULL CHECK (semestre_api BETWEEN 1 AND 6),
+
+-- Campos de conteúdo (todos em Markdown, exceto link)
+empresa_parceira  VARCHAR(150) NULL,
+problema          LONGTEXT NULL,
+solucao_resumo    LONGTEXT NULL,
+link_repositorio  VARCHAR(300) NULL,
+tecnologias       LONGTEXT NULL,
+contribuicoes     LONGTEXT NULL,
+hard_skills       LONGTEXT NULL,
+soft_skills       LONGTEXT NULL,
+conteudo_md       LONGTEXT NULL,
+
+-- Status por campo (0 pendente, 1 aprovado, 2 reprovado)
+empresa_parceira_status  TINYINT NOT NULL DEFAULT 0 CHECK (empresa_parceira_status IN (0,1,2)),
+problema_status          TINYINT NOT NULL DEFAULT 0 CHECK (problema_status IN (0,1,2)),
+solucao_resumo_status    TINYINT NOT NULL DEFAULT 0 CHECK (solucao_resumo_status IN (0,1,2)),
+link_repositorio_status  TINYINT NOT NULL DEFAULT 0 CHECK (link_repositorio_status IN (0,1,2)),
+tecnologias_status       TINYINT NOT NULL DEFAULT 0 CHECK (tecnologias_status IN (0,1,2)),
+contribuicoes_status     TINYINT NOT NULL DEFAULT 0 CHECK (contribuicoes_status IN (0,1,2)),
+hard_skills_status       TINYINT NOT NULL DEFAULT 0 CHECK (hard_skills_status IN (0,1,2)),
+soft_skills_status       TINYINT NOT NULL DEFAULT 0 CHECK (soft_skills_status IN (0,1,2)),
+conteudo_md_status       TINYINT NOT NULL DEFAULT 0 CHECK (conteudo_md_status IN (0,1,2)),
+
+created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at        DATETIME NULL,
+
+FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
+UNIQUE KEY uk_trab_versao_semestre_api (trabalho_id, versao, semestre_api),
+KEY idx_secao_trab_versao (trabalho_id, versao)
+) ENGINE=InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS tg_resumo (
-                                         id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                         trabalho_id     BIGINT NOT NULL,
-                                         versao          VARCHAR(20) NOT NULL,
-    resumo_md       LONGTEXT NOT NULL,
-    kpis            DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- percentual de conclusão
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    versao_validada BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
-    UNIQUE KEY uk_resumo_trab_versao (trabalho_id, versao)
-    ) ENGINE=InnoDB;
+id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+trabalho_id     BIGINT NOT NULL,
+versao          VARCHAR(20) NOT NULL,
+
+resumo_md       LONGTEXT NOT NULL,
+
+created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+-- Status único por versão (0 pendente, 1 aprovado, 2 reprovado)
+versao_validada TINYINT NOT NULL DEFAULT 0 CHECK (versao_validada IN (0,1,2)),
+
+FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
+UNIQUE KEY uk_resumo_trab_versao (trabalho_id, versao)
+) ENGINE=InnoDB;
 
 -- =========================================================
 -- MENSAGENS / NOTIFICAÇÕES / ANEXOS / ENTREGAS
@@ -277,7 +311,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 );
 
 -- Resumo v1
-INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
+INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
 SELECT
     @tg_id, 'v1',
     '## Tabela Resumo dos Projetos API\n
@@ -291,8 +325,7 @@ SELECT
 | 5º Semestre | Futuro | Futuro |\n
 | 6º Semestre | Futuro | Futuro |\n
 \n
-\n',
-    0.00
+\n'
     WHERE @tg_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg_id AND r.versao='v1');
 
@@ -834,7 +867,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 );
 
 -- Resumo v1 (Mariana Lopes Andrade)
-INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
+INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
 SELECT
     @tg2_id, 'v1',
     '## Tabela Resumo dos Projetos API\n
@@ -848,8 +881,7 @@ SELECT
 | 5º Semestre | Futuro | Futuro |\n
 | 6º Semestre | Futuro | Futuro |\n
 \n
-\n',
-    0.00
+\n'
     WHERE @tg2_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg2_id AND r.versao='v1');
 
@@ -1298,7 +1330,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 );
 
 -- Resumo v1 (Rafael Sousa Menezes)
-INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
+INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
 SELECT
     @tg3_id, 'v1',
     '## Tabela Resumo dos Projetos API\n
@@ -1312,8 +1344,7 @@ SELECT
 | 5º Semestre | Futuro | Futuro |\n
 | 6º Semestre | Futuro | Futuro |\n
 \n
-\n',
-    0.00
+\n'
     WHERE @tg3_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg3_id AND r.versao='v1');
 
@@ -1762,7 +1793,7 @@ Acredito que o aprendizado obtido, aliado à prática profissional, me prepara p
 );
 
 -- Resumo v1 (Camila Ferreira Duarte)
-INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
+INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
 SELECT
     @tg4_id, 'v1',
     '## Tabela Resumo dos Projetos API\n
@@ -1776,8 +1807,7 @@ SELECT
 | 5º Semestre | Futuro | Futuro |\n
 | 6º Semestre | Futuro | Futuro |\n
 \n
-\n',
-    0.00
+\n'
     WHERE @tg4_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM tg_resumo r WHERE r.trabalho_id=@tg4_id AND r.versao='v1');
 

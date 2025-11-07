@@ -99,88 +99,175 @@ public class JdbcFeedbackDao {
         Objects.requireNonNull(versao, "versao não pode ser nula");
 
         return switch (parte) {
-            case APRESENTACAO -> execUpdate(
-                    "UPDATE tg_apresentacao SET apresentacao_versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
-                    p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
+            case APRESENTACAO -> execUpdate("""
+            UPDATE tg_apresentacao SET
+                nome_completo_status = 1,
+                idade_status = 1,
+                curso_status = 1,
+                historico_academico_status = 1,
+                motivacao_fatec_status = 1,
+                historico_profissional_status = 1,
+                contatos_email_status = 1,
+                principais_conhecimentos_status = 1,
+                consideracoes_finais_status = 1
+            WHERE trabalho_id = ? AND versao = ?
+        """, p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
-            case FINAIS -> execUpdate(
-                    "UPDATE tg_apresentacao SET consideracao_versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
-                    p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
+            case FINAIS -> execUpdate("""
+            UPDATE tg_apresentacao SET consideracoes_finais_status = 1
+            WHERE trabalho_id = ? AND versao = ?
+        """, p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
-            case RESUMO -> execUpdate(
-                    "UPDATE tg_resumo SET versao_validada = TRUE WHERE trabalho_id = ? AND versao = ?",
-                    p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
+            case RESUMO -> execUpdate("""
+            UPDATE tg_resumo SET versao_validada = 1
+            WHERE trabalho_id = ? AND versao = ?
+        """, p -> { p.setLong(1, trabalhoId); p.setString(2, versao); });
 
-            default -> execUpdate(
-                    "UPDATE tg_secao SET versao_validada = TRUE WHERE trabalho_id = ? AND semestre_api = ? AND versao = ?",
-                    p -> { p.setLong(1, trabalhoId); p.setInt(2, apiIndex(parte)); p.setString(3, versao); });
+            default -> {
+                int api = apiIndex(parte);
+                yield execUpdate("""
+                UPDATE tg_secao SET
+                    empresa_parceira_status = 1,
+                    problema_status = 1,
+                    solucao_resumo_status = 1,
+                    link_repositorio_status = 1,
+                    tecnologias_status = 1,
+                    contribuicoes_status = 1,
+                    hard_skills_status = 1,
+                    soft_skills_status = 1,
+                    conteudo_md_status = 1
+                WHERE trabalho_id = ? AND semestre_api = ? AND versao = ?
+            """, p -> { p.setLong(1, trabalhoId); p.setInt(2, api); p.setString(3, versao); });
+            }
         };
     }
 
+
     public boolean verificarConclusao(Long trabalhoId, Parte parte, String versao) throws SQLException {
-        if (trabalhoId == null || parte == null || versao == null || versao.isBlank()) {
-            return false;
-        }
+        if (trabalhoId == null || parte == null || versao == null || versao.isBlank()) return false;
 
         String sql;
         switch (parte) {
             case APRESENTACAO -> {
-                sql = "SELECT apresentacao_versao_validada FROM tg_apresentacao WHERE trabalho_id = ? AND versao = ?";
+                sql = """
+                SELECT CASE WHEN
+                    nome_completo_status = 1 AND
+                    COALESCE(idade_status, 1) = 1 AND
+                    curso_status = 1 AND
+                    historico_academico_status = 1 AND
+                    motivacao_fatec_status = 1 AND
+                    historico_profissional_status = 1 AND
+                    contatos_email_status = 1 AND
+                    principais_conhecimentos_status = 1 AND
+                    consideracoes_finais_status = 1
+                THEN 1 ELSE 0 END AS ok
+                FROM tg_apresentacao
+                WHERE trabalho_id = ? AND versao = ?
+                LIMIT 1
+            """;
+                try (Connection c = Database.get();
+                     PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setLong(1, trabalhoId);
+                    ps.setString(2, versao);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        return rs.next() && rs.getInt("ok") == 1;
+                    }
+                }
             }
             case RESUMO -> {
-                sql = "SELECT versao_validada FROM tg_resumo WHERE trabalho_id = ? AND versao = ?";
+                sql = "SELECT (versao_validada = 1) AS ok FROM tg_resumo WHERE trabalho_id = ? AND versao = ? LIMIT 1";
+                try (Connection c = Database.get();
+                     PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setLong(1, trabalhoId);
+                    ps.setString(2, versao);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        return rs.next() && rs.getBoolean("ok");
+                    }
+                }
             }
             case FINAIS -> {
-                sql = "SELECT consideracao_versao_validada FROM tg_apresentacao WHERE trabalho_id = ? AND versao = ?";
+                // Agora 'finais' é o campo consideracoes_finais na apresentação
+                sql = """
+                SELECT (consideracoes_finais_status = 1) AS ok
+                FROM tg_apresentacao
+                WHERE trabalho_id = ? AND versao = ?
+                LIMIT 1
+            """;
+                try (Connection c = Database.get();
+                     PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setLong(1, trabalhoId);
+                    ps.setString(2, versao);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        return rs.next() && rs.getBoolean("ok");
+                    }
+                }
             }
-            default -> {
-                // APIs 1..6 → tg_secao.versao_validada por trabalho/versão/semestre_api
+            default -> { // API1..API6
                 int semestreApi = apiIndex(parte);
-                sql = "SELECT versao_validada FROM tg_secao WHERE trabalho_id = ? AND versao = ? AND semestre_api = ?";
-            }
-        }
-
-        try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-
-            ps.setLong(1, trabalhoId);
-            ps.setString(2, versao);
-
-            // se for API, precisamos de mais um parâmetro
-            if (parte.name().startsWith("API")) {
-                ps.setInt(3, apiIndex(parte));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getBoolean(1); // MySQL TINYINT(1) → boolean
+                sql = """
+                SELECT CASE WHEN
+                    COALESCE(empresa_parceira_status,1) = 1 AND
+                    problema_status = 1 AND
+                    solucao_resumo_status = 1 AND
+                    COALESCE(link_repositorio_status,1) = 1 AND
+                    tecnologias_status = 1 AND
+                    contribuicoes_status = 1 AND
+                    hard_skills_status = 1 AND
+                    soft_skills_status = 1 AND
+                    COALESCE(conteudo_md_status,1) = 1
+                THEN 1 ELSE 0 END AS ok
+                FROM tg_secao
+                WHERE trabalho_id = ? AND versao = ? AND semestre_api = ?
+                LIMIT 1
+            """;
+                try (Connection c = Database.get();
+                     PreparedStatement ps = c.prepareStatement(sql)) {
+                    ps.setLong(1, trabalhoId);
+                    ps.setString(2, versao);
+                    ps.setInt(3, semestreApi);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        return rs.next() && rs.getInt("ok") == 1;
+                    }
                 }
             }
         }
-
-        // Nenhum registro encontrado → ainda não concluído
-        return false;
     }
+
 
     // ====== Implementações por parte ======
 
     private ConteudoParteDTO carregarApresentacaoUltima(Long trabalhoId) throws SQLException {
         String sql = """
-            SELECT versao,
-                   COALESCE(nome_completo,'')            AS nome_completo,
-                   COALESCE(idade, NULL)                 AS idade,
-                   COALESCE(curso,'')                    AS curso,
-                   COALESCE(historico_academico,'')      AS historico_academico,
-                   COALESCE(motivacao_fatec,'')          AS motivacao_fatec,
-                   COALESCE(historico_profissional,'')   AS historico_profissional,
-                   COALESCE(contatos_email,'')           AS contatos_email,
-                   COALESCE(principais_conhecimentos,'') AS principais_conhecimentos,
-                   apresentacao_versao_validada          AS concluida
-              FROM tg_apresentacao
-             WHERE trabalho_id = ?
-             ORDER BY LENGTH(versao) DESC, versao DESC
-             LIMIT 1
-        """;
+        SELECT
+            versao,
+            COALESCE(nome_completo,'')            AS nome_completo,
+            COALESCE(idade, NULL)                 AS idade,
+            COALESCE(curso,'')                    AS curso,
+            COALESCE(historico_academico,'')      AS historico_academico,
+            COALESCE(motivacao_fatec,'')          AS motivacao_fatec,
+            COALESCE(historico_profissional,'')   AS historico_profissional,
+            COALESCE(contatos_email,'')           AS contatos_email,
+            COALESCE(principais_conhecimentos,'') AS principais_conhecimentos,
+            COALESCE(consideracoes_finais,'')     AS consideracoes_finais,
+
+            -- concluida = 1 somente se TODOS os campos estiverem aprovados (status = 1)
+            CASE WHEN
+                nome_completo_status = 1 AND
+                COALESCE(idade_status, 1) = 1 AND
+                curso_status = 1 AND
+                historico_academico_status = 1 AND
+                motivacao_fatec_status = 1 AND
+                historico_profissional_status = 1 AND
+                contatos_email_status = 1 AND
+                principais_conhecimentos_status = 1 AND
+                consideracoes_finais_status = 1
+            THEN 1 ELSE 0 END AS concluida
+        FROM tg_apresentacao
+        WHERE trabalho_id = ?
+        ORDER BY LENGTH(versao) DESC, versao DESC
+        LIMIT 1
+    """;
+
         try (Connection c = Database.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
@@ -190,12 +277,13 @@ public class JdbcFeedbackDao {
                     return new ConteudoParteDTO(Parte.APRESENTACAO,
                             rs.getString("versao"),
                             md,
-                            rs.getBoolean("concluida"));
+                            rs.getInt("concluida") == 1);
                 }
             }
         }
         return new ConteudoParteDTO(Parte.APRESENTACAO, null, "", false);
     }
+
 
     private ConteudoParteDTO carregarFinaisUltimo(Long trabalhoId) throws SQLException {
         String sql = """
@@ -247,23 +335,37 @@ public class JdbcFeedbackDao {
 
     private ConteudoParteDTO carregarApiUltima(Long trabalhoId, int semestreApi) throws SQLException {
         String sql = """
-            SELECT versao,
-                   COALESCE(conteudo_md,
-                            CONCAT_WS('\\n',
-                              CONCAT('### Problema:\\n', COALESCE(problema,'')),
-                              CONCAT('### Solução (resumo):\\n', COALESCE(solucao_resumo,'')),
-                              CONCAT('### Tecnologias:\\n', COALESCE(tecnologias,'')),
-                              CONCAT('### Contribuições:\\n', COALESCE(contribuicoes,'')),
-                              CONCAT('### Hard skills:\\n', COALESCE(hard_skills,'')),
-                              CONCAT('### Soft skills:\\n', COALESCE(soft_skills,'')),
-                              CONCAT('### Repositório:\\n', COALESCE(link_repositorio,''))))
-                       AS markdown,
-                   versao_validada AS concluida
-              FROM tg_secao
-             WHERE trabalho_id = ? AND semestre_api = ?
-             ORDER BY LENGTH(versao) DESC, versao DESC
-             LIMIT 1
-        """;
+        SELECT
+            versao,
+            COALESCE(conteudo_md,
+                CONCAT_WS('\\n',
+                    CONCAT('### Problema:\\n', COALESCE(problema,'')),
+                    CONCAT('### Solução (resumo):\\n', COALESCE(solucao_resumo,'')),
+                    CONCAT('### Tecnologias:\\n', COALESCE(tecnologias,'')),
+                    CONCAT('### Contribuições:\\n', COALESCE(contribuicoes,'')),
+                    CONCAT('### Hard skills:\\n', COALESCE(hard_skills,'')),
+                    CONCAT('### Soft skills:\\n', COALESCE(soft_skills,'')),
+                    CONCAT('### Repositório:\\n', COALESCE(link_repositorio,'')))
+            ) AS markdown,
+
+            -- concluida = 1 somente se TODOS os campos estiverem aprovados (status = 1)
+            CASE WHEN
+                COALESCE(empresa_parceira_status,1) = 1 AND
+                problema_status = 1 AND
+                solucao_resumo_status = 1 AND
+                COALESCE(link_repositorio_status,1) = 1 AND
+                tecnologias_status = 1 AND
+                contribuicoes_status = 1 AND
+                hard_skills_status = 1 AND
+                soft_skills_status = 1 AND
+                COALESCE(conteudo_md_status,1) = 1
+            THEN 1 ELSE 0 END AS concluida
+        FROM tg_secao
+        WHERE trabalho_id = ? AND semestre_api = ?
+        ORDER BY LENGTH(versao) DESC, versao DESC
+        LIMIT 1
+    """;
+
         try (Connection c = Database.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
@@ -273,12 +375,13 @@ public class JdbcFeedbackDao {
                     return new ConteudoParteDTO(parteFromApi(semestreApi),
                             rs.getString("versao"),
                             rs.getString("markdown"),
-                            rs.getBoolean("concluida"));
+                            rs.getInt("concluida") == 1);
                 }
             }
         }
         return new ConteudoParteDTO(parteFromApi(semestreApi), null, "", false);
     }
+
 
     // ====== Helpers ======
 
