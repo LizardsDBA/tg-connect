@@ -11,9 +11,15 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.concurrent.Task;
+import br.edu.fatec.api.dao.JdbcPainelOrientadorDao;
+import br.edu.fatec.api.dao.JdbcKpiDao;
+import br.edu.fatec.api.dto.PainelOrientadorRow;
+import java.util.ArrayList;
+import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class AndamentoCoordController extends BaseController {
 
@@ -26,6 +32,8 @@ public class AndamentoCoordController extends BaseController {
     // Filtros
     @FXML private ChoiceBox<String> cbCurso, cbStatus;
     @FXML private TextField txtBusca;
+    @FXML private ProgressIndicator loader;
+    @FXML private Label lblCarrega;
 
     // Tabela
     @FXML private TableView<AndamentoVM> tblAndamento;
@@ -45,14 +53,6 @@ public class AndamentoCoordController extends BaseController {
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");
         }
-
-        // Mock de dados (substituir por DAO/Service)
-        base.setAll(
-                new AndamentoVM("ADS", "Ana Souza", "Prof. Almeida", "Visão computacional", "Em dia", 72, nowMinus(2)),
-                new AndamentoVM("ADS", "Bruno Lima", "Prof. Almeida", "JDBC/SQLite", "Atrasado", 40, nowMinus(5)),
-                new AndamentoVM("GTI", "Carla Mendes", "Profa. Carla", "UX JavaFX", "Em dia", 81, nowMinus(1)),
-                new AndamentoVM("GTI", "Diego Rocha", "Profa. Carla", "KPIs & Relatórios", "Em dia", 65, nowMinus(3))
-        );
 
         // Bind colunas
         colAluno.setCellValueFactory(c -> c.getValue().aluno);
@@ -84,15 +84,103 @@ public class AndamentoCoordController extends BaseController {
             }
         });
 
+        // ===== Carga assíncrona (DAO) =====
+        Task<List<AndamentoVM>> task = new Task<>() {
+            @Override
+            protected List<AndamentoVM> call() throws Exception {
+                JdbcPainelOrientadorDao painelDao = new JdbcPainelOrientadorDao();
+                JdbcKpiDao kpiDao = new JdbcKpiDao();
+                List<PainelOrientadorRow> rows = painelDao.listarParaCoordenador();
+
+                List<AndamentoVM> list = new ArrayList<>();
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                for (PainelOrientadorRow r : rows) {
+                    // Status conforme combinado: pendências == 0 → "Em dia"
+                    int pendencias = r.getPendencias();
+                    String status = (pendencias == 0) ? "Em dia" : "Atrasado";
+
+                    // Percentual (DTO já traz double 0..100). Arredondamos para int p/ a barra.
+                    int pct = (int) Math.round(r.getPercentual());
+                    pct = Math.max(0, Math.min(100, pct));
+
+
+                    // Atualizado: se o DTO original não tem data, deixamos "-"
+                    String atualizado = "-";
+
+                    // Curso será ignorado por ora ("—")
+                    list.add(new AndamentoVM(
+                            "—",                 // curso (ignorado agora)
+                            r.getAluno(),        // aluno
+                            r.getOrientador(),   // orientador
+                            r.getTema(),         // tema
+                            status,              // status
+                            pct,                 // percentual
+                            atualizado           // atualizado em
+                    ));
+                }
+                return list;
+            }
+        };
+
+        task.setOnSucceeded(ev -> {
+            base.setAll(task.getValue());
+
+            // Liga tabela aos dados filtráveis
+            filtered = new FilteredList<>(base, a -> true);
+            tblAndamento.setItems(filtered);
+
+
+            // Prepara filtros (curso deixamos estático por enquanto)
+            cbCurso.getItems().setAll("Todos", "ADS", "GTI");
+            // cbCurso.getSelectionModel().selectFirst();
+            cbCurso.setDisable(true);
+
+
+            cbStatus.getItems().setAll("Todos", "Em dia", "Atrasado");
+            cbStatus.getSelectionModel().selectFirst();
+
+            txtBusca.textProperty().addListener((o,old,v) -> aplicarFiltros());
+            cbCurso.getSelectionModel().selectedItemProperty().addListener((o,old,v) -> aplicarFiltros());
+            cbStatus.getSelectionModel().selectedItemProperty().addListener((o,old,v) -> aplicarFiltros());
+
+            // KPIs
+            atualizarKPIs();
+
+            // Placeholder caso não haja linhas
+            if (loader != null) loader.setVisible(false);
+            if (lblCarrega != null) lblCarrega.setVisible(false);
+            tblAndamento.setPlaceholder(new Label("Sem registros."));
+        });
+
+        task.setOnFailed(ev -> {
+            if (loader != null) loader.setVisible(false);
+            if (lblCarrega != null) lblCarrega.setVisible(false);
+            tblAndamento.setPlaceholder(new Label("Erro ao carregar dados."));
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setHeaderText("Falha ao carregar Andamento");
+            Throwable ex = task.getException();
+            a.setContentText(ex != null ? ex.getMessage() : "Erro inesperado.");
+            a.showAndWait();
+        });
+
+
+
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
+
+// ===== fim carga assíncrona =====
+
+
         // Filtros
         filtered = new FilteredList<>(base, a -> true);
         tblAndamento.setItems(filtered);
-        tblAndamento.setPlaceholder(new Label("Sem registros."));
+        tblAndamento.setPlaceholder(new Label("Carregando dados..."));
 
         cbCurso.getItems().setAll("Todos", "ADS", "GTI");
         cbCurso.getSelectionModel().selectFirst();
 
-        cbStatus.getItems().setAll("Todos", "Em dia", "Atrasado");
         cbStatus.getSelectionModel().selectFirst();
 
         txtBusca.textProperty().addListener((o,old,v) -> aplicarFiltros());

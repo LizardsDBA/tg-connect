@@ -6,10 +6,33 @@ import br.edu.fatec.api.dto.PainelOrientadorRow;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcPainelOrientadorDao {
+
+    public List<PainelOrientadorRow> listarParaCoordenador() {
+        List<PainelOrientadorRow> out = new ArrayList<>();
+
+        final String sqlIds = "SELECT DISTINCT orientador_id FROM trabalhos_graduacao";
+
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sqlIds);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                long orientadorId = rs.getLong(1);
+                // Reuso do método já existente (mantém o MESMO formato do DTO)
+                out.addAll(listar(orientadorId));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // (depois podemos logar melhor)
+        }
+        return out;
+    }
+
 
     private static final String SQL =
             """

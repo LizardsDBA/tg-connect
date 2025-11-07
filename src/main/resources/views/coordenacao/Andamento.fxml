@@ -81,6 +81,12 @@
                 <Button text="Limpar" onAction="#limparFiltros"/>
             </HBox>
 
+            <!-- Loader (aparece durante a busca no DAO) -->
+            <HBox spacing="8.0" alignment="CENTER_LEFT">
+                <ProgressIndicator fx:id="loader" visible="false" prefWidth="24.0" prefHeight="24.0"/>
+                <Label fx:id="lblCarrega" text="Carregando dados..." visible="false"/>
+            </HBox>
+
             <!-- Tabela -->
             <TableView fx:id="tblAndamento" VBox.vgrow="ALWAYS">
                 <columns>
