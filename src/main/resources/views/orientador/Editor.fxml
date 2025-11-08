@@ -40,150 +40,58 @@
         <!-- Main Content Card -->
         <VBox spacing="16.0" styleClass="card" HBox.hgrow="ALWAYS">
 
-            <!-- Breadcrumbs -->
             <Label styleClass="subtle" text="Orientador / Feedback"/>
 
-            <!-- Título -->
             <VBox spacing="6.0">
-                <Label styleClass="title" text="Orientador — Feedback por campo"/>
-                <Label styleClass="subtitle" text="Avalie cada campo individualmente (MD renderizado)."/>
+                <Label styleClass="title" text="Orientador — Feedback"/>
+                <Label styleClass="subtitle" text="Selecione um aluno para avaliar ou enviar comentários."/>
             </VBox>
 
-            <!-- Barra de status (aluno/parte/versão/status) -->
             <HBox alignment="CENTER_LEFT" spacing="12.0">
                 <Label text="Aluno:"/>
-                <Label fx:id="lblAluno" text=" "/>
+                <Label fx:id="lblAluno" text="Nenhum aluno selecionado"/>
                 <Label text=" |   Versão:"/>
-                <Label fx:id="lblVersao" text=" "/>
+                <Label fx:id="lblVersao" text="—"/>
                 <Label text=" |   Status da versão:"/>
-                <Label fx:id="lblStatus" text=" " />
+                <Label fx:id="lblStatus" text="—"/>
             </HBox>
 
-            <!-- Abas das Partes -->
-            <TabPane fx:id="tabPartes"
-                     VBox.vgrow="ALWAYS"
-                     maxHeight="Infinity"
-                     side="TOP"
-                     styleClass="editor-tabs"
-                     tabClosingPolicy="UNAVAILABLE">
-
-            <tabs>
-                    <Tab fx:id="tabApresentacao" text="Apresentação">
-                        <content>
-                            <ScrollPane fitToWidth="true" fitToHeight="true" prefViewportHeight="600">
-                            <content>
-                                    <VBox spacing="16.0">
-                                        <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-
-                                        <!-- Card - Nome Completo -->
-                                        <TitledPane text="Nome completo" expanded="false">
-                                            <content>
-                                                <VBox spacing="8.0">
-                                                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                                    <TextArea fx:id="txtNomeCompleto" editable="false" wrapText="true" prefRowCount="3"/>
-                                                    <WebView fx:id="webNomeCompleto" prefHeight="120"/>
-                                                    <HBox spacing="8">
-                                                        <Button fx:id="btnAprovNomeCompleto" text="Aprovar" onAction="#onAprovarCampo"/>
-                                                        <Button fx:id="btnReprovNomeCompleto" text="Reprovar" onAction="#onReprovarCampo"/>
-                                                        <Label fx:id="lblNomeCompletoStatus" styleClass="badge"/>
-                                                    </HBox>
-                                                </VBox>
-                                            </content>
-                                        </TitledPane>
-
-                                        <!-- Card - Curso -->
-                                        <TitledPane text="Curso" expanded="false">
-                                            <content>
-                                                <VBox spacing="8.0">
-                                                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                                    <TextArea fx:id="txtCurso" editable="false" wrapText="true" prefRowCount="2"/>
-                                                    <WebView fx:id="webCurso" prefHeight="80"/>
-                                                    <HBox spacing="8">
-                                                        <Button fx:id="btnAprovCurso" text="Aprovar" onAction="#onAprovarCampo"/>
-                                                        <Button fx:id="btnReprovCurso" text="Reprovar" onAction="#onReprovarCampo"/>
-                                                        <Label fx:id="lblCursoStatus" styleClass="badge"/>
-                                                    </HBox>
-                                                </VBox>
-                                            </content>
-                                        </TitledPane>
-
-                                        <!-- Card - Histórico Acadêmico -->
-                                        <TitledPane text="Histórico acadêmico" expanded="true">
-                                            <content>
-                                                <VBox spacing="8.0">
-                                                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                                    <TextArea fx:id="txtHistoricoAcademico" editable="false" wrapText="true" prefRowCount="6"/>
-                                                    <WebView fx:id="webHistoricoAcademico" prefHeight="160"/>
-                                                    <HBox spacing="8">
-                                                        <Button fx:id="btnAprovHistoricoAcademico" text="Aprovar" onAction="#onAprovarCampo"/>
-                                                        <Button fx:id="btnReprovHistoricoAcademico" text="Reprovar" onAction="#onReprovarCampo"/>
-                                                        <Label fx:id="lblHistoricoAcademicoStatus" styleClass="badge"/>
-                                                    </HBox>
-                                                </VBox>
-                                            </content>
-                                        </TitledPane>
-
-                                        <!-- (Repita padrão para demais campos) -->
-                                    </VBox>
-                                </content>
-                            </ScrollPane>
-                        </content>
-                    </Tab>
-
-                    <!-- API 1..6 -->
-                    <Tab fx:id="tabApi1" text="API 1"><content><Label text="API 1 — campos individuais"/></content></Tab>
-                    <Tab fx:id="tabApi2" text="API 2"><content><Label text="API 2 — campos individuais"/></content></Tab>
-                    <Tab fx:id="tabApi3" text="API 3"><content><Label text="API 3 — campos individuais"/></content></Tab>
-                    <Tab fx:id="tabApi4" text="API 4"><content><Label text="API 4 — campos individuais"/></content></Tab>
-                    <Tab fx:id="tabApi5" text="API 5"><content><Label text="API 5 — campos individuais"/></content></Tab>
-                    <Tab fx:id="tabApi6" text="API 6"><content><Label text="API 6 — campos individuais"/></content></Tab>
-
-                    <!-- Resumo -->
-                    <Tab fx:id="tabResumo" text="Resumo">
-                        <content>
-                            <VBox spacing="12.0">
-                                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                <TextArea fx:id="txtResumoMd" editable="false" wrapText="true" prefRowCount="12"/>
-                                <WebView fx:id="webResumo" prefHeight="260"/>
-                                <HBox spacing="8">
-                                    <Button fx:id="btnAprovResumoVersao" text="Aprovar versão" onAction="#onAprovarResumoVersao"/>
-                                    <Button fx:id="btnReprovResumoVersao" text="Reprovar versão" onAction="#onReprovarResumoVersao"/>
-                                    <Label fx:id="lblResumoVersaoStatus" styleClass="badge"/>
-                                </HBox>
-                            </VBox>
-                        </content>
-                    </Tab>
-
-                    <Tab fx:id="tabFinais" text="Considerações finais">
-                        <content>
-                            <Label text="As considerações finais agora são validadas por campo em 'Apresentação' → 'consideracoes_finais'."/>
-                        </content>
-                    </Tab>
-                </tabs>
-            </TabPane>
-
-            <!-- Lista de orientandos + busca -->
             <HBox spacing="16.0" VBox.vgrow="ALWAYS">
+
                 <VBox prefWidth="320.0" spacing="8.0">
                     <Label text="Alunos Orientados"/>
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar por nome..."/>
-                    <TableView fx:id="tblAlunos" prefHeight="560">
+                    <TableView fx:id="tblAlunos" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="colNome" text="Nome" prefWidth="315.0" resizable="false" sortable="false"/>
+                            <TableColumn fx:id="colNome" editable="false" prefWidth="315.0" resizable="false" sortable="false" text="Nome"/>
                         </columns>
                     </TableView>
                 </VBox>
 
-                <!-- Observações / Comentário -->
-                <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                <VBox spacing="16.0" HBox.hgrow="ALWAYS">
+
+                    <Label styleClass="title" text="Ações de Feedback"/>
+                    <Button fx:id="btnAbrirModalFeedback"
+                            onAction="#abrirModalFeedback"
+                            text="Dar Feedback por Campo (Avaliar TG)"
+                            maxWidth="Infinity"
+                            styleClass="btn-primary" />
+                    <Button fx:id="btnAbrirModalPreview"
+                            onAction="#abrirModalPreview"
+                            text="Abrir Preview Completo"
+                            maxWidth="Infinity" />
+
+                    <Separator/>
+
                     <Label text="Comentário para o aluno (aparecerá na tela de Chat)"/>
-                    <HBox spacing="12">
-                        <TextArea fx:id="txtComentario" prefRowCount="3" promptText="Escreva seu comentário..." HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="12" VBox.vgrow="ALWAYS">
+                        <TextArea fx:id="txtComentario" prefRowCount="3" promptText="Escreva seu comentário..." HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
                         <VBox alignment="TOP_RIGHT" spacing="8">
                             <Button fx:id="btnEnviarComentario" maxWidth="Infinity" text="Enviar comentário"/>
                         </VBox>
                     </HBox>
                 </VBox>
+
             </HBox>
         </VBox>
     </HBox>

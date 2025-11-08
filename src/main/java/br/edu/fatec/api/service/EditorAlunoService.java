@@ -163,7 +163,7 @@ public class EditorAlunoService {
                     d.api6Tecnologias, d.api6Contrib, d.api6Hard, d.api6Soft, null);
 
             // 3) Resumo (Aba 8) — versionado agora
-            resumoDao.insertVersao(con, trabalhoId, novaVersao, d.resumoMd, null);
+            resumoDao.insertVersao(con, trabalhoId, novaVersao, d.resumoMd);
 
             // 4) Versão consolidada (para comparação)
             versoesDao.insertCompleto(con, trabalhoId, "COMPLETO", novaVersao, d.mdCompleto, null);

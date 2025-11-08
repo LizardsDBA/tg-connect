@@ -10,7 +10,7 @@ public class JdbcTgResumoDao implements TgResumoDao {
 
     // Lê a ÚLTIMA versão do resumo para um trabalho (pelo created_at desc)
     private static final String SQL_FIND_LATEST = """
-        SELECT trabalho_id, resumo_md, kpis
+        SELECT trabalho_id, resumo_md
           FROM tg_resumo
          WHERE trabalho_id = ?
          ORDER BY updated_at DESC, id DESC
@@ -19,7 +19,7 @@ public class JdbcTgResumoDao implements TgResumoDao {
 
     // Lê por (trabalho_id, versao)
     private static final String SQL_FIND_BY_VERSAO = """
-        SELECT trabalho_id, resumo_md, kpis
+        SELECT trabalho_id, resumo_md
           FROM tg_resumo
          WHERE trabalho_id = ? AND versao = ?
          LIMIT 1
@@ -73,27 +73,15 @@ public class JdbcTgResumoDao implements TgResumoDao {
     // Inserção "insert-only" versionada
     public void insertVersao(Connection con,
                              long trabalhoId, String versao,
-                             String resumoMd, String kpisStr) throws SQLException {
+                             String resumoMd) throws SQLException {
         final String sql = """
-            INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, kpis)
-            VALUES (?,?,?,?)
+            INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
+            VALUES (?,?,?)
         """;
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
             ps.setString(2, versao);
             ps.setString(3, resumoMd);
-
-            BigDecimal kpis = null;
-            if (kpisStr != null && !kpisStr.isBlank()) {
-                try {
-                    kpis = new BigDecimal(kpisStr.trim());
-                } catch (NumberFormatException ignore) {
-                    kpis = BigDecimal.ZERO;
-                }
-            } else {
-                kpis = BigDecimal.ZERO;
-            }
-            ps.setBigDecimal(4, kpis);
 
             ps.executeUpdate();
         }

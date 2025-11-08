@@ -9,13 +9,133 @@ import java.util.Objects;
 
 public class JdbcFeedbackDao {
 
+    public boolean atualizarStatusCampoApresentacao(Long trabalhoId, String versao, String nomeColuna, int novoStatus) throws SQLException {
+        // Lista de campos permitidos para evitar SQL Injection
+        List<String> camposPermitidos = List.of(
+                "nome_completo", "idade", "curso", "historico_academico",
+                "motivacao_fatec", "historico_profissional", "contatos_email",
+                "principais_conhecimentos", "consideracoes_finais"
+        );
+
+        if (!camposPermitidos.contains(nomeColuna)) {
+            throw new SQLException("Nome de coluna inválido ou não permitido: " + nomeColuna);
+        }
+
+        // Constrói a query com segurança (pois o nome da coluna foi validado)
+        String sql = String.format(
+                "UPDATE tg_apresentacao SET %s_status = ? WHERE trabalho_id = ? AND versao = ?",
+                nomeColuna // nome_completo_status, idade_status, etc.
+        );
+
+        return execUpdate(sql, p -> {
+            p.setInt(1, novoStatus);
+            p.setLong(2, trabalhoId);
+            p.setString(3, versao);
+        });
+    }
+
+    // ADICIONE ESTE MÉTODO
+    /**
+     * Atualiza o status (0, 1, 2) da versão inteira do Resumo.
+     */
+    public boolean atualizarStatusResumo(Long trabalhoId, String versao, int novoStatus) throws SQLException {
+        String sql = "UPDATE tg_resumo SET versao_validada = ? WHERE trabalho_id = ? AND versao = ?";
+
+        return execUpdate(sql, p -> {
+            p.setInt(1, novoStatus);
+            p.setLong(2, trabalhoId);
+            p.setString(3, versao);
+        });
+    }
+
+    public boolean atualizarStatusCampoApi(Long trabalhoId, String versao, int semestreApi, String nomeColuna, int novoStatus) throws SQLException {
+        // Lista de campos permitidos para evitar SQL Injection
+        List<String> camposPermitidos = List.of(
+                "empresa_parceira", "problema", "solucao_resumo", "link_repositorio",
+                "tecnologias", "contribuicoes", "hard_skills", "soft_skills"
+        );
+
+        if (!camposPermitidos.contains(nomeColuna)) {
+            throw new SQLException("Nome de coluna da API inválido ou não permitido: " + nomeColuna);
+        }
+
+        // Constrói a query com segurança
+        String sql = String.format(
+                // CORREÇÃO: "WHERE trabalhoId = ?" foi trocado para "WHERE trabalho_id = ?"
+                "UPDATE tg_secao SET %s_status = ? WHERE trabalho_id = ? AND versao = ? AND semestre_api = ?",
+                nomeColuna // ex: problema_status
+        );
+
+        return execUpdate(sql, p -> {
+            p.setInt(1, novoStatus);
+            p.setLong(2, trabalhoId);
+            p.setString(3, versao);
+            p.setInt(4, semestreApi);
+        });
+    }
+
+    public String carregarPreviewCompleto(Long trabalhoId, String versao) throws SQLException {
+        // Usa 'COMPLETO' conforme sua definição de tabela
+        String sql = "SELECT conteudo_md FROM versoes_trabalho WHERE trabalho_id = ? AND versao = ? LIMIT 1";
+
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("conteudo_md");
+                }
+            }
+        }
+        // Retorna uma string de aviso se não encontrar
+        return "# Preview não encontrado\n\nNão foi possível localizar o conteúdo consolidado para esta versão.";
+    }
+
     // ====== PARTES do TG ======
     public enum Parte { APRESENTACAO, API1, API2, API3, API4, API5, API6, RESUMO, FINAIS }
 
-    // ====== DTOs ======
+    // ====== DTOs de Saída (NOVOS) ======
+    // DTO para carregar os campos individuais da Apresentação
+    public record ApresentacaoCamposDTO(
+            String versao, boolean concluida,
+            String nomeCompleto, int nomeCompletoStatus,
+            String idade, int idadeStatus,
+            String curso, int cursoStatus,
+            String historicoAcademico, int historicoAcademicoStatus,
+            String motivacaoFatec, int motivacaoFatecStatus,
+            String historicoProfissional, int historicoProfissionalStatus,
+            String contatosEmail, int contatosEmailStatus,
+            String principaisConhecimentos, int principaisConhecimentosStatus,
+            String consideracoesFinais, int consideracoesFinaisStatus
+    ) {}
+
+    // DTO para carregar os campos individuais do Resumo
+    public record ResumoCamposDTO(
+            String versao, boolean concluida,
+            String resumoMd, int versaoValidada // status 0, 1, 2
+    ) {}
+
+    // DTO para carregar os campos individuais das APIs
+    public record ApiCamposDTO(
+            String versao, boolean concluida,
+            String empresaParceira, int empresaParceiraStatus,
+            String problema, int problemaStatus,
+            String solucaoResumo, int solucaoResumoStatus,
+            String linkRepositorio, int linkRepositorioStatus,
+            String tecnologias, int tecnologiasStatus,
+            String contribuicoes, int contribuicoesStatus,
+            String hardSkills, int hardSkillsStatus,
+            String softSkills, int softSkillsStatus
+            // O campo 'conteudo_md' é um consolidado,
+            // podemos decidir se o carregamos ou não.
+    ) {}
+
+    // DTOs Antigos (mantidos para listarOrientandos)
     public record OrientandoDTO(Long alunoId, String nome, Long trabalhoId) {}
-    public record ConteudoParteDTO(Parte parte, String versao, String markdown, Boolean concluida) {}
-    public record StatusParteDTO(Parte parte, Boolean concluida) {}
+
 
     // ====== API Pública ======
 
@@ -59,20 +179,169 @@ public class JdbcFeedbackDao {
         throw new SQLException("Trabalho de Graduação não encontrado para o aluno " + alunoId);
     }
 
-    /** Carrega última versão (heurística textual) da parte solicitada. */
-    public ConteudoParteDTO carregarUltimaVersao(Long trabalhoId, Parte parte) throws SQLException {
-        return switch (parte) {
-            case APRESENTACAO -> carregarApresentacaoUltima(trabalhoId);
-            case RESUMO       -> carregarResumoUltimo(trabalhoId);
-            case FINAIS       -> carregarFinaisUltimo(trabalhoId);
-            default           -> carregarApiUltima(trabalhoId, apiIndex(parte));
-        };
+    // =================================================================================
+    // MÉTODOS DE CARREGAMENTO DE CAMPOS (NOVOS)
+    // =================================================================================
+
+    /** Carrega os campos individuais da última versão da Apresentação. */
+    public ApresentacaoCamposDTO carregarCamposApresentacao(Long trabalhoId) throws SQLException {
+        String sql = """
+            SELECT
+                versao,
+                nome_completo, nome_completo_status,
+                idade, idade_status,
+                curso, curso_status,
+                historico_academico, historico_academico_status,
+                motivacao_fatec, motivacao_fatec_status,
+                historico_profissional, historico_profissional_status,
+                contatos_email, contatos_email_status,
+                principais_conhecimentos, principais_conhecimentos_status,
+                consideracoes_finais, consideracoes_finais_status,
+                
+                -- Lógica de 'concluida' (true se TODOS os campos = 1)
+                (   nome_completo_status = 1 AND
+                    idade_status = 1 AND
+                    curso_status = 1 AND
+                    historico_academico_status = 1 AND
+                    motivacao_fatec_status = 1 AND
+                    historico_profissional_status = 1 AND
+                    contatos_email_status = 1 AND
+                    principais_conhecimentos_status = 1 AND
+                    consideracoes_finais_status = 1
+                ) AS concluida
+                
+            FROM tg_apresentacao
+            WHERE trabalho_id = ?
+            ORDER BY LENGTH(versao) DESC, versao DESC
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ApresentacaoCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("nome_completo"), rs.getInt("nome_completo_status"),
+                            rs.getString("idade"), rs.getInt("idade_status"),
+                            rs.getString("curso"), rs.getInt("curso_status"),
+                            rs.getString("historico_academico"), rs.getInt("historico_academico_status"),
+                            rs.getString("motivacao_fatec"), rs.getInt("motivacao_fatec_status"),
+                            rs.getString("historico_profissional"), rs.getInt("historico_profissional_status"),
+                            rs.getString("contatos_email"), rs.getInt("contatos_email_status"),
+                            rs.getString("principais_conhecimentos"), rs.getInt("principais_conhecimentos_status"),
+                            rs.getString("consideracoes_finais"), rs.getInt("consideracoes_finais_status")
+                    );
+                }
+            }
+        }
+        // Retorna um DTO vazio se não houver dados
+        return new ApresentacaoCamposDTO("—", false, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0);
     }
+
+    /** Carrega os campos individuais da última versão do Resumo. */
+    public ResumoCamposDTO carregarCamposResumo(Long trabalhoId) throws SQLException {
+        String sql = """
+            SELECT 
+                versao, 
+                resumo_md, 
+                versao_validada,
+                (versao_validada = 1) AS concluida
+            FROM tg_resumo
+            WHERE trabalho_id = ?
+            ORDER BY LENGTH(versao) DESC, versao DESC
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ResumoCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("resumo_md"),
+                            rs.getInt("versao_validada")
+                    );
+                }
+            }
+        }
+        return new ResumoCamposDTO("—", false, null, 0);
+    }
+
+    /** Carrega os campos individuais da última versão de uma API (tg_secao). */
+    public ApiCamposDTO carregarCamposApi(Long trabalhoId, int semestreApi) throws SQLException {
+        String sql = """
+            SELECT
+                versao,
+                empresa_parceira, empresa_parceira_status,
+                problema, problema_status,
+                solucao_resumo, solucao_resumo_status,
+                link_repositorio, link_repositorio_status,
+                tecnologias, tecnologias_status,
+                contribuicoes, contribuicoes_status,
+                hard_skills, hard_skills_status,
+                soft_skills, soft_skills_status,
+                
+                -- Lógica de 'concluida' (true se TODOS os campos = 1)
+                (   empresa_parceira_status = 1 AND
+                    problema_status = 1 AND
+                    solucao_resumo_status = 1 AND
+                    link_repositorio_status = 1 AND
+                    tecnologias_status = 1 AND
+                    contribuicoes_status = 1 AND
+                    hard_skills_status = 1 AND
+                    soft_skills_status = 1
+                    -- COALESCE(conteudo_md_status, 1) = 1 -- se 'conteudo_md' for opcional
+                ) AS concluida
+                
+            FROM tg_secao
+            WHERE trabalho_id = ? AND semestre_api = ?
+            ORDER BY LENGTH(versao) DESC, versao DESC
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setInt(2, semestreApi);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ApiCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("empresa_parceira"), rs.getInt("empresa_parceira_status"),
+                            rs.getString("problema"), rs.getInt("problema_status"),
+                            rs.getString("solucao_resumo"), rs.getInt("solucao_resumo_status"),
+                            rs.getString("link_repositorio"), rs.getInt("link_repositorio_status"),
+                            rs.getString("tecnologias"), rs.getInt("tecnologias_status"),
+                            rs.getString("contribuicoes"), rs.getInt("contribuicoes_status"),
+                            rs.getString("hard_skills"), rs.getInt("hard_skills_status"),
+                            rs.getString("soft_skills"), rs.getInt("soft_skills_status")
+                    );
+                }
+            }
+        }
+        // Retorna DTO vazio
+        return new ApiCamposDTO("—", false, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0);
+    }
+
+    /** Carrega as considerações finais (que estão na tabela Apresentação) */
+    public ApresentacaoCamposDTO carregarCamposFinais(Long trabalhoId) throws SQLException {
+        // "Finais" é apenas um subconjunto da Apresentação,
+        // então reutilizamos o método principal para evitar duplicar a lógica de SQL.
+        return carregarCamposApresentacao(trabalhoId);
+    }
+
+
+    // =================================================================================
+    // MÉTODOS DE SUPORTE (A MAIORIA JÁ ESTAVA CORRETA NO SEU ARQUIVO)
+    // =================================================================================
 
     /** Envia comentário (mensagens) – aparece na tela de Chat. */
     public Long enviarComentario(Long trabalhoId, Long orientadorId, Long alunoId, Parte parte, String versaoRef, String texto)
             throws SQLException {
-
+        // Este método estava OK, sem alterações necessárias.
         String sql = """
             INSERT INTO mensagens (trabalho_id, remetente_id, destinatario_id, secao, conteudo)
             VALUES (?, ?, ?, ?, ?)
@@ -94,8 +363,10 @@ public class JdbcFeedbackDao {
         return null;
     }
 
-    /** Marca parte como concluída (flags por versão; não reabre com novas versões). */
+    /** (Deprecado?) Marca parte inteira como concluída. */
     public boolean marcarComoConcluida(Long trabalhoId, Parte parte, String versao) throws SQLException {
+        // Seu arquivo já tinha a versão correta deste método (atualizando todos os status para 1).
+        // Mantido como está.
         Objects.requireNonNull(versao, "versao não pode ser nula");
 
         return switch (parte) {
@@ -142,8 +413,9 @@ public class JdbcFeedbackDao {
         };
     }
 
-
+    /** Verifica se a versão inteira está concluída (status 1) */
     public boolean verificarConclusao(Long trabalhoId, Parte parte, String versao) throws SQLException {
+        // Seu arquivo já tinha a versão correta deste método. Mantido como está.
         if (trabalhoId == null || parte == null || versao == null || versao.isBlank()) return false;
 
         String sql;
@@ -186,7 +458,6 @@ public class JdbcFeedbackDao {
                 }
             }
             case FINAIS -> {
-                // Agora 'finais' é o campo consideracoes_finais na apresentação
                 sql = """
                 SELECT (consideracoes_finais_status = 1) AS ok
                 FROM tg_apresentacao
@@ -234,156 +505,8 @@ public class JdbcFeedbackDao {
     }
 
 
-    // ====== Implementações por parte ======
-
-    private ConteudoParteDTO carregarApresentacaoUltima(Long trabalhoId) throws SQLException {
-        String sql = """
-        SELECT
-            versao,
-            COALESCE(nome_completo,'')            AS nome_completo,
-            COALESCE(idade, NULL)                 AS idade,
-            COALESCE(curso,'')                    AS curso,
-            COALESCE(historico_academico,'')      AS historico_academico,
-            COALESCE(motivacao_fatec,'')          AS motivacao_fatec,
-            COALESCE(historico_profissional,'')   AS historico_profissional,
-            COALESCE(contatos_email,'')           AS contatos_email,
-            COALESCE(principais_conhecimentos,'') AS principais_conhecimentos,
-            COALESCE(consideracoes_finais,'')     AS consideracoes_finais,
-
-            -- concluida = 1 somente se TODOS os campos estiverem aprovados (status = 1)
-            CASE WHEN
-                nome_completo_status = 1 AND
-                COALESCE(idade_status, 1) = 1 AND
-                curso_status = 1 AND
-                historico_academico_status = 1 AND
-                motivacao_fatec_status = 1 AND
-                historico_profissional_status = 1 AND
-                contatos_email_status = 1 AND
-                principais_conhecimentos_status = 1 AND
-                consideracoes_finais_status = 1
-            THEN 1 ELSE 0 END AS concluida
-        FROM tg_apresentacao
-        WHERE trabalho_id = ?
-        ORDER BY LENGTH(versao) DESC, versao DESC
-        LIMIT 1
-    """;
-
-        try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setLong(1, trabalhoId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String md = buildApresentacaoMarkdown(rs);
-                    return new ConteudoParteDTO(Parte.APRESENTACAO,
-                            rs.getString("versao"),
-                            md,
-                            rs.getInt("concluida") == 1);
-                }
-            }
-        }
-        return new ConteudoParteDTO(Parte.APRESENTACAO, null, "", false);
-    }
-
-
-    private ConteudoParteDTO carregarFinaisUltimo(Long trabalhoId) throws SQLException {
-        String sql = """
-            SELECT versao,
-                   COALESCE(consideracoes_finais,'') AS markdown,
-                   consideracao_versao_validada     AS concluida
-              FROM tg_apresentacao
-             WHERE trabalho_id = ?
-             ORDER BY LENGTH(versao) DESC, versao DESC
-             LIMIT 1
-        """;
-        try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setLong(1, trabalhoId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new ConteudoParteDTO(Parte.FINAIS,
-                            rs.getString("versao"),
-                            rs.getString("markdown"),
-                            rs.getBoolean("concluida"));
-                }
-            }
-        }
-        return new ConteudoParteDTO(Parte.FINAIS, null, "", false);
-    }
-
-    private ConteudoParteDTO carregarResumoUltimo(Long trabalhoId) throws SQLException {
-        String sql = """
-            SELECT versao, resumo_md AS markdown, versao_validada AS concluida
-              FROM tg_resumo
-             WHERE trabalho_id = ?
-             ORDER BY LENGTH(versao) DESC, versao DESC
-             LIMIT 1
-        """;
-        try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setLong(1, trabalhoId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new ConteudoParteDTO(Parte.RESUMO,
-                            rs.getString("versao"),
-                            rs.getString("markdown"),
-                            rs.getBoolean("concluida"));
-                }
-            }
-        }
-        return new ConteudoParteDTO(Parte.RESUMO, null, "", false);
-    }
-
-    private ConteudoParteDTO carregarApiUltima(Long trabalhoId, int semestreApi) throws SQLException {
-        String sql = """
-        SELECT
-            versao,
-            COALESCE(conteudo_md,
-                CONCAT_WS('\\n',
-                    CONCAT('### Problema:\\n', COALESCE(problema,'')),
-                    CONCAT('### Solução (resumo):\\n', COALESCE(solucao_resumo,'')),
-                    CONCAT('### Tecnologias:\\n', COALESCE(tecnologias,'')),
-                    CONCAT('### Contribuições:\\n', COALESCE(contribuicoes,'')),
-                    CONCAT('### Hard skills:\\n', COALESCE(hard_skills,'')),
-                    CONCAT('### Soft skills:\\n', COALESCE(soft_skills,'')),
-                    CONCAT('### Repositório:\\n', COALESCE(link_repositorio,'')))
-            ) AS markdown,
-
-            -- concluida = 1 somente se TODOS os campos estiverem aprovados (status = 1)
-            CASE WHEN
-                COALESCE(empresa_parceira_status,1) = 1 AND
-                problema_status = 1 AND
-                solucao_resumo_status = 1 AND
-                COALESCE(link_repositorio_status,1) = 1 AND
-                tecnologias_status = 1 AND
-                contribuicoes_status = 1 AND
-                hard_skills_status = 1 AND
-                soft_skills_status = 1 AND
-                COALESCE(conteudo_md_status,1) = 1
-            THEN 1 ELSE 0 END AS concluida
-        FROM tg_secao
-        WHERE trabalho_id = ? AND semestre_api = ?
-        ORDER BY LENGTH(versao) DESC, versao DESC
-        LIMIT 1
-    """;
-
-        try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setLong(1, trabalhoId);
-            ps.setInt(2, semestreApi);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new ConteudoParteDTO(parteFromApi(semestreApi),
-                            rs.getString("versao"),
-                            rs.getString("markdown"),
-                            rs.getInt("concluida") == 1);
-                }
-            }
-        }
-        return new ConteudoParteDTO(parteFromApi(semestreApi), null, "", false);
-    }
-
-
     // ====== Helpers ======
+    // Nenhuma alteração necessária aqui
 
     private boolean execUpdate(String sql, Binder binder) throws SQLException {
         try (Connection c = Database.get();
@@ -424,33 +547,6 @@ public class JdbcFeedbackDao {
             case 6 -> Parte.API6;
             default -> throw new IllegalArgumentException("API inválida: " + i);
         };
-    }
-
-    private String buildApresentacaoMarkdown(ResultSet rs) throws SQLException {
-        StringBuilder sb = new StringBuilder("# Apresentação do aluno\n\n");
-
-        String nomeCompleto = rs.getString("nome_completo");
-        Integer idade = (Integer) rs.getObject("idade");
-        String curso = rs.getString("curso");
-        String histAcad = rs.getString("historico_academico");
-        String motiv = rs.getString("motivacao_fatec");
-        String histProf = rs.getString("historico_profissional");
-        String contatos = rs.getString("contatos_email");
-        String conhecimentos = rs.getString("principais_conhecimentos");
-
-        if (notBlank(nomeCompleto)) sb.append("## Informações pessoais\n").append(nomeCompleto).append("\n\n");
-        if (notBlank(curso)) sb.append("## Curso\n").append(curso).append("\n\n");
-        if (idade != null) sb.append("**Idade:** ").append(idade).append("\n\n");
-        if (notBlank(histAcad)) sb.append("## Histórico Acadêmico\n").append(histAcad).append("\n\n");
-        if (notBlank(motiv)) sb.append("## Motivação FATEC\n").append(motiv).append("\n\n");
-        if (notBlank(histProf)) sb.append("## Histórico Profissional\n").append(histProf).append("\n\n");
-        if (notBlank(contatos)) sb.append("## Contatos\n").append(contatos).append("\n\n");
-        if (notBlank(conhecimentos)) sb.append("## Principais conhecimentos\n").append(conhecimentos).append("\n\n");
-        return sb.toString();
-    }
-
-    private boolean notBlank(String s) {
-        return s != null && !s.isBlank();
     }
 
     @FunctionalInterface
