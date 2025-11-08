@@ -64,7 +64,11 @@ public class DashboardAlunoController extends BaseController {
         });
     }
 
-    public void goEditor(){ SceneManager.go("aluno/Editor.fxml"); }
+    public void goEditor(){
+        SceneManager.go("aluno/Editor.fxml", c -> {
+            ((EditorAlunoController) c).onReady();
+        });
+    }
     public void goComparar(){ SceneManager.go("aluno/Comparar.fxml"); }
     public void goConclusao(){ SceneManager.go("aluno/Conclusao.fxml"); }
     public void goHistorico(){ SceneManager.go("aluno/Historico.fxml"); }
