@@ -490,3 +490,28 @@
     -fx-background-color: #cfe0ff;
     -fx-border-color: #69a7ff;
 }
+
+/* * ===== ESTILOS DE STATUS DE VALIDAÇÃO (BORDAS) =====
+ * (Regras de alta especificidade para sobrepor ".editor-tabs .text-area")
+ */
+
+.editor-tabs .text-area.status-aprovado,
+.editor-tabs .text-field.status-aprovado {
+    -fx-border-color: #28a745; /* Verde */
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px; /* Mantém o raio de 8px dos seus campos */
+}
+
+.editor-tabs .text-area.status-reprovado,
+.editor-tabs .text-field.status-reprovado {
+    -fx-border-color: #dc3545; /* Vermelho */
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+}
+
+.editor-tabs .text-area.status-pendente,
+.editor-tabs .text-field.status-pendente {
+    -fx-border-color: #ced4da; /* Cinza */
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+}

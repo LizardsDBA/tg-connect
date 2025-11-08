@@ -17,7 +17,6 @@ import br.edu.fatec.api.nav.Session;
 import br.edu.fatec.api.service.EditorAlunoService;
 import br.edu.fatec.api.controller.orientador.ModalPreviewController;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -29,7 +28,7 @@ public class EditorAlunoController extends BaseController {
 
     // ====== Toolbar e TabPane
     @FXML private TabPane tabPane;
-    @FXML private Label lbStatusAba; // <--- ADIÇÃO: label já inserido no FXML
+    @FXML private Label lbStatusAba;
 
     // ====== ABA 1 - Apresentação
     @FXML private TextArea taInfoPessoais;
@@ -38,6 +37,14 @@ public class EditorAlunoController extends BaseController {
     @FXML private TextArea taHistoricoProf;
     @FXML private TextArea taContatos;
     @FXML private TextArea taConhecimentos;
+    // (Labels de status da Aba 1)
+    @FXML private Label lblInfoPessoaisStatus;
+    @FXML private Label lblHistoricoAcadStatus;
+    @FXML private Label lblMotivacaoStatus;
+    @FXML private Label lblHistoricoProfStatus;
+    @FXML private Label lblContatosStatus;
+    @FXML private Label lblConhecimentosStatus;
+
 
     // ====== ABAS 2..7 - Projetos API (1º..6º)
     @FXML private TextField tfApi1Empresa, tfApi2Empresa, tfApi3Empresa, tfApi4Empresa, tfApi5Empresa, tfApi6Empresa;
@@ -62,14 +69,10 @@ public class EditorAlunoController extends BaseController {
     // ====== ABA 9 - Considerações
     @FXML private TextArea taConclusoes;
 
-    // ====== Estado
-    private TextInputControl focusedTextInput; // usado pela toolbar
-
-    // ====== Botão salvar tudo + service
-    @FXML private Button btnSalvarTudo; // (se tiver fx:id no FXML)
+    // ... (Estado, Service, Navegação - Sem alterações) ...
+    private TextInputControl focusedTextInput;
+    @FXML private Button btnSalvarTudo;
     private final EditorAlunoService service = new EditorAlunoService();
-
-    // ====== Navegação (inalterada)
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goDashboard(){ SceneManager.go("aluno/Dashboard.fxml"); }
@@ -91,29 +94,25 @@ public class EditorAlunoController extends BaseController {
     public void goConclusao(){ SceneManager.go("aluno/Conclusao.fxml"); }
     public void goHistorico(){ SceneManager.go("aluno/Historico.fxml"); }
 
-    // ====== Ciclo de vida
+
+    // ====== Ciclo de vida (Sem alterações) ======
     @FXML
     public void initialize() {
-        // Se não estiver logado, volta ao login
         User u = Session.getUser();
         if (u == null) {
             SceneManager.go("login/Login.fxml");
             return;
         }
-
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");
         }
-
-        // Pré-carrega os dados na primeira vez
-        onReady(); // <-- Chama o novo método
-
-        // Configura os listeners (isso só precisa ser feito uma vez)
+        onReady();
         hookFocusHandlers();
         applyTips();
         wireTabStatus();
     }
 
+    // ... (wireTabStatus, refreshTabStatus, hookFocusHandlers, applyTips - Sem alterações) ...
     private void wireTabStatus(){
         if (tabPane == null) return;
         tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldV, newV) -> {
@@ -121,7 +120,6 @@ public class EditorAlunoController extends BaseController {
         });
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
-
     private void refreshTabStatus(int idx){
         if (lbStatusAba == null) return;
         int abaNumero = idx + 1; // 1..9
@@ -132,12 +130,9 @@ public class EditorAlunoController extends BaseController {
             statusTxt = validada ? "Concluída" : "Pendente Validação";
         } catch (Exception ignore){ /* mantém default */ }
         lbStatusAba.setText("Aba " + abaNumero + " - Status: " + statusTxt);
-
-        // opcional: classes CSS
         lbStatusAba.getStyleClass().removeAll("badge-ok","badge-pendente");
         lbStatusAba.getStyleClass().add(statusTxt.equals("Concluída") ? "badge-ok" : "badge-pendente");
     }
-
     private void hookFocusHandlers() {
         tabPane.addEventFilter(MouseEvent.MOUSE_PRESSED, evt -> {
             Node n = evt.getPickResult().getIntersectedNode();
@@ -150,30 +145,27 @@ public class EditorAlunoController extends BaseController {
             }
         });
     }
-
     private void applyTips() {
         if (taApi1Problema != null) taApi1Problema.setTooltip(new Tooltip("Descreva o problema (mín. 3 linhas)."));
         if (taApi1Solucao != null) taApi1Solucao.setTooltip(new Tooltip("Explique a solução (≈5 linhas; tipo do sistema)."));
         if (tfApi1Repo != null) tfApi1Repo.setTooltip(new Tooltip("URL do repositório no GitHub."));
     }
 
+    // ... (Toolbar, SalvarTudo, Montagem MD - Sem alterações) ...
     private void insertAtCaret(String text){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
         replaceSelection(target, text);
     }
-
     private void replaceSelection(TextInputControl target, String text){
         var i = target.getSelection();
         target.replaceText(i.getStart(), i.getEnd(), text);
         target.positionCaret(i.getStart() + text.length());
     }
-
     private TextInputControl getFirstVisibleTextInput(){
         Node content = tabPane.getSelectionModel().getSelectedItem().getContent();
         return findFirst(content);
     }
-
     private TextInputControl findFirst(Node n){
         if (n instanceof TextInputControl tic) return tic;
         if (n instanceof Parent p){
@@ -191,7 +183,6 @@ public class EditorAlunoController extends BaseController {
         if (sel == null || sel.isEmpty()) sel = "Negrito";
         replaceSelection(target, wrapper + sel + wrapper);
     }
-
     private void insertAroundItalic(String wrapper){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
@@ -199,7 +190,6 @@ public class EditorAlunoController extends BaseController {
         if (sel == null || sel.isEmpty()) sel = "Italico";
         replaceSelection(target, wrapper + sel + wrapper);
     }
-
     private void insertAroundUnderline(String wrapper){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
@@ -207,44 +197,28 @@ public class EditorAlunoController extends BaseController {
         if (sel == null || sel.isEmpty()) sel = "Sublinhado";
         replaceSelection(target, wrapper + sel + wrapper);
     }
-
-    // ====== Toolbar – Markdown sobre o campo focado
     public void toggleBold(){ insertAroundBold("**"); }
     public void toggleItalic(){ insertAroundItalic("*"); }
     public void toggleUnderline(){ insertAroundUnderline("__"); }
     public void insertH1(){ insertAtCaret("\n# Título\n"); }
     public void insertLink(){ insertAtCaret("[Texto](https://)"); }
-
     public void preview() {
-        // 1. Monta o Markdown completo com os dados atuais da tela
         String mdCompleto = montarMarkdownCompleto();
-
         try {
-            // 2. Cria o Stage (Janela) do Modal
             Stage modalStage = new Stage();
             modalStage.initModality(Modality.APPLICATION_MODAL);
             modalStage.setTitle("Preview do TG Completo");
-
-            // 3. Carrega o FXML do Modal de Preview
-            // (Usando o mesmo FXML do orientador)
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/views/orientador/ModalPreview.fxml"));
             Parent root = loader.load();
-
-            // 4. Pega o controller e chama o NOVO método initData
             ModalPreviewController controller = loader.getController();
-            controller.initData(mdCompleto); // <--- A MÁGICA ACONTECE AQUI
-
-            // 5. Exibe o modal
+            controller.initData(mdCompleto);
             Scene scene = new Scene(root);
             modalStage.setScene(scene);
             modalStage.showAndWait();
-
         } catch (Exception e) {
             erro("Falha ao abrir o modal de preview.", e);
         }
     }
-
-    // Método 'erro' (se você não tiver um, use o 'alertWarn')
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
@@ -252,60 +226,37 @@ public class EditorAlunoController extends BaseController {
         a.showAndWait();
         if (e != null) e.printStackTrace();
     }
-
-    // ====== Salvar TUDO (único handler chamado pelo botão da toolbar)
     public void salvarTudo() {
         try {
             long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-
             EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
-
-            // Aba 1:
             d.infoPessoais   = val(taInfoPessoais);
             d.historicoAcad  = val(taHistoricoAcad);
             d.motivacao      = val(taMotivacao);
             d.historicoProf  = val(taHistoricoProf);
             d.contatos       = val(taContatos);
             d.conhecimentos  = val(taConhecimentos);
-
-            // Abas 2..7 (API 1..6):
             d.api1Empresa=val(tfApi1Empresa); d.api1Problema=val(taApi1Problema); d.api1Solucao=val(taApi1Solucao); d.api1Repo=val(tfApi1Repo);
             d.api1Tecnologias=val(taApi1Tecnologias); d.api1Contrib=val(taApi1Contrib); d.api1Hard=val(taApi1Hard); d.api1Soft=val(taApi1Soft);
-
             d.api2Empresa=val(tfApi2Empresa); d.api2Problema=val(taApi2Problema); d.api2Solucao=val(taApi2Solucao); d.api2Repo=val(tfApi2Repo);
             d.api2Tecnologias=val(taApi2Tecnologias); d.api2Contrib=val(taApi2Contrib); d.api2Hard=val(taApi2Hard); d.api2Soft=val(taApi2Soft);
-
             d.api3Empresa=val(tfApi3Empresa); d.api3Problema=val(taApi3Problema); d.api3Solucao=val(taApi3Solucao); d.api3Repo=val(tfApi3Repo);
             d.api3Tecnologias=val(taApi3Tecnologias); d.api3Contrib=val(taApi3Contrib); d.api3Hard=val(taApi3Hard); d.api3Soft=val(taApi3Soft);
-
             d.api4Empresa=val(tfApi4Empresa); d.api4Problema=val(taApi4Problema); d.api4Solucao=val(taApi4Solucao); d.api4Repo=val(tfApi4Repo);
             d.api4Tecnologias=val(taApi4Tecnologias); d.api4Contrib=val(taApi4Contrib); d.api4Hard=val(taApi4Hard); d.api4Soft=val(taApi4Soft);
-
             d.api5Empresa=val(tfApi5Empresa); d.api5Problema=val(taApi5Problema); d.api5Solucao=val(taApi5Solucao); d.api5Repo=val(tfApi5Repo);
             d.api5Tecnologias=val(taApi5Tecnologias); d.api5Contrib=val(taApi5Contrib); d.api5Hard=val(taApi5Hard); d.api5Soft=val(taApi5Soft);
-
             d.api6Empresa=val(tfApi6Empresa); d.api6Problema=val(taApi6Problema); d.api6Solucao=val(taApi6Solucao); d.api6Repo=val(tfApi6Repo);
             d.api6Tecnologias=val(taApi6Tecnologias); d.api6Contrib=val(taApi6Contrib); d.api6Hard=val(taApi6Hard); d.api6Soft=val(taApi6Soft);
-
-            // Aba 8:
             d.resumoMd = montarMdResumo();
-
-            // Aba 9:
             d.consideracoesFinais = val(taConclusoes);
-
-            // MD consolidado (preview):
             d.mdCompleto = montarMarkdownCompleto();
-
             String novaVersao = service.salvarTudo(trabalhoId, d);
-
             Alert ok = new Alert(Alert.AlertType.INFORMATION);
             ok.setHeaderText("Salvo com sucesso!");
             ok.setContentText("Nova versão: " + novaVersao);
             ok.showAndWait();
-
-            // Atualiza o badge de status após salvar (a versão nova já copia validações)
             refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
-
         } catch (Exception ex) {
             Alert err = new Alert(Alert.AlertType.ERROR);
             err.setHeaderText("Falha ao salvar");
@@ -313,8 +264,6 @@ public class EditorAlunoController extends BaseController {
             err.showAndWait();
         }
     }
-
-    // ====== Montagem de Markdown (por seção) — mantém seu modelo atual
     private String montarMdAba1(){
         StringBuilder sb = new StringBuilder();
         sb.append("# APRESENTAÇÃO DO ALUNO\n\n");
@@ -326,7 +275,6 @@ public class EditorAlunoController extends BaseController {
         appendIfNotEmpty(sb, "## Principais Conhecimentos", taConhecimentos);
         return sb.toString();
     }
-
     private String montarMdProjeto(int semestre){
         String titulo = switch (semestre){
             case 1 -> "## API 1º Semestre";
@@ -337,7 +285,6 @@ public class EditorAlunoController extends BaseController {
             case 6 -> "## API 6º Semestre";
             default -> "## API";
         };
-
         String empresa = "", problema = "", solucao = "", repo = "", tecnologias = "", contrib = "", hard = "", soft = "";
         switch (semestre){
             case 1 -> { empresa = val(tfApi1Empresa); problema = val(taApi1Problema); solucao = val(taApi1Solucao);
@@ -359,7 +306,6 @@ public class EditorAlunoController extends BaseController {
                 repo = val(tfApi6Repo); tecnologias = val(taApi6Tecnologias); contrib = val(taApi6Contrib);
                 hard = val(taApi6Hard); soft = val(taApi6Soft); }
         }
-
         StringBuilder sb = new StringBuilder();
         sb.append(titulo).append("\n\n");
         if (!empresa.isBlank()) sb.append("**Empresa Parceira:** ").append(empresa).append("\n\n");
@@ -372,11 +318,9 @@ public class EditorAlunoController extends BaseController {
         if (!soft.isBlank()) sb.append("### Soft Skills\n").append(soft).append("\n\n");
         return sb.toString();
     }
-
     private String montarMdResumo(){
         String header = "## Tabela Resumo dos Projetos API\n\n"
                 + "| Semestre | Empresa Parceira | Solução Desenvolvida |\n|---|---|---|\n";
-
         if (tfSem1 != null){
             String[][] rows = {
                     {val(tfSem1), val(tfEmp1), val(taSol1)},
@@ -393,11 +337,9 @@ public class EditorAlunoController extends BaseController {
         }
         return header + "|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n|  |  |  |\n\n";
     }
-
     private String montarMdConclusoes(){
         return "## Considerações Finais\n\n" + val(taConclusoes) + "\n\n";
     }
-
     private String montarMarkdownCompleto(){
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= 9; i++){
@@ -416,26 +358,31 @@ public class EditorAlunoController extends BaseController {
         }
         return sb.toString();
     }
-
-    // ====== Parse do resumo_md para os campos da Aba 8
     private void preencherResumoAPartirDoMarkdown(String md) {
         List<String[]> linhas = extrairLinhasTabela(md);
+        // Limpar campos antes de preencher
+        TextField[] sems = {tfSem1, tfSem2, tfSem3, tfSem4, tfSem5, tfSem6};
+        TextField[] emps = {tfEmp1, tfEmp2, tfEmp3, tfEmp4, tfEmp5, tfEmp6};
+        TextArea[] sols = {taSol1, taSol2, taSol3, taSol4, taSol5, taSol6};
+        for(int i=0; i<6; i++) {
+            if(sems[i]!=null) sems[i].clear();
+            if(emps[i]!=null) emps[i].clear();
+            if(sols[i]!=null) sols[i].clear();
+        }
+
         int linha = 0;
         for (String[] cols : linhas) {
             if (cols.length < 3) continue;
-            linha++;
-            switch (linha) {
-                case 1 -> { if (tfSem1!=null) tfSem1.setText(cols[0]); if (tfEmp1!=null) tfEmp1.setText(cols[1]); if (taSol1!=null) taSol1.setText(cols[2]); }
-                case 2 -> { if (tfSem2!=null) tfSem2.setText(cols[0]); if (tfEmp2!=null) tfEmp2.setText(cols[1]); if (taSol2!=null) taSol2.setText(cols[2]); }
-                case 3 -> { if (tfSem3!=null) tfSem3.setText(cols[0]); if (tfEmp3!=null) tfEmp3.setText(cols[1]); if (taSol3!=null) taSol3.setText(cols[2]); }
-                case 4 -> { if (tfSem4!=null) tfSem4.setText(cols[0]); if (tfEmp4!=null) tfEmp4.setText(cols[1]); if (taSol4!=null) taSol4.setText(cols[2]); }
-                case 5 -> { if (tfSem5!=null) tfSem5.setText(cols[0]); if (tfEmp5!=null) tfEmp5.setText(cols[1]); if (taSol5!=null) taSol5.setText(cols[2]); }
-                case 6 -> { if (tfSem6!=null) tfSem6.setText(cols[0]); if (tfEmp6!=null) tfEmp6.setText(cols[1]); if (taSol6!=null) taSol6.setText(cols[2]); }
-                default -> { /* ignora linhas extras */ }
+
+            if (linha < 6) {
+                if (sems[linha]!=null) sems[linha].setText(cols[0]);
+                if (emps[linha]!=null) emps[linha].setText(cols[1]);
+                if (sols[linha]!=null) sols[linha].setText(cols[2]);
             }
-            if (linha >= 6) break;
+            linha++;
         }
     }
+
 
     /**
      * Chamado toda vez que a cena é exibida.
@@ -450,86 +397,110 @@ public class EditorAlunoController extends BaseController {
 
         try {
             long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+            // ATUALIZADO: Chama o service que agora retorna o DTO com status
             service.carregarTudo(trabalhoId).ifPresent(d -> {
 
-                // Aba 1
-                if (taInfoPessoais != null)   taInfoPessoais.setText(d.infoPessoais);
-                if (taHistoricoAcad != null)  taHistoricoAcad.setText(d.historicoAcad);
-                if (taMotivacao != null)      taMotivacao.setText(d.motivacao);
-                if (taHistoricoProf != null)  taHistoricoProf.setText(d.historicoProf);
-                if (taContatos != null)       taContatos.setText(d.contatos);
-                if (taConhecimentos != null)  taConhecimentos.setText(d.conhecimentos);
-                if (taConclusoes != null)     taConclusoes.setText(d.consideracoes); // Aba 9
+                // Aba 1 - Apresentação (com Badges)
+                if (taInfoPessoais != null) {
+                    taInfoPessoais.setText(d.infoPessoais);
+                    atualizarStatusLabel(lblInfoPessoaisStatus, d.infoPessoaisStatus);
+                }
+                if (taHistoricoAcad != null) {
+                    taHistoricoAcad.setText(d.historicoAcad);
+                    atualizarStatusLabel(lblHistoricoAcadStatus, d.historicoAcadStatus);
+                }
+                if (taMotivacao != null) {
+                    taMotivacao.setText(d.motivacao);
+                    atualizarStatusLabel(lblMotivacaoStatus, d.motivacaoStatus);
+                }
+                if (taHistoricoProf != null) {
+                    taHistoricoProf.setText(d.historicoProf);
+                    atualizarStatusLabel(lblHistoricoProfStatus, d.historicoProfStatus);
+                }
+                if (taContatos != null) {
+                    taContatos.setText(d.contatos);
+                    atualizarStatusLabel(lblContatosStatus, d.contatosStatus);
+                }
+                if (taConhecimentos != null) {
+                    taConhecimentos.setText(d.conhecimentos);
+                    atualizarStatusLabel(lblConhecimentosStatus, d.conhecimentosStatus);
+                }
+                if (taConclusoes != null) {
+                    taConclusoes.setText(d.consideracoes);
+                    atualizarEstiloCampo(taConclusoes, d.consideracoesStatus); // Aba 9 (Considerações) usa borda
+                }
 
 
-                // --- CORREÇÃO AQUI (APIs 1-6 Completas) ---
+                // Abas 2-7 - APIs (com Bordas)
 
                 // API 1
-                if (tfApi1Empresa != null) tfApi1Empresa.setText(d.api1Empresa);
-                if (taApi1Problema != null) taApi1Problema.setText(d.api1Problema);
-                if (taApi1Solucao != null) taApi1Solucao.setText(d.api1Solucao);
-                if (tfApi1Repo != null) tfApi1Repo.setText(d.api1Repo);
-                if (taApi1Tecnologias != null) taApi1Tecnologias.setText(d.api1Tecnologias);
-                if (taApi1Contrib != null) taApi1Contrib.setText(d.api1Contrib);
-                if (taApi1Hard != null) taApi1Hard.setText(d.api1Hard);
-                if (taApi1Soft != null) taApi1Soft.setText(d.api1Soft);
+                if (tfApi1Empresa != null) { tfApi1Empresa.setText(d.api1Empresa); atualizarEstiloCampo(tfApi1Empresa, d.api1EmpresaStatus); }
+                if (taApi1Problema != null) { taApi1Problema.setText(d.api1Problema); atualizarEstiloCampo(taApi1Problema, d.api1ProblemaStatus); }
+                if (taApi1Solucao != null) { taApi1Solucao.setText(d.api1Solucao); atualizarEstiloCampo(taApi1Solucao, d.api1SolucaoStatus); }
+                if (tfApi1Repo != null) { tfApi1Repo.setText(d.api1Repo); atualizarEstiloCampo(tfApi1Repo, d.api1RepoStatus); }
+                if (taApi1Tecnologias != null) { taApi1Tecnologias.setText(d.api1Tecnologias); atualizarEstiloCampo(taApi1Tecnologias, d.api1TecnologiasStatus); }
+                if (taApi1Contrib != null) { taApi1Contrib.setText(d.api1Contrib); atualizarEstiloCampo(taApi1Contrib, d.api1ContribStatus); }
+                if (taApi1Hard != null) { taApi1Hard.setText(d.api1Hard); atualizarEstiloCampo(taApi1Hard, d.api1HardStatus); }
+                if (taApi1Soft != null) { taApi1Soft.setText(d.api1Soft); atualizarEstiloCampo(taApi1Soft, d.api1SoftStatus); }
 
                 // API 2
-                if (tfApi2Empresa != null) tfApi2Empresa.setText(d.api2Empresa);
-                if (taApi2Problema != null) taApi2Problema.setText(d.api2Problema);
-                if (taApi2Solucao != null) taApi2Solucao.setText(d.api2Solucao);
-                if (tfApi2Repo != null) tfApi2Repo.setText(d.api2Repo);
-                if (taApi2Tecnologias != null) taApi2Tecnologias.setText(d.api2Tecnologias);
-                if (taApi2Contrib != null) taApi2Contrib.setText(d.api2Contrib);
-                if (taApi2Hard != null) taApi2Hard.setText(d.api2Hard);
-                if (taApi2Soft != null) taApi2Soft.setText(d.api2Soft);
+                if (tfApi2Empresa != null) { tfApi2Empresa.setText(d.api2Empresa); atualizarEstiloCampo(tfApi2Empresa, d.api2EmpresaStatus); }
+                if (taApi2Problema != null) { taApi2Problema.setText(d.api2Problema); atualizarEstiloCampo(taApi2Problema, d.api2ProblemaStatus); }
+                if (taApi2Solucao != null) { taApi2Solucao.setText(d.api2Solucao); atualizarEstiloCampo(taApi2Solucao, d.api2SolucaoStatus); }
+                if (tfApi2Repo != null) { tfApi2Repo.setText(d.api2Repo); atualizarEstiloCampo(tfApi2Repo, d.api2RepoStatus); }
+                if (taApi2Tecnologias != null) { taApi2Tecnologias.setText(d.api2Tecnologias); atualizarEstiloCampo(taApi2Tecnologias, d.api2TecnologiasStatus); }
+                if (taApi2Contrib != null) { taApi2Contrib.setText(d.api2Contrib); atualizarEstiloCampo(taApi2Contrib, d.api2ContribStatus); }
+                if (taApi2Hard != null) { taApi2Hard.setText(d.api2Hard); atualizarEstiloCampo(taApi2Hard, d.api2HardStatus); }
+                if (taApi2Soft != null) { taApi2Soft.setText(d.api2Soft); atualizarEstiloCampo(taApi2Soft, d.api2SoftStatus); }
 
                 // API 3
-                if (tfApi3Empresa != null) tfApi3Empresa.setText(d.api3Empresa);
-                if (taApi3Problema != null) taApi3Problema.setText(d.api3Problema);
-                if (taApi3Solucao != null) taApi3Solucao.setText(d.api3Solucao);
-                if (tfApi3Repo != null) tfApi3Repo.setText(d.api3Repo);
-                if (taApi3Tecnologias != null) taApi3Tecnologias.setText(d.api3Tecnologias);
-                if (taApi3Contrib != null) taApi3Contrib.setText(d.api3Contrib);
-                if (taApi3Hard != null) taApi3Hard.setText(d.api3Hard);
-                if (taApi3Soft != null) taApi3Soft.setText(d.api3Soft);
+                if (tfApi3Empresa != null) { tfApi3Empresa.setText(d.api3Empresa); atualizarEstiloCampo(tfApi3Empresa, d.api3EmpresaStatus); }
+                if (taApi3Problema != null) { taApi3Problema.setText(d.api3Problema); atualizarEstiloCampo(taApi3Problema, d.api3ProblemaStatus); }
+                if (taApi3Solucao != null) { taApi3Solucao.setText(d.api3Solucao); atualizarEstiloCampo(taApi3Solucao, d.api3SolucaoStatus); }
+                if (tfApi3Repo != null) { tfApi3Repo.setText(d.api3Repo); atualizarEstiloCampo(tfApi3Repo, d.api3RepoStatus); }
+                if (taApi3Tecnologias != null) { taApi3Tecnologias.setText(d.api3Tecnologias); atualizarEstiloCampo(taApi3Tecnologias, d.api3TecnologiasStatus); }
+                if (taApi3Contrib != null) { taApi3Contrib.setText(d.api3Contrib); atualizarEstiloCampo(taApi3Contrib, d.api3ContribStatus); }
+                if (taApi3Hard != null) { taApi3Hard.setText(d.api3Hard); atualizarEstiloCampo(taApi3Hard, d.api3HardStatus); }
+                if (taApi3Soft != null) { taApi3Soft.setText(d.api3Soft); atualizarEstiloCampo(taApi3Soft, d.api3SoftStatus); }
 
                 // API 4
-                if (tfApi4Empresa != null) tfApi4Empresa.setText(d.api4Empresa);
-                if (taApi4Problema != null) taApi4Problema.setText(d.api4Problema);
-                if (taApi4Solucao != null) taApi4Solucao.setText(d.api4Solucao);
-                if (tfApi4Repo != null) tfApi4Repo.setText(d.api4Repo);
-                if (taApi4Tecnologias != null) taApi4Tecnologias.setText(d.api4Tecnologias);
-                if (taApi4Contrib != null) taApi4Contrib.setText(d.api4Contrib);
-                if (taApi4Hard != null) taApi4Hard.setText(d.api4Hard);
-                if (taApi4Soft != null) taApi4Soft.setText(d.api4Soft);
+                if (tfApi4Empresa != null) { tfApi4Empresa.setText(d.api4Empresa); atualizarEstiloCampo(tfApi4Empresa, d.api4EmpresaStatus); }
+                if (taApi4Problema != null) { taApi4Problema.setText(d.api4Problema); atualizarEstiloCampo(taApi4Problema, d.api4ProblemaStatus); }
+                if (taApi4Solucao != null) { taApi4Solucao.setText(d.api4Solucao); atualizarEstiloCampo(taApi4Solucao, d.api4SolucaoStatus); }
+                if (tfApi4Repo != null) { tfApi4Repo.setText(d.api4Repo); atualizarEstiloCampo(tfApi4Repo, d.api4RepoStatus); }
+                if (taApi4Tecnologias != null) { taApi4Tecnologias.setText(d.api4Tecnologias); atualizarEstiloCampo(taApi4Tecnologias, d.api4TecnologiasStatus); }
+                if (taApi4Contrib != null) { taApi4Contrib.setText(d.api4Contrib); atualizarEstiloCampo(taApi4Contrib, d.api4ContribStatus); }
+                if (taApi4Hard != null) { taApi4Hard.setText(d.api4Hard); atualizarEstiloCampo(taApi4Hard, d.api4HardStatus); }
+                if (taApi4Soft != null) { taApi4Soft.setText(d.api4Soft); atualizarEstiloCampo(taApi4Soft, d.api4SoftStatus); }
 
                 // API 5
-                if (tfApi5Empresa != null) tfApi5Empresa.setText(d.api5Empresa);
-                if (taApi5Problema != null) taApi5Problema.setText(d.api5Problema);
-                if (taApi5Solucao != null) taApi5Solucao.setText(d.api5Solucao);
-                if (tfApi5Repo != null) tfApi5Repo.setText(d.api5Repo);
-                if (taApi5Tecnologias != null) taApi5Tecnologias.setText(d.api5Tecnologias);
-                if (taApi5Contrib != null) taApi5Contrib.setText(d.api5Contrib);
-                if (taApi5Hard != null) taApi5Hard.setText(d.api5Hard);
-                if (taApi5Soft != null) taApi5Soft.setText(d.api5Soft);
+                if (tfApi5Empresa != null) { tfApi5Empresa.setText(d.api5Empresa); atualizarEstiloCampo(tfApi5Empresa, d.api5EmpresaStatus); }
+                if (taApi5Problema != null) { taApi5Problema.setText(d.api5Problema); atualizarEstiloCampo(taApi5Problema, d.api5ProblemaStatus); }
+                if (taApi5Solucao != null) { taApi5Solucao.setText(d.api5Solucao); atualizarEstiloCampo(taApi5Solucao, d.api5SolucaoStatus); }
+                if (tfApi5Repo != null) { tfApi5Repo.setText(d.api5Repo); atualizarEstiloCampo(tfApi5Repo, d.api5RepoStatus); }
+                if (taApi5Tecnologias != null) { taApi5Tecnologias.setText(d.api5Tecnologias); atualizarEstiloCampo(taApi5Tecnologias, d.api5TecnologiasStatus); }
+                if (taApi5Contrib != null) { taApi5Contrib.setText(d.api5Contrib); atualizarEstiloCampo(taApi5Contrib, d.api5ContribStatus); }
+                if (taApi5Hard != null) { taApi5Hard.setText(d.api5Hard); atualizarEstiloCampo(taApi5Hard, d.api5HardStatus); }
+                if (taApi5Soft != null) { taApi5Soft.setText(d.api5Soft); atualizarEstiloCampo(taApi5Soft, d.api5SoftStatus); }
 
                 // API 6
-                if (tfApi6Empresa != null) tfApi6Empresa.setText(d.api6Empresa);
-                if (taApi6Problema != null) taApi6Problema.setText(d.api6Problema);
-                if (taApi6Solucao != null) taApi6Solucao.setText(d.api6Solucao);
-                if (tfApi6Repo != null) tfApi6Repo.setText(d.api6Repo);
-                if (taApi6Tecnologias != null) taApi6Tecnologias.setText(d.api6Tecnologias);
-                if (taApi6Contrib != null) taApi6Contrib.setText(d.api6Contrib);
-                if (taApi6Hard != null) taApi6Hard.setText(d.api6Hard);
-                if (taApi6Soft != null) taApi6Soft.setText(d.api6Soft);
+                if (tfApi6Empresa != null) { tfApi6Empresa.setText(d.api6Empresa); atualizarEstiloCampo(tfApi6Empresa, d.api6EmpresaStatus); }
+                if (taApi6Problema != null) { taApi6Problema.setText(d.api6Problema); atualizarEstiloCampo(taApi6Problema, d.api6ProblemaStatus); }
+                if (taApi6Solucao != null) { taApi6Solucao.setText(d.api6Solucao); atualizarEstiloCampo(taApi6Solucao, d.api6SolucaoStatus); }
+                if (tfApi6Repo != null) { tfApi6Repo.setText(d.api6Repo); atualizarEstiloCampo(tfApi6Repo, d.api6RepoStatus); }
+                if (taApi6Tecnologias != null) { taApi6Tecnologias.setText(d.api6Tecnologias); atualizarEstiloCampo(taApi6Tecnologias, d.api6TecnologiasStatus); }
+                if (taApi6Contrib != null) { taApi6Contrib.setText(d.api6Contrib); atualizarEstiloCampo(taApi6Contrib, d.api6ContribStatus); }
+                if (taApi6Hard != null) { taApi6Hard.setText(d.api6Hard); atualizarEstiloCampo(taApi6Hard, d.api6HardStatus); }
+                if (taApi6Soft != null) { taApi6Soft.setText(d.api6Soft); atualizarEstiloCampo(taApi6Soft, d.api6SoftStatus); }
 
                 // Aba 8: Tabela Resumo
                 if (d.resumoMd != null && !d.resumoMd.isBlank()) {
                     preencherResumoAPartirDoMarkdown(d.resumoMd);
+                    // Aplica o status a todos os campos da tabela
+                    aplicarEstiloTabelaResumo(d.resumoMdStatus);
                 } else {
-                    // Limpa a tabela se o resumo estiver vazio
                     preencherResumoAPartirDoMarkdown("");
+                    aplicarEstiloTabelaResumo(0); // Pendente
                 }
             });
         } catch (Exception e) {
@@ -538,6 +509,67 @@ public class EditorAlunoController extends BaseController {
 
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
+
+    // ====== NOVOS MÉTODOS HELPER PARA STATUS ======
+
+    /**
+     * Aplica o estilo de status (borda) em um campo de texto.
+     */
+    private void atualizarEstiloCampo(Node campo, int status) {
+        if (campo == null) return;
+        campo.getStyleClass().removeAll("status-aprovado", "status-reprovado", "status-pendente");
+
+        switch (status) {
+            case 1 -> campo.getStyleClass().add("status-aprovado");
+            case 2 -> campo.getStyleClass().add("status-reprovado");
+            default -> campo.getStyleClass().add("status-pendente");
+        }
+    }
+
+    /**
+     * Aplica o estilo de status (badge) em um label.
+     */
+    private void atualizarStatusLabel(Label label, int status) {
+        if (label == null) return;
+        label.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
+
+        switch (status) {
+            case 1 -> {
+                label.setText("Aprovado");
+                label.getStyleClass().add("badge-ok");
+            }
+            case 2 -> {
+                label.setText("Reprovado");
+                label.getStyleClass().add("badge-reprovado");
+            }
+            default -> { // 0 ou qualquer outro valor
+                label.setText("Pendente");
+                label.getStyleClass().add("badge-pendente");
+            }
+        }
+    }
+
+    /**
+     * Aplica o estilo de status a todos os campos da tabela Resumo.
+     */
+    private void aplicarEstiloTabelaResumo(int status) {
+        // Lista de todos os TextFields e TextAreas da aba 8
+        TextInputControl[] camposResumo = {
+                tfSem1, tfEmp1, taSol1,
+                tfSem2, tfEmp2, taSol2,
+                tfSem3, tfEmp3, taSol3,
+                tfSem4, tfEmp4, taSol4,
+                tfSem5, tfEmp5, taSol5,
+                tfSem6, tfEmp6, taSol6
+        };
+
+        for (TextInputControl campo : camposResumo) {
+            atualizarEstiloCampo(campo, status);
+        }
+    }
+
+    // =======================================================
+
 
     private List<String[]> extrairLinhasTabela(String md) {
         List<String[]> out = new ArrayList<>();

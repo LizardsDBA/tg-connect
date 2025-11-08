@@ -2,42 +2,39 @@ package br.edu.fatec.api.dao;
 
 import br.edu.fatec.api.config.Database;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Optional;
 
 public class JdbcTgResumoDao implements TgResumoDao {
 
-    // ... (Seus métodos findByTrabalhoId, upsert, findByTrabalhoIdAndVersao) ...
-
-    @Override
-    public Optional<ResumoDto> findByTrabalhoId(long trabalhoId) {
-        // Implementação original (se houver)
-        return Optional.empty();
-    }
-
-    @Override
-    public boolean upsert(long trabalhoId, String resumoMd) {
-        // Implementação original (se houver)
-        return false;
-    }
+    // Lê a ÚLTIMA versão do resumo para um trabalho
+    private static final String SQL_FIND_LATEST = """
+        SELECT trabalho_id, resumo_md
+          FROM tg_resumo
+         WHERE trabalho_id = ?
+         ORDER BY updated_at DESC, id DESC
+         LIMIT 1
+    """;
 
     // Lê por (trabalho_id, versao)
     private static final String SQL_FIND_BY_VERSAO = """
-        SELECT trabalho_id, resumo_md
+        SELECT trabalho_id, resumo_md, versao_validada
           FROM tg_resumo
          WHERE trabalho_id = ? AND versao = ?
          LIMIT 1
     """;
 
-    public Optional<ResumoDto> findByTrabalhoIdAndVersao(long trabalhoId, String versao) {
+    /**
+     * CORRIGIDO: Este método agora implementa a interface corretamente.
+     */
+    @Override
+    public Optional<ResumoDto> findByTrabalhoId(long trabalhoId) {
         try (Connection c = Database.get();
-             PreparedStatement ps = c.prepareStatement(SQL_FIND_BY_VERSAO)) {
+             PreparedStatement ps = c.prepareStatement(SQL_FIND_LATEST)) {
             ps.setLong(1, trabalhoId);
-            ps.setString(2, versao);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // CORRIGIDO: Removida a leitura da coluna 3 (kpis)
+                    // Retorna o DTO da interface (sem kpis)
                     return Optional.of(new ResumoDto(
                             rs.getLong(1), // trabalho_id
                             rs.getString(2)  // resumo_md
@@ -48,15 +45,47 @@ public class JdbcTgResumoDao implements TgResumoDao {
         return Optional.empty();
     }
 
+    /**
+     * CORRIGIDO: Este método agora implementa a interface corretamente.
+     */
+    @Override
+    public boolean upsert(long trabalhoId, String resumoMd) {
+        // Esta implementação provavelmente não é usada pelo seu fluxo de "salvar tudo",
+        // mas precisa existir para o código compilar com a interface.
+        // Se você precisar dela, teremos que escrever o SQL "UPSERT" aqui.
+        return false;
+    }
+
+    // --- Métodos usados pelo EditorAlunoService ---
+
+    /** DTO ATUALIZADO (para leitura interna com status) */
+    public record ResumoVersaoDto(long trabalhoId, String resumoMd, int versaoValidada) {}
+
+    public Optional<ResumoVersaoDto> findByTrabalhoIdAndVersao(long trabalhoId, String versao) {
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(SQL_FIND_BY_VERSAO)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(new ResumoVersaoDto(
+                            rs.getLong(1), // trabalho_id
+                            rs.getString(2), // resumo_md
+                            rs.getInt(3)     // versao_validada
+                    ));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return Optional.empty();
+    }
 
     // Inserção "insert-only" versionada
     public void insertVersao(Connection con,
                              long trabalhoId, String versao,
                              String resumoMd) throws SQLException {
-        // ATUALIZADO: Insere o status 0 (Pendente)
         final String sql = """
-            INSERT INTO tg_resumo (trabalho_id, versao, resumo_md, versao_validada)
-            VALUES (?,?,?, 0)
+            INSERT INTO tg_resumo (trabalho_id, versao, resumo_md)
+            VALUES (?,?,?)
         """;
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
@@ -66,12 +95,8 @@ public class JdbcTgResumoDao implements TgResumoDao {
         }
     }
 
-    // ======= NOVO: suporte a validação (CORRIGIDO) =======
-    // OBS: Seus métodos de validação para Resumo já estavam corretos,
-    // pois o nome da coluna 'versao_validada' foi mantido (mesmo mudando o tipo).
-    // Nenhuma alteração necessária aqui.
+    // ======= Suporte a validação (Métodos OK) =======
 
-    /** Retorna 0/1 do campo versao_validada da versão informada. */
     public int getValidacaoResumo(long trabalhoId, String versao) {
         final String sql = """
             SELECT COALESCE(versao_validada,0)
@@ -89,7 +114,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
         return 0;
     }
 
-    /** Copia o flag versao_validada da última versão anterior para a nova. */
     public void copyValidacaoFromUltimaVersao(Connection con, long trabalhoId, String novaVersao) throws SQLException {
         final String sql = """
         UPDATE tg_resumo AS n

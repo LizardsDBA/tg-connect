@@ -81,71 +81,84 @@
                     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" styleClass="editor-tabs">
 
                         <!-- ABA 1 - APRESENTAÇÃO DO ALUNO -->
-                        <Tab  text="1) Apresentação" closable="false">
+                        <Tab text="1) Apresentação" closable="false">
                             <ScrollPane fitToWidth="true">
                                 <VBox spacing="8.0">
                                     <padding>
-                                        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0" />
                                     </padding>
 
-                                    <TitledPane text="Informações Pessoais">
+                                    <TitledPane text="Informações Pessoais" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblInfoPessoaisStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taInfoPessoais"
-                                                      promptText="Nome, curso, semestre, RA..."/>
+                                            <TextArea fx:id="taInfoPessoais" promptText="Nome, curso, semestre, RA..." />
                                         </VBox>
                                     </TitledPane>
 
-                                    <TitledPane text="Histórico Acadêmico" expanded="false">
+                                    <TitledPane text="Histórico Acadêmico" expanded="false" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblHistoricoAcadStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taHistoricoAcad"
-                                                      promptText="Formações, certificações..."/>
+                                            <TextArea fx:id="taHistoricoAcad" promptText="Formações, certificações..." />
                                         </VBox>
                                     </TitledPane>
 
-                                    <TitledPane text="Motivação para Ingressar na FATEC" expanded="false">
+                                    <TitledPane text="Motivação para Ingressar na FATEC" expanded="false" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblMotivacaoStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taMotivacao" promptText="Motivações e objetivos..."/>
+                                            <TextArea fx:id="taMotivacao" promptText="Motivações e objetivos..." />
                                         </VBox>
                                     </TitledPane>
 
-                                    <TitledPane text="Histórico Profissional" expanded="false">
+                                    <TitledPane text="Histórico Profissional" expanded="false" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblHistoricoProfStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taHistoricoProf"
-                                                      promptText="Experiências, estágios..."/>
+                                            <TextArea fx:id="taHistoricoProf" promptText="Experiências, estágios..." />
                                         </VBox>
                                     </TitledPane>
 
-                                    <TitledPane text="Contatos" expanded="false">
+                                    <TitledPane text="Contatos" expanded="false" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblContatosStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taContatos" promptText="E-mail, GitHub, LinkedIn..."/>
+                                            <TextArea fx:id="taContatos" promptText="E-mail, GitHub, LinkedIn..." />
                                         </VBox>
                                     </TitledPane>
 
-                                    <TitledPane text="Principais Conhecimentos" expanded="false">
+                                    <TitledPane text="Principais Conhecimentos" expanded="false" contentDisplay="RIGHT">
+                                        <graphic>
+                                            <Label fx:id="lblConhecimentosStatus" styleClass="badge" />
+                                        </graphic>
                                         <VBox spacing="6.0">
                                             <padding>
-                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0"/>
+                                                <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
                                             </padding>
-                                            <TextArea fx:id="taConhecimentos"
-                                                      promptText="Stacks, linguagens, ferramentas..."/>
+                                            <TextArea fx:id="taConhecimentos" promptText="Stacks, linguagens, ferramentas..." />
                                         </VBox>
                                     </TitledPane>
-
                                 </VBox>
                             </ScrollPane>
                         </Tab>

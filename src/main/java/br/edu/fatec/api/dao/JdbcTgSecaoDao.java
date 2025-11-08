@@ -9,37 +9,23 @@ import java.util.Optional;
 
 public class JdbcTgSecaoDao implements TgSecaoDao {
 
-    // ... (Seus métodos findByTrabalhoAndSemestre e upsert originais) ...
-
+    // ... (Seus métodos findByTrabalhoAndSemestre e upsert) ...
     @Override
-    public Optional<SecaoDto> findByTrabalhoAndSemestre(long trabalhoId, int semestreApi) {
-        // Implementação original (se houver)
-        return Optional.empty();
-    }
-
+    public Optional<SecaoDto> findByTrabalhoAndSemestre(long trabalhoId, int semestreApi) { return Optional.empty(); }
     @Override
-    public boolean upsert(long trabalhoId, int semestreApi, int ano, String semestreLetivo, String empresa, String problema, String solucao, String repo, String tecnologias, String contribuicoes, String hard, String soft, String conteudoMd) {
-        // Implementação original (se houver)
-        return false;
-    }
-
+    public boolean upsert(long trabalhoId, int semestreApi, int ano, String semestreLetivo, String empresa, String problema, String solucao, String repo, String tecnologias, String contribuicoes, String hard, String soft, String conteudoMd) { return false; }
 
     /** insert-only versionado (salvarTudo) */
     public void insertVersao(Connection con, long trabalhoId, String versao, int semestreApi,
                              String empresa, String problema, String solucao, String repo,
                              String tecnologias, String contrib, String hard, String soft,
                              String conteudoMd) throws SQLException {
-        // ATUALIZADO: Insere os dados E reseta todos os status para 0 (Pendente)
+        // CORREÇÃO: Não reseta mais os status para 0 aqui.
         final String sql = """
           INSERT INTO tg_secao
           (trabalho_id, versao, semestre_api, empresa_parceira, problema, solucao_resumo,
-           link_repositorio, tecnologias, contribuicoes, hard_skills, soft_skills, conteudo_md,
-           
-           empresa_parceira_status, problema_status, solucao_resumo_status,
-           link_repositorio_status, tecnologias_status, contribuicoes_status,
-           hard_skills_status, soft_skills_status, conteudo_md_status
-          )
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,? , 0,0,0,0,0,0,0,0,0)
+           link_repositorio, tecnologias, contribuicoes, hard_skills, soft_skills, conteudo_md)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         """;
         try (var ps = con.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
@@ -53,31 +39,48 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
             ps.setString(9, contrib);
             ps.setString(10, hard);
             ps.setString(11, soft);
-            ps.setString(12, conteudoMd); // (Este campo não é usado, mas está no seu service)
+            ps.setString(12, conteudoMd);
             ps.executeUpdate();
         }
     }
 
-    /** DTO só para leitura versionada (não conflita com o record da interface) */
+    /** DTO só para leitura versionada (ATUALIZADO) */
     public static final class SecaoVersaoDto {
-        // ... (seu DTO original está OK) ...
         public final int semestreApi;
         public final String empresa, problema, solucao, repo, tecnologias, contrib, hard, soft;
-        public SecaoVersaoDto(int semestreApi, String empresa, String problema, String solucao, String repo,
-                              String tecnologias, String contrib, String hard, String soft) {
-            this.semestreApi = semestreApi; this.empresa = empresa; this.problema = problema;
-            this.solucao = solucao; this.repo = repo; this.tecnologias = tecnologias;
-            this.contrib = contrib; this.hard = hard; this.soft = soft;
+        // Campos de status adicionados
+        public final int empresaStatus, problemaStatus, solucaoStatus, repoStatus, tecnologiasStatus, contribStatus, hardStatus, softStatus;
+
+        public SecaoVersaoDto(int semestreApi, String empresa, String problema, String solucao, String repo, String tecnologias, String contrib, String hard, String soft, int empresaStatus, int problemaStatus, int solucaoStatus, int repoStatus, int tecnologiasStatus, int contribStatus, int hardStatus, int softStatus) {
+            this.semestreApi = semestreApi;
+            this.empresa = empresa;
+            this.problema = problema;
+            this.solucao = solucao;
+            this.repo = repo;
+            this.tecnologias = tecnologias;
+            this.contrib = contrib;
+            this.hard = hard;
+            this.soft = soft;
+            this.empresaStatus = empresaStatus;
+            this.problemaStatus = problemaStatus;
+            this.solucaoStatus = solucaoStatus;
+            this.repoStatus = repoStatus;
+            this.tecnologiasStatus = tecnologiasStatus;
+            this.contribStatus = contribStatus;
+            this.hardStatus = hardStatus;
+            this.softStatus = softStatus;
         }
     }
 
-    /** leitura por versão (para preload do editor) */
+    /** leitura por versão (para preload do editor) (ATUALIZADO) */
     public List<SecaoVersaoDto> findByTrabalhoIdAndVersao(long trabalhoId, String versao) {
-        // Este método já estava correto no seu arquivo.
-        // Nenhuma alteração necessária.
         final String sql = """
             SELECT semestre_api, empresa_parceira, problema, solucao_resumo, link_repositorio,
-                   tecnologias, contribuicoes, hard_skills, soft_skills
+                   tecnologias, contribuicoes, hard_skills, soft_skills,
+                   
+                   empresa_parceira_status, problema_status, solucao_resumo_status,
+                   link_repositorio_status, tecnologias_status, contribuicoes_status,
+                   hard_skills_status, soft_skills_status
               FROM tg_secao
              WHERE trabalho_id=? AND versao=?
              ORDER BY semestre_api
@@ -89,9 +92,12 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     out.add(new SecaoVersaoDto(
-                            rs.getInt(1),
-                            rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-                            rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9)
+                            rs.getInt("semestre_api"),
+                            rs.getString("empresa_parceira"), rs.getString("problema"), rs.getString("solucao_resumo"), rs.getString("link_repositorio"),
+                            rs.getString("tecnologias"), rs.getString("contribuicoes"), rs.getString("hard_skills"), rs.getString("soft_skills"),
+                            rs.getInt("empresa_parceira_status"), rs.getInt("problema_status"), rs.getInt("solucao_resumo_status"),
+                            rs.getInt("link_repositorio_status"), rs.getInt("tecnologias_status"), rs.getInt("contribuicoes_status"),
+                            rs.getInt("hard_skills_status"), rs.getInt("soft_skills_status")
                     ));
                 }
             }
@@ -103,7 +109,6 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
 
     /** Retorna 1 se TODOS os campos da Seção (API) estiverem Aprovados (status=1). */
     public Integer getValidacaoSecao(long trabalhoId, String versao, int semestreApi) {
-        // ATUALIZADO: Verifica todos os status individuais
         final String sql = """
         SELECT CASE WHEN
             empresa_parceira_status = 1 AND
@@ -114,7 +119,7 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
             contribuicoes_status = 1 AND
             hard_skills_status = 1 AND
             soft_skills_status = 1 AND
-            conteudo_md_status = 1
+            COALESCE(conteudo_md_status, 1) = 1
         THEN 1 ELSE 0 END
           FROM tg_secao
          WHERE trabalho_id=? AND versao=? AND semestre_api=?
@@ -130,12 +135,11 @@ public class JdbcTgSecaoDao implements TgSecaoDao {
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
-        return 0; // Retorna 0 (Pendente) se não encontrar
+        return 0;
     }
 
     /** Copia TODOS os flags *_status da última versão anterior para a nova, por semestre. */
     public void copyValidacaoFromUltimaVersao(Connection con, long trabalhoId, String novaVersao) throws SQLException {
-        // ATUALIZADO: Copia todas as colunas _status
         final String sql = """
         UPDATE tg_secao AS n
         LEFT JOIN (
