@@ -50,7 +50,11 @@ public class InboxAlunoController extends BaseController {
         });
     }
 
-    public void goEditor(){ stopPolling(); SceneManager.go("aluno/Editor.fxml"); }
+    public void goEditor(){
+        SceneManager.go("aluno/Editor.fxml", c -> {
+            ((EditorAlunoController) c).onReady();
+        });
+    }
     public void goComparar(){ stopPolling(); SceneManager.go("aluno/Comparar.fxml"); }
     public void goConclusao(){ stopPolling(); SceneManager.go("aluno/Conclusao.fxml"); }
     public void goHistorico(){ stopPolling(); SceneManager.go("aluno/Historico.fxml"); }

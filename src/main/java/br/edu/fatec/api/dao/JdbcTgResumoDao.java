@@ -17,13 +17,34 @@ public class JdbcTgResumoDao implements TgResumoDao {
     }
 
     @Override
-    public boolean upsert(long trabalhoId, String resumoMd, String kpisStr) {
+    public boolean upsert(long trabalhoId, String resumoMd) {
         // Implementação original (se houver)
         return false;
     }
 
+    // Lê por (trabalho_id, versao)
+    private static final String SQL_FIND_BY_VERSAO = """
+        SELECT trabalho_id, resumo_md
+          FROM tg_resumo
+         WHERE trabalho_id = ? AND versao = ?
+         LIMIT 1
+    """;
+
     public Optional<ResumoDto> findByTrabalhoIdAndVersao(long trabalhoId, String versao) {
-        // Implementação original (se houver)
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(SQL_FIND_BY_VERSAO)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // CORRIGIDO: Removida a leitura da coluna 3 (kpis)
+                    return Optional.of(new ResumoDto(
+                            rs.getLong(1), // trabalho_id
+                            rs.getString(2)  // resumo_md
+                    ));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
         return Optional.empty();
     }
 

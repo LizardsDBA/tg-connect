@@ -82,7 +82,11 @@ public class EditorAlunoController extends BaseController {
             ctrl.onReady();
         });
     }
-    public void goEditor(){ SceneManager.go("aluno/Editor.fxml"); }
+    public void goEditor(){
+        SceneManager.go("aluno/Editor.fxml", c -> {
+            ((EditorAlunoController) c).onReady();
+        });
+    }
     public void goComparar(){ SceneManager.go("aluno/Comparar.fxml"); }
     public void goConclusao(){ SceneManager.go("aluno/Conclusao.fxml"); }
     public void goHistorico(){ SceneManager.go("aluno/Historico.fxml"); }
@@ -101,86 +105,13 @@ public class EditorAlunoController extends BaseController {
             btnToggleSidebar.setText("☰");
         }
 
-        // Pré-carrega a última versão nos campos
-        try {
-            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-            service.carregarTudo(trabalhoId).ifPresent(d -> {
-                // Aba 1
-                if (taInfoPessoais != null)   taInfoPessoais.setText(d.infoPessoais);
-                if (taHistoricoAcad != null)  taHistoricoAcad.setText(d.historicoAcad);
-                if (taMotivacao != null)      taMotivacao.setText(d.motivacao);
-                if (taHistoricoProf != null)  taHistoricoProf.setText(d.historicoProf);
-                if (taContatos != null)       taContatos.setText(d.contatos);
-                if (taConhecimentos != null)  taConhecimentos.setText(d.conhecimentos);
-                if (taConclusoes != null)     taConclusoes.setText(d.consideracoes); // Aba 9
+        // Pré-carrega os dados na primeira vez
+        onReady(); // <-- Chama o novo método
 
-                // APIs 1..6
-                if (tfApi1Empresa != null) tfApi1Empresa.setText(d.api1Empresa);
-                if (taApi1Problema != null) taApi1Problema.setText(d.api1Problema);
-                if (taApi1Solucao != null) taApi1Solucao.setText(d.api1Solucao);
-                if (tfApi1Repo != null) tfApi1Repo.setText(d.api1Repo);
-                if (taApi1Tecnologias != null) taApi1Tecnologias.setText(d.api1Tecnologias);
-                if (taApi1Contrib != null) taApi1Contrib.setText(d.api1Contrib);
-                if (taApi1Hard != null) taApi1Hard.setText(d.api1Hard);
-                if (taApi1Soft != null) taApi1Soft.setText(d.api1Soft);
-
-                if (tfApi2Empresa != null) tfApi2Empresa.setText(d.api2Empresa);
-                if (taApi2Problema != null) taApi2Problema.setText(d.api2Problema);
-                if (taApi2Solucao != null) taApi2Solucao.setText(d.api2Solucao);
-                if (tfApi2Repo != null) tfApi2Repo.setText(d.api2Repo);
-                if (taApi2Tecnologias != null) taApi2Tecnologias.setText(d.api2Tecnologias);
-                if (taApi2Contrib != null) taApi2Contrib.setText(d.api2Contrib);
-                if (taApi2Hard != null) taApi2Hard.setText(d.api2Hard);
-                if (taApi2Soft != null) taApi2Soft.setText(d.api2Soft);
-
-                if (tfApi3Empresa != null) tfApi3Empresa.setText(d.api3Empresa);
-                if (taApi3Problema != null) taApi3Problema.setText(d.api3Problema);
-                if (taApi3Solucao != null) taApi3Solucao.setText(d.api3Solucao);
-                if (tfApi3Repo != null) tfApi3Repo.setText(d.api3Repo);
-                if (taApi3Tecnologias != null) taApi3Tecnologias.setText(d.api3Tecnologias);
-                if (taApi3Contrib != null) taApi3Contrib.setText(d.api3Contrib);
-                if (taApi3Hard != null) taApi3Hard.setText(d.api3Hard);
-                if (taApi3Soft != null) taApi3Soft.setText(d.api3Soft);
-
-                if (tfApi4Empresa != null) tfApi4Empresa.setText(d.api4Empresa);
-                if (taApi4Problema != null) taApi4Problema.setText(d.api4Problema);
-                if (taApi4Solucao != null) taApi4Solucao.setText(d.api4Solucao);
-                if (tfApi4Repo != null) tfApi4Repo.setText(d.api4Repo);
-                if (taApi4Tecnologias != null) taApi4Tecnologias.setText(d.api4Tecnologias);
-                if (taApi4Contrib != null) taApi4Contrib.setText(d.api4Contrib);
-                if (taApi4Hard != null) taApi4Hard.setText(d.api4Hard);
-                if (taApi4Soft != null) taApi4Soft.setText(d.api4Soft);
-
-                if (tfApi5Empresa != null) tfApi5Empresa.setText(d.api5Empresa);
-                if (taApi5Problema != null) taApi5Problema.setText(d.api5Problema);
-                if (taApi5Solucao != null) taApi5Solucao.setText(d.api5Solucao);
-                if (tfApi5Repo != null) tfApi5Repo.setText(d.api5Repo);
-                if (taApi5Tecnologias != null) taApi5Tecnologias.setText(d.api5Tecnologias);
-                if (taApi5Contrib != null) taApi5Contrib.setText(d.api5Contrib);
-                if (taApi5Hard != null) taApi5Hard.setText(d.api5Hard);
-                if (taApi5Soft != null) taApi5Soft.setText(d.api5Soft);
-
-                if (tfApi6Empresa != null) tfApi6Empresa.setText(d.api6Empresa);
-                if (taApi6Problema != null) taApi6Problema.setText(d.api6Problema);
-                if (taApi6Solucao != null) taApi6Solucao.setText(d.api6Solucao);
-                if (tfApi6Repo != null) tfApi6Repo.setText(d.api6Repo);
-                if (taApi6Tecnologias != null) taApi6Tecnologias.setText(d.api6Tecnologias);
-                if (taApi6Contrib != null) taApi6Contrib.setText(d.api6Contrib);
-                if (taApi6Hard != null) taApi6Hard.setText(d.api6Hard);
-                if (taApi6Soft != null) taApi6Soft.setText(d.api6Soft);
-
-                // Aba 8: preencher campos a partir do markdown do resumo
-                if (d.resumoMd != null && !d.resumoMd.isBlank()) {
-                    preencherResumoAPartirDoMarkdown(d.resumoMd);
-                }
-            });
-        } catch (Exception e) {
-            alertWarn("Falha ao carregar a última versão: " + e.getMessage());
-        }
-
+        // Configura os listeners (isso só precisa ser feito uma vez)
         hookFocusHandlers();
         applyTips();
-        wireTabStatus(); // <--- ADIÇÃO: inicializa o indicador dinâmico
+        wireTabStatus();
     }
 
     private void wireTabStatus(){
@@ -504,6 +435,108 @@ public class EditorAlunoController extends BaseController {
             }
             if (linha >= 6) break;
         }
+    }
+
+    /**
+     * Chamado toda vez que a cena é exibida.
+     * Carrega os dados mais recentes do banco.
+     */
+    public void onReady() {
+        User u = Session.getUser();
+        if (u == null) {
+            SceneManager.go("login/Login.fxml");
+            return;
+        }
+
+        try {
+            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+            service.carregarTudo(trabalhoId).ifPresent(d -> {
+
+                // Aba 1
+                if (taInfoPessoais != null)   taInfoPessoais.setText(d.infoPessoais);
+                if (taHistoricoAcad != null)  taHistoricoAcad.setText(d.historicoAcad);
+                if (taMotivacao != null)      taMotivacao.setText(d.motivacao);
+                if (taHistoricoProf != null)  taHistoricoProf.setText(d.historicoProf);
+                if (taContatos != null)       taContatos.setText(d.contatos);
+                if (taConhecimentos != null)  taConhecimentos.setText(d.conhecimentos);
+                if (taConclusoes != null)     taConclusoes.setText(d.consideracoes); // Aba 9
+
+
+                // --- CORREÇÃO AQUI (APIs 1-6 Completas) ---
+
+                // API 1
+                if (tfApi1Empresa != null) tfApi1Empresa.setText(d.api1Empresa);
+                if (taApi1Problema != null) taApi1Problema.setText(d.api1Problema);
+                if (taApi1Solucao != null) taApi1Solucao.setText(d.api1Solucao);
+                if (tfApi1Repo != null) tfApi1Repo.setText(d.api1Repo);
+                if (taApi1Tecnologias != null) taApi1Tecnologias.setText(d.api1Tecnologias);
+                if (taApi1Contrib != null) taApi1Contrib.setText(d.api1Contrib);
+                if (taApi1Hard != null) taApi1Hard.setText(d.api1Hard);
+                if (taApi1Soft != null) taApi1Soft.setText(d.api1Soft);
+
+                // API 2
+                if (tfApi2Empresa != null) tfApi2Empresa.setText(d.api2Empresa);
+                if (taApi2Problema != null) taApi2Problema.setText(d.api2Problema);
+                if (taApi2Solucao != null) taApi2Solucao.setText(d.api2Solucao);
+                if (tfApi2Repo != null) tfApi2Repo.setText(d.api2Repo);
+                if (taApi2Tecnologias != null) taApi2Tecnologias.setText(d.api2Tecnologias);
+                if (taApi2Contrib != null) taApi2Contrib.setText(d.api2Contrib);
+                if (taApi2Hard != null) taApi2Hard.setText(d.api2Hard);
+                if (taApi2Soft != null) taApi2Soft.setText(d.api2Soft);
+
+                // API 3
+                if (tfApi3Empresa != null) tfApi3Empresa.setText(d.api3Empresa);
+                if (taApi3Problema != null) taApi3Problema.setText(d.api3Problema);
+                if (taApi3Solucao != null) taApi3Solucao.setText(d.api3Solucao);
+                if (tfApi3Repo != null) tfApi3Repo.setText(d.api3Repo);
+                if (taApi3Tecnologias != null) taApi3Tecnologias.setText(d.api3Tecnologias);
+                if (taApi3Contrib != null) taApi3Contrib.setText(d.api3Contrib);
+                if (taApi3Hard != null) taApi3Hard.setText(d.api3Hard);
+                if (taApi3Soft != null) taApi3Soft.setText(d.api3Soft);
+
+                // API 4
+                if (tfApi4Empresa != null) tfApi4Empresa.setText(d.api4Empresa);
+                if (taApi4Problema != null) taApi4Problema.setText(d.api4Problema);
+                if (taApi4Solucao != null) taApi4Solucao.setText(d.api4Solucao);
+                if (tfApi4Repo != null) tfApi4Repo.setText(d.api4Repo);
+                if (taApi4Tecnologias != null) taApi4Tecnologias.setText(d.api4Tecnologias);
+                if (taApi4Contrib != null) taApi4Contrib.setText(d.api4Contrib);
+                if (taApi4Hard != null) taApi4Hard.setText(d.api4Hard);
+                if (taApi4Soft != null) taApi4Soft.setText(d.api4Soft);
+
+                // API 5
+                if (tfApi5Empresa != null) tfApi5Empresa.setText(d.api5Empresa);
+                if (taApi5Problema != null) taApi5Problema.setText(d.api5Problema);
+                if (taApi5Solucao != null) taApi5Solucao.setText(d.api5Solucao);
+                if (tfApi5Repo != null) tfApi5Repo.setText(d.api5Repo);
+                if (taApi5Tecnologias != null) taApi5Tecnologias.setText(d.api5Tecnologias);
+                if (taApi5Contrib != null) taApi5Contrib.setText(d.api5Contrib);
+                if (taApi5Hard != null) taApi5Hard.setText(d.api5Hard);
+                if (taApi5Soft != null) taApi5Soft.setText(d.api5Soft);
+
+                // API 6
+                if (tfApi6Empresa != null) tfApi6Empresa.setText(d.api6Empresa);
+                if (taApi6Problema != null) taApi6Problema.setText(d.api6Problema);
+                if (taApi6Solucao != null) taApi6Solucao.setText(d.api6Solucao);
+                if (tfApi6Repo != null) tfApi6Repo.setText(d.api6Repo);
+                if (taApi6Tecnologias != null) taApi6Tecnologias.setText(d.api6Tecnologias);
+                if (taApi6Contrib != null) taApi6Contrib.setText(d.api6Contrib);
+                if (taApi6Hard != null) taApi6Hard.setText(d.api6Hard);
+                if (taApi6Soft != null) taApi6Soft.setText(d.api6Soft);
+
+                // Aba 8: Tabela Resumo
+                if (d.resumoMd != null && !d.resumoMd.isBlank()) {
+                    preencherResumoAPartirDoMarkdown(d.resumoMd);
+                } else {
+                    // Limpa a tabela se o resumo estiver vazio
+                    preencherResumoAPartirDoMarkdown("");
+                }
+            });
+        } catch (Exception e) {
+            alertWarn("Falha ao carregar a última versão: " + e.getMessage());
+        }
+
+        refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
 
     private List<String[]> extrairLinhasTabela(String md) {
