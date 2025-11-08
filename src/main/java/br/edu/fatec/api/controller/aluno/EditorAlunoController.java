@@ -15,6 +15,12 @@ import java.util.stream.Collectors;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.Session;
 import br.edu.fatec.api.service.EditorAlunoService;
+import br.edu.fatec.api.controller.orientador.ModalPreviewController;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class EditorAlunoController extends BaseController {
 
@@ -278,12 +284,42 @@ public class EditorAlunoController extends BaseController {
     public void insertH1(){ insertAtCaret("\n# Título\n"); }
     public void insertLink(){ insertAtCaret("[Texto](https://)"); }
 
-    public void preview(){
-        String md = montarMarkdownCompleto();
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setHeaderText("Pré-visualização (trecho)");
-        a.setContentText(md.substring(0, Math.min(500, md.length())) + (md.length() > 500 ? "\n...\n" : ""));
+    public void preview() {
+        // 1. Monta o Markdown completo com os dados atuais da tela
+        String mdCompleto = montarMarkdownCompleto();
+
+        try {
+            // 2. Cria o Stage (Janela) do Modal
+            Stage modalStage = new Stage();
+            modalStage.initModality(Modality.APPLICATION_MODAL);
+            modalStage.setTitle("Preview do TG Completo");
+
+            // 3. Carrega o FXML do Modal de Preview
+            // (Usando o mesmo FXML do orientador)
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/views/orientador/ModalPreview.fxml"));
+            Parent root = loader.load();
+
+            // 4. Pega o controller e chama o NOVO método initData
+            ModalPreviewController controller = loader.getController();
+            controller.initData(mdCompleto); // <--- A MÁGICA ACONTECE AQUI
+
+            // 5. Exibe o modal
+            Scene scene = new Scene(root);
+            modalStage.setScene(scene);
+            modalStage.showAndWait();
+
+        } catch (Exception e) {
+            erro("Falha ao abrir o modal de preview.", e);
+        }
+    }
+
+    // Método 'erro' (se você não tiver um, use o 'alertWarn')
+    private void erro(String msg, Exception e) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setHeaderText("Ops!");
+        a.setContentText(msg + (e != null ? "\n\n" + e.getMessage() : ""));
         a.showAndWait();
+        if (e != null) e.printStackTrace();
     }
 
     // ====== Salvar TUDO (único handler chamado pelo botão da toolbar)

@@ -50,6 +50,14 @@ public class ModalPreviewController {
         }
     }
 
+    /**
+     * Ponto de entrada (para o Aluno): Recebe o Markdown bruto diretamente.
+     */
+    public void initData(String rawMarkdown) {
+        // Não precisa buscar no DAO, apenas renderiza o que recebeu
+        renderMarkdown(rawMarkdown);
+    }
+
     private void renderMarkdown(String markdown) {
         if (webViewPreview == null) return;
         String md = (markdown == null) ? "" : markdown;
