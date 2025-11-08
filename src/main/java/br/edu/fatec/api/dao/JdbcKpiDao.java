@@ -9,34 +9,59 @@ import java.util.Optional;
 
 public class JdbcKpiDao implements KpiDao {
 
-    // 🔹 Pendências de validação (0–9)
+    /**
+     * CONTAGEM DE PENDÊNCIAS (ATUALIZADO)
+     * Conta quantos campos de status NÃO são 1 (Aprovado)
+     */
     private static final String SQL_PENDENCIAS_VALIDACOES = """
-        SELECT
-            (9 - (
-                COALESCE(sec.valid_sec, 0)
-              + COALESCE(ap.valid, 0)
-              + COALESCE(res.valid, 0)
-            )) AS pendencias
+        SELECT 
+            COALESCE(ap.pendencias_ap, 0) + COALESCE(sec.pendencias_sec, 0) + COALESCE(res.pendencias_res, 0) AS pendencias_totais
         FROM trabalhos_graduacao tg
+        
+        -- Subquery para Apresentação (conta 9 campos)
         LEFT JOIN (
-            SELECT trabalho_id, versao, SUM(COALESCE(versao_validada, 0)) AS valid_sec
+            SELECT 
+                trabalho_id, versao,
+                (CASE WHEN nome_completo_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN idade_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN curso_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN historico_academico_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN motivacao_fatec_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN historico_profissional_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN contatos_email_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN principais_conhecimentos_status != 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN consideracoes_finais_status != 1 THEN 1 ELSE 0 END) AS pendencias_ap
+            FROM tg_apresentacao
+        ) ap ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
+        
+        -- Subquery para Seções (conta 8 campos * 6 seções = 48 campos)
+        LEFT JOIN (
+            SELECT 
+                trabalho_id, versao,
+                SUM(
+                    (CASE WHEN empresa_parceira_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN problema_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN solucao_resumo_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN link_repositorio_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN tecnologias_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN contribuicoes_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN hard_skills_status != 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN soft_skills_status != 1 THEN 1 ELSE 0 END)
+                ) AS pendencias_sec
             FROM tg_secao
             GROUP BY trabalho_id, versao
-        ) sec
-            ON sec.trabalho_id = tg.id AND sec.versao = tg.versao_atual
+        ) sec ON sec.trabalho_id = tg.id AND sec.versao = tg.versao_atual
+        
+        -- Subquery para Resumo (conta 1 campo)
         LEFT JOIN (
-            SELECT trabalho_id, versao,
-                   COALESCE(apresentacao_versao_validada, 0)
-                 + COALESCE(consideracao_versao_validada, 0) AS valid
-            FROM tg_apresentacao
-        ) ap
-            ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
-        LEFT JOIN (
-            SELECT trabalho_id, versao, COALESCE(versao_validada, 0) AS valid
+            SELECT 
+                trabalho_id, versao,
+                (CASE WHEN versao_validada != 1 THEN 1 ELSE 0 END) AS pendencias_res
             FROM tg_resumo
-        ) res
-            ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
+        ) res ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
+        
         WHERE tg.aluno_id = ?
+        LIMIT 1
         """;
 
     // 🔹 Última versão do trabalho (mantida funcional)
@@ -48,34 +73,62 @@ public class JdbcKpiDao implements KpiDao {
         LIMIT 1
         """;
 
-    // 🔹 Percentual de conclusão com base nas 9 validações
+    /**
+     * CÁLCULO DE PERCENTUAL (ATUALIZADO)
+     * Soma quantos campos de status SÃO 1 (Aprovado)
+     * Total de campos = 9 (Apres) + 48 (6 * 8 APIs) + 1 (Resumo) = 58 campos
+     */
     private static final String SQL_PERCENTUAL = """
         SELECT
             ROUND((
-                (COALESCE(sec.valid_sec, 0)
-                + COALESCE(ap.valid, 0)
-                + COALESCE(res.valid, 0)) / 9
-            ) * 100, 2) AS percentual_conclusao
+                (COALESCE(ap.aprovados_ap, 0) + COALESCE(sec.aprovados_sec, 0) + COALESCE(res.aprovados_res, 0)) / 58.0
+            ) * 100, 0) AS percentual_conclusao
         FROM trabalhos_graduacao tg
+
+        -- Subquery para Apresentação
         LEFT JOIN (
-            SELECT trabalho_id, versao, SUM(COALESCE(versao_validada, 0)) AS valid_sec
+            SELECT 
+                trabalho_id, versao,
+                (CASE WHEN nome_completo_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN idade_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN curso_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN historico_academico_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN motivacao_fatec_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN historico_profissional_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN contatos_email_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN principais_conhecimentos_status = 1 THEN 1 ELSE 0 END) +
+                (CASE WHEN consideracoes_finais_status = 1 THEN 1 ELSE 0 END) AS aprovados_ap
+            FROM tg_apresentacao
+        ) ap ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
+
+        -- Subquery para Seções
+        LEFT JOIN (
+            SELECT 
+                trabalho_id, versao,
+                SUM(
+                    (CASE WHEN empresa_parceira_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN problema_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN solucao_resumo_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN link_repositorio_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN tecnologias_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN contribuicoes_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN hard_skills_status = 1 THEN 1 ELSE 0 END) +
+                    (CASE WHEN soft_skills_status = 1 THEN 1 ELSE 0 END)
+                ) AS aprovados_sec
             FROM tg_secao
             GROUP BY trabalho_id, versao
-        ) sec
-            ON sec.trabalho_id = tg.id AND sec.versao = tg.versao_atual
+        ) sec ON sec.trabalho_id = tg.id AND sec.versao = tg.versao_atual
+
+        -- Subquery para Resumo
         LEFT JOIN (
-            SELECT trabalho_id, versao,
-                   COALESCE(apresentacao_versao_validada, 0)
-                 + COALESCE(consideracao_versao_validada, 0) AS valid
-            FROM tg_apresentacao
-        ) ap
-            ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
-        LEFT JOIN (
-            SELECT trabalho_id, versao, COALESCE(versao_validada, 0) AS valid
+            SELECT 
+                trabalho_id, versao,
+                (CASE WHEN versao_validada = 1 THEN 1 ELSE 0 END) AS aprovados_res
             FROM tg_resumo
-        ) res
-            ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
+        ) res ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
+        
         WHERE tg.id = ?
+        LIMIT 1
         """;
 
     @Override
@@ -84,12 +137,12 @@ public class JdbcKpiDao implements KpiDao {
              PreparedStatement ps = con.prepareStatement(SQL_PENDENCIAS_VALIDACOES)) {
             ps.setLong(1, alunoId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("pendencias");
+                if (rs.next()) return rs.getInt("pendencias_totais");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return 0; // Retorna 0 em caso de erro
     }
 
     @Override
