@@ -39,6 +39,8 @@
                     onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
             <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>
 
         <!-- Main Content -->

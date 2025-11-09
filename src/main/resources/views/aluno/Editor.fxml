@@ -39,6 +39,8 @@
                     styleClass="sidebar-link" text="Editor de TG" onAction="#goEditor"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Comparar Versões" onAction="#goComparar"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>
 
         <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">

@@ -180,7 +180,9 @@ public class PainelOrientadorController extends BaseController {
         SceneManager.go("orientador/Editor.fxml");
     }
 
-    // ... (Restante dos seus métodos de navegação) ...
+    public void goHistorico() {
+        SceneManager.go("orientador/Historico.fxml");
+    }    // ... (Restante dos seus métodos de navegação) ...
     public void abrirChat() {
         SceneManager.go("orientador/Chat.fxml", c -> {
             ChatOrientadorController ctrl = (ChatOrientadorController) c;
