@@ -38,13 +38,9 @@
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Painel de Alunos" onAction="#goPainel"/>
 
-            <Label styleClass="sidebar-group" text="TG"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Editor" onAction="#goEditor"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Parecer" onAction="#goParecer"/>
-            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Chat" onAction="#goChat"/>
+            <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
+            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>

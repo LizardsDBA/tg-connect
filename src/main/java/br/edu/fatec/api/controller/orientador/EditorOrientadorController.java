@@ -249,11 +249,35 @@ public class EditorOrientadorController extends BaseController {
     private void atualizarStatusVisual(String statusFluxo, boolean concluida) {
         if (lblStatus == null) return;
 
-        // Salva o status real (EM_ANDAMENTO, ENTREGUE, etc.)
-        lblStatus.setText(statusFluxo);
+        // Limpa estilos antigos
+        lblStatus.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
 
-        // (Podemos usar o 'concluida' para o label de Versão, se quisermos)
-        // lblVersao.setText(versaoAtual + (concluida ? " (Concluída)" : ""));
+        String texto;
+        String styleClass;
+
+        switch (statusFluxo) {
+            case "ENTREGUE" -> {
+                texto = "Aguardando Revisão";
+                styleClass = "badge-pendente"; // (Laranja/Amarelo)
+            }
+            case "APROVADO" -> {
+                texto = "Concluído";
+                styleClass = "badge-ok"; // (Verde)
+            }
+            case "REPROVADO" -> {
+                texto = "Revisado (Pendências)";
+                styleClass = "badge-reprovado"; // (Vermelho)
+            }
+            default -> { // EM_ANDAMENTO ou nulo
+                texto = "Em Andamento";
+                styleClass = ""; // (Sem cor)
+            }
+        }
+
+        lblStatus.setText(texto);
+        if (!styleClass.isEmpty()) {
+            lblStatus.getStyleClass().add(styleClass);
+        }
     }
     /**
      * Abre o modal de feedback por campo.
