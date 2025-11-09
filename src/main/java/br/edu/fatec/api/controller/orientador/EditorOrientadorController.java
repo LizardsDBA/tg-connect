@@ -135,6 +135,10 @@ public class EditorOrientadorController extends BaseController {
         }
     }
 
+    public void goHistorico() {
+        SceneManager.go("orientador/Historico.fxml");
+    }
+
     private void enviarComentario() {
         // ... (lógica para enviar comentário)
         info("Comentário (stub): " + txtComentario.getText());
