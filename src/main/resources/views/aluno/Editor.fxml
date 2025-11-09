@@ -72,8 +72,13 @@
                                 <Tooltip text="Pré-visualizar Markdown montado"/>
                             </tooltip>
                         </Button>
+
                         <Button fx:id="btnSalvarTudo" text="Salvar tudo" onAction="#salvarTudo">
                             <tooltip><Tooltip text="Salva todas as abas (versão nova)"/></tooltip>
+                        </Button>
+
+                        <Button fx:id="btnSolicitarRevisao" text="Solicitar Revisão" onAction="#handleSolicitarRevisao" styleClass="btn-primary">
+                            <tooltip><Tooltip text="Envia esta versão para avaliação do orientador."/></tooltip>
                         </Button>
                     </HBox>
 

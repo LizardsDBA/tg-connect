@@ -3,6 +3,7 @@ package br.edu.fatec.api.dao;
 import br.edu.fatec.api.config.Database;
 
 import java.sql.*;
+import java.util.List;
 import java.util.Optional;
 
 public class JdbcTrabalhosGraduacaoDao implements TrabalhosGraduacaoDao {
@@ -37,6 +38,20 @@ public class JdbcTrabalhosGraduacaoDao implements TrabalhosGraduacaoDao {
         final String sql = "UPDATE trabalhos_graduacao SET versao_atual=? WHERE id=?";
         try (var ps = con.prepareStatement(sql)) {
             ps.setString(1, versao);
+            ps.setLong(2, trabalhoId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateStatus(long trabalhoId, String novoStatus) throws SQLException {
+        // Validação simples para segurança
+        if (!List.of("EM_ANDAMENTO", "ENTREGUE", "REPROVADO", "APROVADO").contains(novoStatus)) {
+            throw new SQLException("Status de fluxo inválido: " + novoStatus);
+        }
+
+        final String sql = "UPDATE trabalhos_graduacao SET status = ? WHERE id = ?";
+        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+            ps.setString(1, novoStatus);
             ps.setLong(2, trabalhoId);
             ps.executeUpdate();
         }
