@@ -63,15 +63,29 @@ CREATE TABLE IF NOT EXISTS versoes_trabalho (
     ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS pareceres (
-                                         id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                         versao_id     BIGINT NOT NULL,
-                                         orientador_id BIGINT NOT NULL,
-                                         status        ENUM('ACEITO','AJUSTES','REJEITADO') NOT NULL,
-    comentario    TEXT NULL,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (versao_id)     REFERENCES versoes_trabalho(id),
-    FOREIGN KEY (orientador_id) REFERENCES usuarios(id)
-    ) ENGINE=InnoDB;
+         id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+         trabalho_id   BIGINT NOT NULL,
+         versao        VARCHAR(20) NOT NULL,
+         orientador_id BIGINT NOT NULL,
+
+-- O "Onde" (O campo exato)
+         secao         VARCHAR(50) NOT NULL, -- Ex: 'APRESENTACAO', 'API1', 'RESUMO'
+         campo_chave   VARCHAR(100) NOT NULL, -- Ex: 'nome_completo', 'problema'
+
+-- O "O quê" (O feedback)
+-- (O status 0,1,2 já está na tabela do campo,
+-- mas salvá-lo aqui garante o histórico)
+         status_campo  TINYINT NOT NULL,
+         comentario    TEXT NULL,
+
+         created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+         FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id),
+         FOREIGN KEY (orientador_id) REFERENCES usuarios(id),
+
+-- Índice para buscar todos os pareceres de uma versão/seção
+         INDEX idx_parecer_lookup (trabalho_id, versao, secao)
+) ENGINE=InnoDB;
 
 -- =========================================================
 -- TABELAS DO TG (versionadas) — NOVO PADRÃO *_status

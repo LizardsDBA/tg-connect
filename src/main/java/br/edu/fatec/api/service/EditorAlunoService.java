@@ -166,8 +166,12 @@ public class EditorAlunoService {
 
     /** ATUALIZADO: Agora preenche os campos de status */
     public Optional<DadosEditorLeitura> carregarTudo(long trabalhoId) {
-        String versao = fetchVersaoAtual(trabalhoId);
-        if (versao == null || versao.isBlank()) return Optional.empty();
+        // CORRIGIDO: Agora trata o Optional<String> retornado
+        Optional<String> optVersao = fetchVersaoAtual(trabalhoId);
+        if (optVersao.isEmpty()) {
+            return Optional.empty();
+        }
+        String versao = optVersao.get();
 
         DadosEditorLeitura d = new DadosEditorLeitura();
 
@@ -253,21 +257,25 @@ public class EditorAlunoService {
     // ===== helpers =====
     private String nz(String s){ return s == null ? "" : s; }
 
-    private String fetchVersaoAtual(long trabalhoId) {
-        // ... (seu método original está OK) ...
+    public Optional<String> fetchVersaoAtual(long trabalhoId) {
         final String sql = "SELECT versao_atual FROM trabalhos_graduacao WHERE id=? LIMIT 1";
         try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
             ps.setLong(1, trabalhoId);
             try (var rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getString(1);
+                if (rs.next()) {
+                    // Retorna um Optional da string
+                    return Optional.ofNullable(rs.getString(1));
+                }
             }
-        } catch (Exception e) { e.printStackTrace(); }
-        return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Optional.empty(); // Retorna Optional vazio em caso de falha
     }
 
     // ====== NOVO: indicador de validação por aba (CORRIGIDO) ======
     public boolean isAbaValidada(long trabalhoId, int abaNumero) throws SQLException {
-        String versao = fetchVersaoAtual(trabalhoId);
+        String versao = String.valueOf(fetchVersaoAtual(trabalhoId));
         if (versao == null || versao.isBlank()) return false;
 
         // CORRIGIDO: usa os métodos do DAO que acabamos de atualizar.

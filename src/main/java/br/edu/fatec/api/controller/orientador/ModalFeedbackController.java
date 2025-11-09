@@ -4,6 +4,8 @@ import br.edu.fatec.api.dao.JdbcFeedbackDao;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ApiCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ResumoCamposDTO;
+import br.edu.fatec.api.model.auth.User; // NOVO IMPORT
+import br.edu.fatec.api.nav.Session; // NOVO IMPORT
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -24,6 +26,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; // NOVO IMPORT
 
 public class ModalFeedbackController {
 
@@ -37,6 +40,7 @@ public class ModalFeedbackController {
     @FXML private VBox panePreviewApresentacao;
     @FXML private Label lblCampoTitulo, lblCampoStatusApresentacao;
     @FXML private WebView webApresentacao;
+    @FXML private TextArea txtParecerApresentacao; // NOVO
 
     // Abas API 1-6
     @FXML private Tab tabApi1, tabApi2, tabApi3, tabApi4, tabApi5, tabApi6;
@@ -49,19 +53,25 @@ public class ModalFeedbackController {
     @FXML private Label lblCampoTituloApi5, lblCampoStatusApi5;
     @FXML private Label lblCampoTituloApi6, lblCampoStatusApi6;
     @FXML private WebView webApi1, webApi2, webApi3, webApi4, webApi5, webApi6;
+    // NOVOS TextAreas
+    @FXML private TextArea txtParecerApi1, txtParecerApi2, txtParecerApi3, txtParecerApi4, txtParecerApi5, txtParecerApi6;
+
 
     // Aba Resumo
     @FXML private Tab tabResumo;
     @FXML private Label lblResumoVersaoStatus;
     @FXML private WebView webResumo;
+    @FXML private TextArea txtParecerResumo; // NOVO
 
     // Aba Finais
     @FXML private Tab tabFinais;
     @FXML private Label lblFinaisStatus;
     @FXML private WebView webFinais;
+    @FXML private TextArea txtParecerFinais; // NOVO
 
     // --- Estado Interno ---
     private Long trabalhoId;
+    private Long orientadorId; // NOVO
     private String versao;
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
     private Parser mdParser;
@@ -70,17 +80,20 @@ public class ModalFeedbackController {
     // Mapeamento de Campos (Apresentação)
     private final Map<String, String> camposApresentacaoMap = new LinkedHashMap<>();
     private ApresentacaoCamposDTO camposApresentacaoCache;
-    private String campoApresentacaoSelecionado; // Coluna do BD (ex: "nome_completo")
+    private String campoApresentacaoSelecionado;
 
     // Mapeamento de Campos (API)
     private final Map<String, String> camposApiMap = new LinkedHashMap<>();
-    private ApiCamposDTO camposApiCache; // Cache para a API *selecionada*
-    private String campoApiSelecionado; // Coluna do BD (ex: "problema")
-    private int apiIndexAtual; // Guarda qual API estamos vendo (1-6)
-
+    private ApiCamposDTO camposApiCache;
+    private String campoApiSelecionado;
+    private int apiIndexAtual;
 
     @FXML
     public void initialize() {
+        // ... (código do initialize, initMarkdown, mappers, e setupListViews) ...
+        // ... (COLE SEU MÉTODO initialize() INTEIRO DA RESPOSTA ANTERIOR AQUI) ...
+        // ... (Ele já está correto e completo) ...
+
         // 1. Configurar o renderizador de Markdown
         MutableDataSet opts = new MutableDataSet();
         opts.set(Parser.EXTENSIONS, List.of(TablesExtension.create()));
@@ -129,7 +142,6 @@ public class ModalFeedbackController {
         panePreviewApi6.setVisible(false);
     }
 
-    /** Configura o Cell Factory e o Listener da aba Apresentação */
     private void setupListViewApresentacao() {
         listCamposApresentacao.setCellFactory(param -> new ListCell<>() {
             private final HBox hbox = new HBox();
@@ -163,7 +175,6 @@ public class ModalFeedbackController {
         );
     }
 
-    /** Configura o Cell Factory genérico para uma ListView de API */
     private void setupListViewApi(ListView<String> listView) {
         listView.setCellFactory(param -> new ListCell<>() {
             private final HBox hbox = new HBox();
@@ -204,6 +215,15 @@ public class ModalFeedbackController {
         this.trabalhoId = trabalhoId;
         this.versao = versao;
         this.lblVersao.setText(versao);
+
+        // Pega o orientador logado
+        User user = Session.getUser();
+        if (user == null) {
+            erro("Sessão do orientador expirou. Feche este modal e abra novamente.", null);
+            return;
+        }
+        this.orientadorId = user.getId();
+
         carregarDadosAba(tabApresentacao); // Carrega a primeira aba
     }
 
@@ -238,7 +258,6 @@ public class ModalFeedbackController {
 
     private void exibirCampoApresentacao(String nomeCampo) {
         if (nomeCampo == null || camposApresentacaoCache == null) return;
-
         this.campoApresentacaoSelecionado = camposApresentacaoMap.get(nomeCampo);
         if (campoApresentacaoSelecionado == null) return;
 
@@ -248,6 +267,7 @@ public class ModalFeedbackController {
         int status = 0;
 
         switch (campoApresentacaoSelecionado) {
+            // ... (o switch case para preencher markdown e status) ...
             case "nome_completo" -> {
                 markdown = camposApresentacaoCache.nomeCompleto();
                 status = camposApresentacaoCache.nomeCompletoStatus();
@@ -276,6 +296,9 @@ public class ModalFeedbackController {
 
         renderMarkdown(webApresentacao, markdown);
         atualizarStatusLabel(lblCampoStatusApresentacao, status);
+
+        // Carrega o último parecer salvo para este campo
+        carregarUltimoParecer(txtParecerApresentacao, "APRESENTACAO", campoApresentacaoSelecionado);
     }
 
     @FXML private void onAprovarCampo() {
@@ -289,15 +312,26 @@ public class ModalFeedbackController {
     private void atualizarStatusCampoApresentacao(int novoStatus) {
         if (campoApresentacaoSelecionado == null) return;
         try {
+            String comentario = txtParecerApresentacao.getText();
+
+            // 1. Atualiza o status na tabela tg_apresentacao
             dao.atualizarStatusCampoApresentacao(trabalhoId, versao, campoApresentacaoSelecionado, novoStatus);
+            // 2. Salva o parecer (comentário) na tabela pareceres
+            dao.salvarParecer(trabalhoId, versao, orientadorId, "APRESENTACAO", campoApresentacaoSelecionado, novoStatus, comentario);
+
+            // 3. Atualiza a UI
             atualizarStatusLabel(lblCampoStatusApresentacao, novoStatus);
             camposApresentacaoCache = dao.carregarCamposApresentacao(trabalhoId);
             listCamposApresentacao.refresh();
+
+            info("Parecer salvo com sucesso!");
+
         } catch (SQLException e) {
-            erro("Falha ao atualizar status do campo", e);
+            erro("Falha ao salvar parecer do campo", e);
         }
     }
 
+    // ... (getStatusFromApresentacaoCache) ...
     private int getStatusFromApresentacaoCache(String coluna) {
         if (camposApresentacaoCache == null || coluna == null) return 0;
         return switch (coluna) {
@@ -320,11 +354,9 @@ public class ModalFeedbackController {
             camposApiCache = dao.carregarCamposApi(trabalhoId, apiIndex);
             ObservableList<String> nomesCampos = FXCollections.observableArrayList(camposApiMap.keySet());
 
-            // Direciona para a ListView correta
             ListView<String> currentListView = getListViewApi(apiIndex);
             currentListView.setItems(nomesCampos);
 
-            // Exibe o painel de preview correto
             getPanePreviewApi(apiIndex).setVisible(true);
             currentListView.getSelectionModel().selectFirst();
 
@@ -339,10 +371,10 @@ public class ModalFeedbackController {
         this.campoApiSelecionado = camposApiMap.get(nomeCampo);
         if (campoApiSelecionado == null) return;
 
-        // Pega os componentes FXML corretos para a aba atual
         Label currentTitulo = getLabelTituloApi(apiIndexAtual);
         Label currentStatus = getLabelStatusApi(apiIndexAtual);
         WebView currentWeb = getWebViewApi(apiIndexAtual);
+        TextArea currentParecer = getTextAreaParecerApi(apiIndexAtual);
 
         currentTitulo.setText(nomeCampo);
 
@@ -372,20 +404,22 @@ public class ModalFeedbackController {
             }
             case "contribuicoes" -> {
                 markdown = camposApiCache.contribuicoes();
-                status = camposApiCache.contribuicoesStatus();
+                status = camposApiCache.contribuicoesStatus(); // CORRIGIDO
             }
             case "hard_skills" -> {
                 markdown = camposApiCache.hardSkills();
-                status = camposApiCache.hardSkillsStatus();
+                status = camposApiCache.hardSkillsStatus(); // CORRIGIDO
             }
             case "soft_skills" -> {
                 markdown = camposApiCache.softSkills();
-                status = camposApiCache.softSkillsStatus();
+                status = camposApiCache.softSkillsStatus(); // CORRIGIDO
             }
         }
 
         renderMarkdown(currentWeb, markdown);
         atualizarStatusLabel(currentStatus, status);
+
+        carregarUltimoParecer(currentParecer, "API" + apiIndexAtual, campoApiSelecionado);
     }
 
     @FXML private void onAprovarCampoApi() {
@@ -399,23 +433,28 @@ public class ModalFeedbackController {
     private void atualizarStatusCampoApi(int novoStatus) {
         if (campoApiSelecionado == null) return;
         try {
-            // 1. Atualiza o BD
+            TextArea currentParecer = getTextAreaParecerApi(apiIndexAtual);
+            String comentario = currentParecer.getText();
+            String secao = "API" + apiIndexAtual;
+
+            // 1. Atualiza o status na tabela tg_secao
             dao.atualizarStatusCampoApi(trabalhoId, versao, apiIndexAtual, campoApiSelecionado, novoStatus);
+            // 2. Salva o parecer
+            dao.salvarParecer(trabalhoId, versao, orientadorId, secao, campoApiSelecionado, novoStatus, comentario);
 
-            // 2. Atualiza o label de status (à direita)
+            // 3. Atualiza a UI
             atualizarStatusLabel(getLabelStatusApi(apiIndexAtual), novoStatus);
-
-            // 3. Recarrega o cache
             camposApiCache = dao.carregarCamposApi(trabalhoId, apiIndexAtual);
-
-            // 4. Atualiza a lista (à esquerda)
             getListViewApi(apiIndexAtual).refresh();
+
+            info("Parecer salvo com sucesso!");
 
         } catch (SQLException e) {
             erro("Falha ao atualizar status do campo de API", e);
         }
     }
 
+    // ... (getStatusFromApiCache) ...
     private int getStatusFromApiCache(String coluna) {
         if (camposApiCache == null || coluna == null) return 0;
         return switch (coluna) {
@@ -424,9 +463,9 @@ public class ModalFeedbackController {
             case "solucao_resumo" -> camposApiCache.solucaoResumoStatus();
             case "link_repositorio" -> camposApiCache.linkRepositorioStatus();
             case "tecnologias" -> camposApiCache.tecnologiasStatus();
-            case "contribuicoes" -> camposApiCache.contribuicoesStatus();
-            case "hard_skills" -> camposApiCache.hardSkillsStatus();
-            case "soft_skills" -> camposApiCache.softSkillsStatus();
+            case "contribuicoes" -> camposApiCache.contribuicoesStatus(); // CORRIGIDO
+            case "hard_skills" -> camposApiCache.hardSkillsStatus(); // CORRIGIDO
+            case "soft_skills" -> camposApiCache.softSkillsStatus(); // CORRIGIDO
             default -> 0;
         };
     }
@@ -439,6 +478,7 @@ public class ModalFeedbackController {
             ResumoCamposDTO dto = dao.carregarCamposResumo(trabalhoId);
             renderMarkdown(webResumo, dto.resumoMd());
             atualizarStatusLabel(lblResumoVersaoStatus, dto.versaoValidada());
+            carregarUltimoParecer(txtParecerResumo, "RESUMO", "resumo_md");
         } catch (SQLException e) {
             erro("Falha ao carregar aba Resumo", e);
         }
@@ -454,8 +494,15 @@ public class ModalFeedbackController {
 
     private void atualizarStatusResumo(int novoStatus) {
         try {
+            String comentario = txtParecerResumo.getText();
+            // 1. Atualiza status
             dao.atualizarStatusResumo(trabalhoId, versao, novoStatus);
+            // 2. Salva parecer
+            dao.salvarParecer(trabalhoId, versao, orientadorId, "RESUMO", "resumo_md", novoStatus, comentario);
+
+            // 3. Atualiza UI
             atualizarStatusLabel(lblResumoVersaoStatus, novoStatus);
+            info("Parecer salvo com sucesso!");
         } catch (SQLException e) {
             erro("Falha ao atualizar status do Resumo", e);
         }
@@ -469,37 +516,76 @@ public class ModalFeedbackController {
             ApresentacaoCamposDTO dto = dao.carregarCamposFinais(trabalhoId);
             renderMarkdown(webFinais, dto.consideracoesFinais());
             atualizarStatusLabel(lblFinaisStatus, dto.consideracoesFinaisStatus());
+            carregarUltimoParecer(txtParecerFinais, "FINAIS", "consideracoes_finais");
         } catch (SQLException e) {
             erro("Falha ao carregar aba Finais", e);
         }
     }
 
     @FXML private void onAprovarFinais() {
-        try {
-            dao.atualizarStatusCampoApresentacao(trabalhoId, versao, "consideracoes_finais", 1);
-            atualizarStatusLabel(lblFinaisStatus, 1);
-        } catch (SQLException e) {
-            erro("Falha ao aprovar Finais", e);
-        }
+        atualizarStatusFinais(1);
     }
 
     @FXML private void onReprovarFinais() {
+        atualizarStatusFinais(2);
+    }
+
+    private void atualizarStatusFinais(int novoStatus) {
         try {
-            dao.atualizarStatusCampoApresentacao(trabalhoId, versao, "consideracoes_finais", 2);
-            atualizarStatusLabel(lblFinaisStatus, 2);
+            String comentario = txtParecerFinais.getText();
+            String campoChave = "consideracoes_finais";
+
+            // 1. Atualiza status (é um campo da tabela apresentacao)
+            dao.atualizarStatusCampoApresentacao(trabalhoId, versao, campoChave, novoStatus);
+            // 2. Salva parecer
+            dao.salvarParecer(trabalhoId, versao, orientadorId, "FINAIS", campoChave, novoStatus, comentario);
+
+            // 3. Atualiza UI
+            atualizarStatusLabel(lblFinaisStatus, novoStatus);
+            info("Parecer salvo com sucesso!");
         } catch (SQLException e) {
-            erro("Falha ao reprovar Finais", e);
+            erro("Falha ao salvar parecer de Finais", e);
         }
+    }
+
+
+    // --- Handshake (Finalizar Devolutiva) ---
+
+    @FXML
+    private void onFinalizarDevolutiva() {
+        // Este método precisa ser implementado.
+        // Ele deve:
+        // 1. Chamar o service para verificar se há algum status = 2 (Reprovado) no TG.
+        // 2. Atualizar o `trabalhos_graduacao.status` para 'REPROVADO' ou 'APROVADO'.
+        // 3. Fechar o modal.
+
+        info("Devolutiva finalizada (Lógica a implementar).");
+        fecharModal();
     }
 
 
     // --- Métodos Utilitários ---
+
+    /**
+     * NOVO: Carrega o último comentário salvo em um TextArea.
+     */
+    private void carregarUltimoParecer(TextArea textArea, String secao, String campoChave) {
+        if (textArea == null) return;
+        try {
+            Optional<String> parecer = dao.findUltimoParecer(trabalhoId, versao, secao, campoChave);
+            textArea.setText(parecer.orElse("")); // Preenche com o parecer ou com vazio
+        } catch (SQLException e) {
+            textArea.setText("Erro ao carregar parecer: " + e.getMessage());
+        }
+    }
 
     @FXML
     private void fecharModal() {
         Stage stage = (Stage) lblTituloModal.getScene().getWindow();
         stage.close();
     }
+
+    // ... (renderMarkdown, atualizarStatusLabel, helpers de API, erro, info) ...
 
     private void renderMarkdown(WebView webView, String markdown) {
         if (webView == null) return;
@@ -520,7 +606,6 @@ public class ModalFeedbackController {
                         "</body></html>";
         webView.getEngine().loadContent(page);
     }
-
     private void atualizarStatusLabel(Label label, int status) {
         if (label == null) return;
         label.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
@@ -539,9 +624,6 @@ public class ModalFeedbackController {
             }
         }
     }
-
-    // --- Helpers de Roteamento de API ---
-
     private ListView<String> getListViewApi(int index) {
         return switch (index) {
             case 1 -> listCamposApi1;
@@ -553,7 +635,6 @@ public class ModalFeedbackController {
             default -> null;
         };
     }
-
     private VBox getPanePreviewApi(int index) {
         return switch (index) {
             case 1 -> panePreviewApi1;
@@ -565,7 +646,6 @@ public class ModalFeedbackController {
             default -> null;
         };
     }
-
     private Label getLabelTituloApi(int index) {
         return switch (index) {
             case 1 -> lblCampoTituloApi1;
@@ -577,7 +657,6 @@ public class ModalFeedbackController {
             default -> null;
         };
     }
-
     private Label getLabelStatusApi(int index) {
         return switch (index) {
             case 1 -> lblCampoStatusApi1;
@@ -589,7 +668,6 @@ public class ModalFeedbackController {
             default -> null;
         };
     }
-
     private WebView getWebViewApi(int index) {
         return switch (index) {
             case 1 -> webApi1;
@@ -601,12 +679,29 @@ public class ModalFeedbackController {
             default -> null;
         };
     }
-
+    // NOVO: Helper para pegar o TextArea de parecer da API correta
+    private TextArea getTextAreaParecerApi(int index) {
+        return switch (index) {
+            case 1 -> txtParecerApi1;
+            case 2 -> txtParecerApi2;
+            case 3 -> txtParecerApi3;
+            case 4 -> txtParecerApi4;
+            case 5 -> txtParecerApi5;
+            case 6 -> txtParecerApi6;
+            default -> null;
+        };
+    }
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
         a.setContentText(msg + (e != null ? "\n\n" + e.getMessage() : ""));
         a.showAndWait();
         if (e != null) e.printStackTrace();
+    }
+    private void info(String msg) { // NOVO
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
     }
 }
