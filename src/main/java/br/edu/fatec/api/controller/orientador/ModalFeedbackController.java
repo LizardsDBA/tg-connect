@@ -22,6 +22,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import java.sql.Connection;
+import br.edu.fatec.api.config.Database;
 
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -582,8 +584,10 @@ public class ModalFeedbackController {
                 msgSucesso = "Devolutiva enviada com " + pendencias + " pendências. O aluno foi notificado.";
             }
 
-            // 2. Atualiza o status principal do TG
-            tgDao.updateStatus(trabalhoId, novoStatus);
+            // 2. ATUALIZADO: Abre uma conexão para esta operação
+            try (Connection con = Database.get()) {
+                tgDao.updateStatus(con, trabalhoId, novoStatus);
+            }
 
             // 3. Informa o orientador e fecha o modal
             info(msgSucesso);

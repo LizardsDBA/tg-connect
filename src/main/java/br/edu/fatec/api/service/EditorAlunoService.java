@@ -143,8 +143,9 @@ public class EditorAlunoService {
             tgDao.updateVersaoAtual(con, trabalhoId, novaVersao);
 
             // 7) NOVO: Garante que o status volte para EM_ANDAMENTO após salvar
-            // (Se estava 'REPROVADO', agora volta a ser 'EM_ANDAMENTO')
-            tgDao.updateStatus(trabalhoId, "EM_ANDAMENTO");
+            tgDao.updateStatus(con, trabalhoId, "EM_ANDAMENTO"); // <-- LINHA CORRIGIDA
+
+            con.commit();
 
             con.commit();
             return novaVersao;
@@ -153,9 +154,6 @@ public class EditorAlunoService {
         }
     }
 
-    /**
-     * NOVO MÉTODO: Aluno solicita a revisão
-     */
     public void solicitarRevisao(long trabalhoId) throws SQLException {
         // Verifica o status atual
         TrabalhoInfo info = fetchTrabalhoInfo(trabalhoId).orElse(null);
@@ -166,8 +164,13 @@ public class EditorAlunoService {
             throw new IllegalStateException("O trabalho já foi entregue ou está aprovado.");
         }
 
-        // Atualiza o status para ENTREGUE
-        tgDao.updateStatus(trabalhoId, "ENTREGUE");
+        // --- CORREÇÃO AQUI ---
+        // O método agora abre sua própria conexão
+        try (Connection con = Database.get()) {
+            // Não precisa de transação, é um único update
+            tgDao.updateStatus(con, trabalhoId, "ENTREGUE");
+        }
+        // --- FIM DA CORREÇÃO ---
     }
 
     private String safe(String s){ return s == null ? "" : s.trim(); }

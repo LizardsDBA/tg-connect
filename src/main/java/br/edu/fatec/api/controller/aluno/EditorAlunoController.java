@@ -1,6 +1,7 @@
 package br.edu.fatec.api.controller.aluno;
 
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
+import javafx.concurrent.Task; // <-- IMPORT ADICIONADO
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -11,6 +12,7 @@ import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.controller.BaseController;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.List;
 
 // imports
 import br.edu.fatec.api.model.auth.User;
@@ -21,16 +23,22 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.layout.Priority; // Import que faltava
+import javafx.scene.layout.Priority;
 
 public class EditorAlunoController extends BaseController {
 
-    // ... (Cole TODOS os seus @FXMLs aqui) ...
+    // ====== UI base (sidebar etc.)
     @FXML private VBox commentsSection;
+
+    // ====== Toolbar e TabPane
     @FXML private TabPane tabPane;
     @FXML private Label lbStatusAba;
+
+    // ====== ABA 1 - Apresentação
     @FXML private TextArea taInfoPessoais, taHistoricoAcad, taMotivacao, taHistoricoProf, taContatos, taConhecimentos;
     @FXML private Label lblInfoPessoaisStatus, lblHistoricoAcadStatus, lblMotivacaoStatus, lblHistoricoProfStatus, lblContatosStatus, lblConhecimentosStatus;
+
+    // ====== ABAS 2..7 - Projetos API (1º..6º)
     @FXML private TextField tfApi1Empresa, tfApi2Empresa, tfApi3Empresa, tfApi4Empresa, tfApi5Empresa, tfApi6Empresa;
     @FXML private TextArea taApi1Problema, taApi1Solucao, taApi1Tecnologias, taApi1Contrib, taApi1Hard, taApi1Soft;
     @FXML private TextField tfApi1Repo;
@@ -44,28 +52,31 @@ public class EditorAlunoController extends BaseController {
     @FXML private TextField tfApi5Repo;
     @FXML private TextArea taApi6Problema, taApi6Solucao, taApi6Tecnologias, taApi6Contrib, taApi6Hard, taApi6Soft;
     @FXML private TextField tfApi6Repo;
+
+    // ====== ABA 8 - Tabela Resumo
     @FXML private TextField tfSem1, tfSem2, tfSem3, tfSem4, tfSem5, tfSem6;
     @FXML private TextField tfEmp1, tfEmp2, tfEmp3, tfEmp4, tfEmp5, tfEmp6;
     @FXML private TextArea taSol1, taSol2, taSol3, taSol4, taSol5, taSol6;
+
+    // ====== ABA 9 - Considerações
     @FXML private TextArea taConclusoes;
 
-    // --- Estado ---
+    // ====== Estado
     private TextInputControl focusedTextInput;
     @FXML private Button btnSalvarTudo;
-    @FXML private Button btnSolicitarRevisao; // NOVO
+    @FXML private Button btnSolicitarRevisao;
+    @FXML private Button btnPreview; // <-- fx:id adicionado
+
     private final EditorAlunoService service = new EditorAlunoService();
     private final JdbcFeedbackDao feedbackDao = new JdbcFeedbackDao();
     private final Map<String, CampoInfo> campoMap = new HashMap<>();
     private long trabalhoId;
     private String versaoAtual;
-    private String statusAtualDoFluxo; // NOVO: Guarda o status (EM_ANDAMENTO, ENTREGUE, etc.)
-
-    // NOVO: Lista de todos os campos editáveis
+    private String statusAtualDoFluxo;
     private final List<TextInputControl> todosOsCamposEditaveis = new ArrayList<>();
 
 
-    // ====== Navegação (inalterada) ======
-    // ... (Cole seus métodos de navegação goHome, logout, etc. aqui) ...
+    // ====== Navegação ======
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goDashboard(){ SceneManager.go("aluno/Dashboard.fxml"); }
@@ -101,7 +112,7 @@ public class EditorAlunoController extends BaseController {
         }
 
         mapearCampos();
-        coletarCamposEditaveis(); // NOVO: Coloca todos os campos na lista
+        coletarCamposEditaveis();
 
         onReady();
         hookFocusHandlers();
@@ -109,13 +120,10 @@ public class EditorAlunoController extends BaseController {
         wireTabStatus();
     }
 
-    // NOVO: Coleta todos os TextInputs em uma lista para fácil habilitação/desabilitação
     private void coletarCamposEditaveis() {
-        // Aba 1
         todosOsCamposEditaveis.addAll(List.of(
                 taInfoPessoais, taHistoricoAcad, taMotivacao, taHistoricoProf, taContatos, taConhecimentos
         ));
-        // Abas 2-7
         todosOsCamposEditaveis.addAll(List.of(
                 tfApi1Empresa, taApi1Problema, taApi1Solucao, tfApi1Repo, taApi1Tecnologias, taApi1Contrib, taApi1Hard, taApi1Soft,
                 tfApi2Empresa, taApi2Problema, taApi2Solucao, tfApi2Repo, taApi2Tecnologias, taApi2Contrib, taApi2Hard, taApi2Soft,
@@ -124,16 +132,13 @@ public class EditorAlunoController extends BaseController {
                 tfApi5Empresa, taApi5Problema, taApi5Solucao, tfApi5Repo, taApi5Tecnologias, taApi5Contrib, taApi5Hard, taApi5Soft,
                 tfApi6Empresa, taApi6Problema, taApi6Solucao, tfApi6Repo, taApi6Tecnologias, taApi6Contrib, taApi6Hard, taApi6Soft
         ));
-        // Aba 8
         todosOsCamposEditaveis.addAll(List.of(
                 tfSem1, tfEmp1, taSol1, tfSem2, tfEmp2, taSol2, tfSem3, tfEmp3, taSol3,
                 tfSem4, tfEmp4, taSol4, tfSem5, tfEmp5, taSol5, tfSem6, tfEmp6, taSol6
         ));
-        // Aba 9
         todosOsCamposEditaveis.add(taConclusoes);
     }
 
-    // NOVO: Trava ou destrava a UI com base no status do fluxo
     private void atualizarTravaEdicao(String status) {
         boolean camposHabilitados = false;
         boolean podeSalvar = false;
@@ -141,49 +146,36 @@ public class EditorAlunoController extends BaseController {
 
         switch (status) {
             case "EM_ANDAMENTO", "REPROVADO" -> {
-                // Aluno pode editar e salvar
                 camposHabilitados = true;
                 podeSalvar = true;
                 podeSolicitar = true;
             }
-            case "ENTREGUE" -> {
-                // Aluno entregou, aguardando orientador. Não pode editar.
-                camposHabilitados = false;
-                podeSalvar = false;
-                podeSolicitar = false;
-            }
-            case "APROVADO" -> {
-                // Trabalho concluído. Não pode editar.
+            case "ENTREGUE", "APROVADO" -> {
                 camposHabilitados = false;
                 podeSalvar = false;
                 podeSolicitar = false;
             }
         }
 
-        // Aplica a trava em todos os campos
         for (TextInputControl campo : todosOsCamposEditaveis) {
             if (campo != null) {
                 campo.setDisable(!camposHabilitados);
             }
         }
 
-        // Trava os botões
         if (btnSalvarTudo != null) btnSalvarTudo.setDisable(!podeSalvar);
         if (btnSolicitarRevisao != null) btnSolicitarRevisao.setDisable(!podeSolicitar);
+        if (btnPreview != null) btnPreview.setDisable(!camposHabilitados);
     }
 
-    // ... (Métodos wireTabStatus, refreshTabStatus, hookFocusHandlers, carregarParecerDoCampo, etc. - Sem alterações) ...
     private void mapearCampos() {
-        // Aba 1
         campoMap.put("taInfoPessoais", new CampoInfo("APRESENTACAO", "nome_completo"));
         campoMap.put("taHistoricoAcad", new CampoInfo("APRESENTACAO", "historico_academico"));
         campoMap.put("taMotivacao", new CampoInfo("APRESENTACAO", "motivacao_fatec"));
         campoMap.put("taHistoricoProf", new CampoInfo("APRESENTACAO", "historico_profissional"));
         campoMap.put("taContatos", new CampoInfo("APRESENTACAO", "contatos_email"));
         campoMap.put("taConhecimentos", new CampoInfo("APRESENTACAO", "principais_conhecimentos"));
-        // Aba 9
         campoMap.put("taConclusoes", new CampoInfo("FINAIS", "consideracoes_finais"));
-        // Aba 8 (Resumo)
         String[][] camposResumo = {
                 {"tfSem1", "tfEmp1", "taSol1"}, {"tfSem2", "tfEmp2", "taSol2"}, {"tfSem3", "tfEmp3", "taSol3"},
                 {"tfSem4", "tfEmp4", "taSol4"}, {"tfSem5", "tfEmp5", "taSol5"}, {"tfSem6", "tfEmp6", "taSol6"}
@@ -193,7 +185,6 @@ public class EditorAlunoController extends BaseController {
                 campoMap.put(id, new CampoInfo("RESUMO", "resumo_md"));
             }
         }
-        // Abas 2-7 (APIs)
         for (int i = 1; i <= 6; i++) {
             campoMap.put("tfApi" + i + "Empresa", new CampoInfo("API" + i, "empresa_parceira"));
             campoMap.put("taApi" + i + "Problema", new CampoInfo("API" + i, "problema"));
@@ -206,6 +197,7 @@ public class EditorAlunoController extends BaseController {
         }
     }
     private record CampoInfo(String secao, String campoChave) {}
+
     private void wireTabStatus(){
         if (tabPane == null) return;
         tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldV, newV) -> {
@@ -213,9 +205,10 @@ public class EditorAlunoController extends BaseController {
         });
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
+
     private void refreshTabStatus(int idx){
         if (lbStatusAba == null) return;
-        int abaNumero = idx + 1; // 1..9
+        int abaNumero = idx + 1;
         String statusTxt = "Pendente Validação";
         try {
             boolean validada = service.isAbaValidada(trabalhoId, abaNumero);
@@ -225,6 +218,7 @@ public class EditorAlunoController extends BaseController {
         lbStatusAba.getStyleClass().removeAll("badge-ok","badge-pendente");
         lbStatusAba.getStyleClass().add(statusTxt.equals("Concluída") ? "badge-ok" : "badge-pendente");
     }
+
     private void hookFocusHandlers() {
         tabPane.addEventFilter(MouseEvent.MOUSE_PRESSED, evt -> {
             Node n = evt.getPickResult().getIntersectedNode();
@@ -242,6 +236,7 @@ public class EditorAlunoController extends BaseController {
             }
         });
     }
+
     private void carregarParecerDoCampo(TextInputControl campo) {
         if (commentsSection == null || campo == null || campo.getId() == null) {
             return;
@@ -274,11 +269,14 @@ public class EditorAlunoController extends BaseController {
             e.printStackTrace();
         }
     }
+
     private void applyTips() {
         if (taApi1Problema != null) taApi1Problema.setTooltip(new Tooltip("Descreva o problema (mín. 3 linhas)."));
         if (taApi1Solucao != null) taApi1Solucao.setTooltip(new Tooltip("Explique a solução (≈5 linhas; tipo do sistema)."));
         if (tfApi1Repo != null) tfApi1Repo.setTooltip(new Tooltip("URL do repositório no GitHub."));
     }
+
+    // ====== Toolbar – Markdown ======
     private void insertAtCaret(String text){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
@@ -324,13 +322,14 @@ public class EditorAlunoController extends BaseController {
         if (sel == null || sel.isEmpty()) sel = "Sublinhado";
         replaceSelection(target, wrapper + sel + wrapper);
     }
-    public void toggleBold(){ insertAroundBold("**"); }
-    public void toggleItalic(){ insertAroundItalic("*"); }
-    public void toggleUnderline(){ insertAroundUnderline("__"); }
-    public void insertH1(){ insertAtCaret("\n# Título\n"); }
-    public void insertLink(){ insertAtCaret("[Texto](https://)"); }
+    @FXML public void toggleBold(){ insertAroundBold("**"); }
+    @FXML public void toggleItalic(){ insertAroundItalic("*"); }
+    @FXML public void toggleUnderline(){ insertAroundUnderline("__"); }
+    @FXML public void insertH1(){ insertAtCaret("\n# Título\n"); }
+    @FXML public void insertLink(){ insertAtCaret("[Texto](https://)"); }
+
+    @FXML
     public void preview() {
-        // ... (seu método preview() está OK) ...
         String mdCompleto = montarMarkdownCompleto();
         try {
             Stage modalStage = new Stage();
@@ -347,6 +346,7 @@ public class EditorAlunoController extends BaseController {
             erro("Falha ao abrir o modal de preview.", e);
         }
     }
+
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
@@ -354,44 +354,81 @@ public class EditorAlunoController extends BaseController {
         a.showAndWait();
         if (e != null) e.printStackTrace();
     }
+
+    // ====== Salvar TUDO (ATUALIZADO PARA BACKGROUND THREAD) ======
+    @FXML
     public void salvarTudo() {
-        // ... (seu método salvarTudo() está OK) ...
+        // 1. Coleta os dados da UI (rápido, na thread principal)
+        EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
         try {
-            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-            EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
             d.infoPessoais   = val(taInfoPessoais);
             d.historicoAcad  = val(taHistoricoAcad);
             d.motivacao      = val(taMotivacao);
             d.historicoProf  = val(taHistoricoProf);
             d.contatos       = val(taContatos);
             d.conhecimentos  = val(taConhecimentos);
+
             d.api1Empresa=val(tfApi1Empresa); d.api1Problema=val(taApi1Problema); d.api1Solucao=val(taApi1Solucao); d.api1Repo=val(tfApi1Repo);
             d.api1Tecnologias=val(taApi1Tecnologias); d.api1Contrib=val(taApi1Contrib); d.api1Hard=val(taApi1Hard); d.api1Soft=val(taApi1Soft);
+
             d.api2Empresa=val(tfApi2Empresa); d.api2Problema=val(taApi2Problema); d.api2Solucao=val(taApi2Solucao); d.api2Repo=val(tfApi2Repo);
             d.api2Tecnologias=val(taApi2Tecnologias); d.api2Contrib=val(taApi2Contrib); d.api2Hard=val(taApi2Hard); d.api2Soft=val(taApi2Soft);
+
             d.api3Empresa=val(tfApi3Empresa); d.api3Problema=val(taApi3Problema); d.api3Solucao=val(taApi3Solucao); d.api3Repo=val(tfApi3Repo);
             d.api3Tecnologias=val(taApi3Tecnologias); d.api3Contrib=val(taApi3Contrib); d.api3Hard=val(taApi3Hard); d.api3Soft=val(taApi3Soft);
+
             d.api4Empresa=val(tfApi4Empresa); d.api4Problema=val(taApi4Problema); d.api4Solucao=val(taApi4Solucao); d.api4Repo=val(tfApi4Repo);
             d.api4Tecnologias=val(taApi4Tecnologias); d.api4Contrib=val(taApi4Contrib); d.api4Hard=val(taApi4Hard); d.api4Soft=val(taApi4Soft);
+
             d.api5Empresa=val(tfApi5Empresa); d.api5Problema=val(taApi5Problema); d.api5Solucao=val(taApi5Solucao); d.api5Repo=val(tfApi5Repo);
             d.api5Tecnologias=val(taApi5Tecnologias); d.api5Contrib=val(taApi5Contrib); d.api5Hard=val(taApi5Hard); d.api5Soft=val(taApi5Soft);
+
             d.api6Empresa=val(tfApi6Empresa); d.api6Problema=val(taApi6Problema); d.api6Solucao=val(taApi6Solucao); d.api6Repo=val(tfApi6Repo);
             d.api6Tecnologias=val(taApi6Tecnologias); d.api6Contrib=val(taApi6Contrib); d.api6Hard=val(taApi6Hard); d.api6Soft=val(taApi6Soft);
+
             d.resumoMd = montarMdResumo();
             d.consideracoesFinais = val(taConclusoes);
             d.mdCompleto = montarMarkdownCompleto();
-            String novaVersao = service.salvarTudo(trabalhoId, d);
+
+        } catch (Exception ex) {
+            erro("Falha ao coletar dados da UI para salvar.", ex);
+            return;
+        }
+
+        // 2. Trava a UI para evitar cliques duplicados
+        travarBotoesToolbar(true);
+
+        // 3. Cria a Task (tarefa de background)
+        Task<String> salvarTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                // Esta é a única linha que roda na thread de background
+                return service.salvarTudo(trabalhoId, d);
+            }
+        };
+
+        // 4. O que fazer quando a Task terminar (na thread da UI)
+        salvarTask.setOnSucceeded(e -> {
+            String novaVersao = salvarTask.getValue();
+
             Alert ok = new Alert(Alert.AlertType.INFORMATION);
             ok.setHeaderText("Salvo com sucesso!");
             ok.setContentText("Nova versão: " + novaVersao);
             ok.showAndWait();
-            onReady();
-        } catch (Exception ex) {
-            Alert err = new Alert(Alert.AlertType.ERROR);
-            err.setHeaderText("Falha ao salvar");
-            err.setContentText(ex.getMessage());
-            err.showAndWait();
-        }
+
+            travarBotoesToolbar(false); // Destrava a UI
+            onReady(); // Recarrega os dados (e status) após salvar
+        });
+
+        // 5. O que fazer se a Task falhar
+        salvarTask.setOnFailed(e -> {
+            Throwable ex = salvarTask.getException();
+            erro("Falha ao salvar", (Exception) ex);
+            travarBotoesToolbar(false); // Destrava a UI
+        });
+
+        // 6. Inicia a Task
+        new Thread(salvarTask).start();
     }
 
     /**
@@ -399,7 +436,6 @@ public class EditorAlunoController extends BaseController {
      */
     @FXML
     private void handleSolicitarRevisao() {
-        // Confirmação
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmar Envio");
         confirm.setHeaderText("Solicitar Revisão do Orientador");
@@ -408,29 +444,47 @@ public class EditorAlunoController extends BaseController {
         Optional<ButtonType> result = confirm.showAndWait();
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                // 1. Chama o Service para mudar o status para 'ENTREGUE'
-                service.solicitarRevisao(this.trabalhoId);
 
-                // 2. Mostra sucesso
+            travarBotoesToolbar(true); // Trava a UI
+
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    service.solicitarRevisao(trabalhoId);
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> {
                 Alert info = new Alert(Alert.AlertType.INFORMATION);
                 info.setHeaderText("Enviado com Sucesso!");
                 info.setContentText("Sua versão (" + this.versaoAtual + ") foi enviada para o orientador.");
                 info.showAndWait();
 
-                // 3. Recarrega a tela (que agora estará travada)
-                onReady();
+                onReady(); // Recarrega a tela (que agora estará travada)
+                // Os botões permanecem travados pelo onReady -> atualizarTravaEdicao
+            });
 
-            } catch (Exception e) {
-                erro("Falha ao solicitar revisão.", e);
-            }
+            task.setOnFailed(e -> {
+                erro("Falha ao solicitar revisão.", (Exception) task.getException());
+                travarBotoesToolbar(false); // Destrava em caso de erro
+            });
+
+            new Thread(task).start();
         }
     }
 
+    /**
+     * NOVO: Trava os botões da toolbar durante operações
+     */
+    private void travarBotoesToolbar(boolean travar) {
+        if (btnSalvarTudo != null) btnSalvarTudo.setDisable(travar);
+        if (btnSolicitarRevisao != null) btnSolicitarRevisao.setDisable(travar);
+        if (btnPreview != null) btnPreview.setDisable(travar);
+    }
 
-    // ... (Cole aqui: montarMdAba1, montarMdProjeto, montarMdResumo, montarMdConclusoes, montarMarkdownCompleto) ...
-    // ... (Cole aqui: preencherResumoAPartirDoMarkdown, extrairLinhasTabela) ...
-    // ... (Cole aqui: utils (val, safe, alertWarn, appendIfNotEmpty)) ...
+
+    // ====== Montagem de Markdown (por seção) ======
     private String montarMdAba1(){
         StringBuilder sb = new StringBuilder();
         sb.append("# APRESENTAÇÃO DO ALUNO\n\n");
@@ -560,7 +614,6 @@ public class EditorAlunoController extends BaseController {
 
         try {
             this.trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-            // Pega a versão e status atual
             EditorAlunoService.TrabalhoInfo info = service.fetchTrabalhoInfo(trabalhoId)
                     .orElse(new EditorAlunoService.TrabalhoInfo("v1", "EM_ANDAMENTO"));
 
@@ -568,19 +621,14 @@ public class EditorAlunoController extends BaseController {
             this.statusAtualDoFluxo = info.status();
 
             service.carregarTudo(trabalhoId).ifPresent(d -> {
-
-                // Aba 1 - Apresentação (com Badges)
+                // Aba 1
                 if (taInfoPessoais != null) { taInfoPessoais.setText(d.infoPessoais); atualizarStatusLabel(lblInfoPessoaisStatus, d.infoPessoaisStatus); }
                 if (taHistoricoAcad != null) { taHistoricoAcad.setText(d.historicoAcad); atualizarStatusLabel(lblHistoricoAcadStatus, d.historicoAcadStatus); }
                 if (taMotivacao != null) { taMotivacao.setText(d.motivacao); atualizarStatusLabel(lblMotivacaoStatus, d.motivacaoStatus); }
                 if (taHistoricoProf != null) { taHistoricoProf.setText(d.historicoProf); atualizarStatusLabel(lblHistoricoProfStatus, d.historicoProfStatus); }
                 if (taContatos != null) { taContatos.setText(d.contatos); atualizarStatusLabel(lblContatosStatus, d.contatosStatus); }
                 if (taConhecimentos != null) { taConhecimentos.setText(d.conhecimentos); atualizarStatusLabel(lblConhecimentosStatus, d.conhecimentosStatus); }
-                // Aba 9 (Considerações) usa borda
                 if (taConclusoes != null) { taConclusoes.setText(d.consideracoes); atualizarEstiloCampo(taConclusoes, d.consideracoesStatus); }
-
-                // Abas 2-7 - APIs (com Bordas)
-                // (Cole aqui o código de preenchimento das APIs 1-6 que já corrigimos)
                 // API 1
                 if (tfApi1Empresa != null) { tfApi1Empresa.setText(d.api1Empresa); atualizarEstiloCampo(tfApi1Empresa, d.api1EmpresaStatus); }
                 if (taApi1Problema != null) { taApi1Problema.setText(d.api1Problema); atualizarEstiloCampo(taApi1Problema, d.api1ProblemaStatus); }
@@ -635,21 +683,19 @@ public class EditorAlunoController extends BaseController {
                 if (taApi6Contrib != null) { taApi6Contrib.setText(d.api6Contrib); atualizarEstiloCampo(taApi6Contrib, d.api6ContribStatus); }
                 if (taApi6Hard != null) { taApi6Hard.setText(d.api6Hard); atualizarEstiloCampo(taApi6Hard, d.api6HardStatus); }
                 if (taApi6Soft != null) { taApi6Soft.setText(d.api6Soft); atualizarEstiloCampo(taApi6Soft, d.api6SoftStatus); }
-
-                // Aba 8: Tabela Resumo
+                // Aba 8
                 if (d.resumoMd != null && !d.resumoMd.isBlank()) {
                     preencherResumoAPartirDoMarkdown(d.resumoMd);
                     aplicarEstiloTabelaResumo(d.resumoMdStatus);
                 } else {
                     preencherResumoAPartirDoMarkdown("");
-                    aplicarEstiloTabelaResumo(0); // Pendente
+                    aplicarEstiloTabelaResumo(0);
                 }
             });
         } catch (Exception e) {
             alertWarn("Falha ao carregar a última versão: " + e.getMessage());
         }
 
-        // ATUALIZADO: Aplica a trava DEPOIS de carregar os dados
         atualizarTravaEdicao(this.statusAtualDoFluxo);
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
@@ -657,7 +703,6 @@ public class EditorAlunoController extends BaseController {
 
     // ====== NOVOS MÉTODOS HELPER PARA STATUS ======
     private void atualizarEstiloCampo(Node campo, int status) {
-        // ... (seu método original está OK) ...
         if (campo == null) return;
         campo.getStyleClass().removeAll("status-aprovado", "status-reprovado", "status-pendente");
         switch (status) {
@@ -667,7 +712,6 @@ public class EditorAlunoController extends BaseController {
         }
     }
     private void atualizarStatusLabel(Label label, int status) {
-        // ... (seu método original está OK) ...
         if (label == null) return;
         label.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
         switch (status) {
@@ -686,7 +730,6 @@ public class EditorAlunoController extends BaseController {
         }
     }
     private void aplicarEstiloTabelaResumo(int status) {
-        // ... (seu método original está OK) ...
         TextInputControl[] camposResumo = {
                 tfSem1, tfEmp1, taSol1, tfSem2, tfEmp2, taSol2,
                 tfSem3, tfEmp3, taSol3, tfSem4, tfEmp4, taSol4,
@@ -698,7 +741,6 @@ public class EditorAlunoController extends BaseController {
     }
     // =======================================================
     private List<String[]> extrairLinhasTabela(String md) {
-        // ... (seu método original está OK) ...
         List<String[]> out = new ArrayList<>();
         boolean dentro = false;
         boolean headerVisto = false;

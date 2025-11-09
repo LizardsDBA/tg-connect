@@ -43,14 +43,16 @@ public class JdbcTrabalhosGraduacaoDao implements TrabalhosGraduacaoDao {
         }
     }
 
-    public void updateStatus(long trabalhoId, String novoStatus) throws SQLException {
+    public void updateStatus(Connection con, long trabalhoId, String novoStatus) throws SQLException {
         // Validação simples para segurança
         if (!List.of("EM_ANDAMENTO", "ENTREGUE", "REPROVADO", "APROVADO").contains(novoStatus)) {
             throw new SQLException("Status de fluxo inválido: " + novoStatus);
         }
 
         final String sql = "UPDATE trabalhos_graduacao SET status = ? WHERE id = ?";
-        try (var con = Database.get(); var ps = con.prepareStatement(sql)) {
+
+        // CORRIGIDO: Usa o 'con' recebido em vez de criar um novo
+        try (var ps = con.prepareStatement(sql)) {
             ps.setString(1, novoStatus);
             ps.setLong(2, trabalhoId);
             ps.executeUpdate();
