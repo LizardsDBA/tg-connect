@@ -56,4 +56,16 @@ public class JdbcTrabalhosGraduacaoDao implements TrabalhosGraduacaoDao {
             ps.executeUpdate();
         }
     }
+
+    public Optional<String> findStatusById(long trabalhoId) {
+        final String sql = "SELECT status FROM trabalhos_graduacao WHERE id = ?";
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.ofNullable(rs.getString(1));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return Optional.empty();
+    }
 }

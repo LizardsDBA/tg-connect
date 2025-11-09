@@ -6,6 +6,7 @@ import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ResumoCamposDTO;
 import br.edu.fatec.api.model.auth.User; // NOVO IMPORT
 import br.edu.fatec.api.nav.Session; // NOVO IMPORT
+import br.edu.fatec.api.dao.JdbcTrabalhosGraduacaoDao;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -79,6 +80,7 @@ public class ModalFeedbackController {
 
     // Mapeamento de Campos (Apresentação)
     private final Map<String, String> camposApresentacaoMap = new LinkedHashMap<>();
+    private final JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
     private ApresentacaoCamposDTO camposApresentacaoCache;
     private String campoApresentacaoSelecionado;
 
@@ -553,14 +555,43 @@ public class ModalFeedbackController {
 
     @FXML
     private void onFinalizarDevolutiva() {
-        // Este método precisa ser implementado.
-        // Ele deve:
-        // 1. Chamar o service para verificar se há algum status = 2 (Reprovado) no TG.
-        // 2. Atualizar o `trabalhos_graduacao.status` para 'REPROVADO' ou 'APROVADO'.
-        // 3. Fechar o modal.
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Finalizar Devolutiva");
+        confirm.setHeaderText("Enviar feedback para o aluno?");
+        confirm.setContentText("Isso irá atualizar o status do TG do aluno para 'Aprovado' ou 'Reprovado' (com pendências).\n\nEsta ação não pode ser desfeita.");
 
-        info("Devolutiva finalizada (Lógica a implementar).");
-        fecharModal();
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return; // Usuário cancelou
+        }
+
+        try {
+            // 1. Verifica o número de pendências (0 ou 2)
+            int pendencias = dao.countPendenciasByVersao(trabalhoId, versao);
+
+            String novoStatus;
+            String msgSucesso;
+
+            if (pendencias == 0) {
+                // TUDO APROVADO
+                novoStatus = "APROVADO";
+                msgSucesso = "TG Aprovado! O aluno foi notificado.";
+            } else {
+                // AINDA TEM PENDÊNCIAS (0 ou 2)
+                novoStatus = "REPROVADO";
+                msgSucesso = "Devolutiva enviada com " + pendencias + " pendências. O aluno foi notificado.";
+            }
+
+            // 2. Atualiza o status principal do TG
+            tgDao.updateStatus(trabalhoId, novoStatus);
+
+            // 3. Informa o orientador e fecha o modal
+            info(msgSucesso);
+            fecharModal();
+
+        } catch (Exception e) {
+            erro("Falha grave ao finalizar a devolutiva.", e);
+        }
     }
 
 

@@ -505,6 +505,7 @@ public class JdbcFeedbackDao {
             default -> throw new IllegalArgumentException("Parte não é API: " + p);
         };
     }
+
     private Parte parteFromApi(int i) {
         return switch (i) {
             case 1 -> Parte.API1;
@@ -518,4 +519,81 @@ public class JdbcFeedbackDao {
     }
     @FunctionalInterface
     private interface Binder { void bind(PreparedStatement ps) throws SQLException; }
+
+    public int countPendenciasByVersao(long trabalhoId, String versao) throws SQLException {
+        // Consulta que soma todas as pendências (status 0 ou 2)
+        // Total de 58 campos
+        String sql = """
+            SELECT
+                COALESCE(ap.pendencias_ap, 0) + 
+                COALESCE(sec.pendencias_sec, 0) + 
+                COALESCE(res.pendencias_res, 0) AS total_pendencias
+            FROM trabalhos_graduacao tg
+
+            -- Apresentação (9 campos)
+            LEFT JOIN (
+                SELECT trabalho_id, versao,
+                    SUM(CASE WHEN nome_completo_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN idade_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN curso_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_academico_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN motivacao_fatec_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_profissional_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN contatos_email_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN principais_conhecimentos_status != 1 THEN 1 ELSE 0 END +
+                        CASE WHEN consideracoes_finais_status != 1 THEN 1 ELSE 0 END
+                    ) AS pendencias_ap
+                FROM tg_apresentacao
+                WHERE trabalho_id = ? AND versao = ?
+                GROUP BY trabalho_id, versao
+            ) ap ON ap.trabalho_id = tg.id
+
+            -- Seções (48 campos)
+            LEFT JOIN (
+                SELECT trabalho_id, versao,
+                    SUM(
+                        (CASE WHEN empresa_parceira_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN problema_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN solucao_resumo_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN link_repositorio_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN tecnologias_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN contribuicoes_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN hard_skills_status != 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN soft_skills_status != 1 THEN 1 ELSE 0 END)
+                    ) AS pendencias_sec
+                FROM tg_secao
+                WHERE trabalho_id = ? AND versao = ?
+                GROUP BY trabalho_id, versao
+            ) sec ON sec.trabalho_id = tg.id
+
+            -- Resumo (1 campo)
+            LEFT JOIN (
+                SELECT trabalho_id, versao,
+                    (CASE WHEN versao_validada != 1 THEN 1 ELSE 0 END) AS pendencias_res
+                FROM tg_resumo
+                WHERE trabalho_id = ? AND versao = ?
+                GROUP BY trabalho_id, versao
+            ) res ON res.trabalho_id = tg.id
+            
+            WHERE tg.id = ?
+            LIMIT 1
+        """;
+
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, trabalhoId); ps.setString(2, versao); // Para Apresentação
+            ps.setLong(3, trabalhoId); ps.setString(4, versao); // Para Seções
+            ps.setLong(5, trabalhoId); ps.setString(6, versao); // Para Resumo
+            ps.setLong(7, trabalhoId); // Para o TG principal
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_pendencias");
+                }
+            }
+        }
+        // Retorna 999 em caso de erro (força o status 'REPROVADO')
+        return 999;
+    }
 }
