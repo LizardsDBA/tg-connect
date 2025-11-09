@@ -2,7 +2,7 @@ package br.edu.fatec.api.controller.orientador;
 
 import br.edu.fatec.api.controller.BaseController;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
-import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO; // Necessário para o método carregarStatusAluno
+import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.OrientandoDTO;
 import br.edu.fatec.api.controller.orientador.ModalPreviewController;
 import br.edu.fatec.api.dao.JdbcTrabalhosGraduacaoDao;
@@ -232,7 +232,6 @@ public class EditorOrientadorController extends BaseController {
             JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
             String statusFluxo = tgDao.findStatusById(trabalhoId).orElse("EM_ANDAMENTO");
 
-            // Passa os dois dados para o método de UI
             atualizarStatusVisual(statusFluxo, dto.concluida());
 
         } catch (SQLException e) {

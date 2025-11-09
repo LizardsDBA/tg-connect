@@ -156,9 +156,6 @@ public class PainelOrientadorController extends BaseController {
         }
     }
 
-    /**
-     * NOVO: Método que combina os filtros de texto e checkbox
-     */
     private void aplicarFiltros() {
         String busca = txtBuscaAluno.getText() == null ? "" : txtBuscaAluno.getText().trim().toLowerCase();
         boolean somenteEntregues = chkAguardandoRevisao.isSelected();

@@ -94,9 +94,6 @@ public class ModalFeedbackController {
 
     @FXML
     public void initialize() {
-        // ... (código do initialize, initMarkdown, mappers, e setupListViews) ...
-        // ... (COLE SEU MÉTODO initialize() INTEIRO DA RESPOSTA ANTERIOR AQUI) ...
-        // ... (Ele já está correto e completo) ...
 
         // 1. Configurar o renderizador de Markdown
         MutableDataSet opts = new MutableDataSet();

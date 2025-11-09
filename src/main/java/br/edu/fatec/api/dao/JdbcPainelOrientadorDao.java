@@ -12,7 +12,6 @@ import java.util.List;
 
 public class JdbcPainelOrientadorDao {
 
-    // (O método listarParaCoordenador() não precisa de alteração)
     public List<PainelOrientadorRow> listarParaCoordenador() {
         // ... (seu código existente) ...
         List<PainelOrientadorRow> out = new ArrayList<>();

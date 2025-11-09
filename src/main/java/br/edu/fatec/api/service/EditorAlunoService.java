@@ -28,7 +28,6 @@ public class EditorAlunoService {
     }
 
     public long resolveTrabalhoIdDoAlunoLogado() {
-        // ... (Seu método original está OK) ...
         User u = Session.getUser();
         if (u == null) throw new IllegalStateException("Usuário não logado.");
         final String sql = "SELECT id FROM trabalhos_graduacao WHERE aluno_id=? LIMIT 1";
@@ -44,7 +43,6 @@ public class EditorAlunoService {
     }
 
     private String proximaVersaoFromDb(long trabalhoId) {
-        // ... (Seu método original está OK) ...
         String sql =
                 "WITH v AS ( " +
                         "  SELECT versao FROM versoes_trabalho WHERE trabalho_id=? " +
@@ -89,7 +87,6 @@ public class EditorAlunoService {
     }
 
     private void validarObrigatorios(DadosEditor d) {
-        // ... (Seu método original está OK) ...
     }
 
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
@@ -164,8 +161,6 @@ public class EditorAlunoService {
             throw new IllegalStateException("O trabalho já foi entregue ou está aprovado.");
         }
 
-        // --- CORREÇÃO AQUI ---
-        // O método agora abre sua própria conexão
         try (Connection con = Database.get()) {
             // Não precisa de transação, é um único update
             tgDao.updateStatus(con, trabalhoId, "ENTREGUE");
@@ -236,8 +231,6 @@ public class EditorAlunoService {
         DadosEditorLeitura d = new DadosEditorLeitura();
         d.status = info.status(); // <-- POPULA O STATUS
 
-        // ... (Restante do seu método carregarTudo, que já corrigimos antes, está OK) ...
-        // ... (Ele preenche os campos de texto e status de campo) ...
         apDao.findByTrabalhoIdAndVersao(trabalhoId, versao).ifPresent(a -> {
             d.infoPessoais  = nz(a.nomeCompleto);
             d.historicoAcad = nz(a.historicoAcad);
@@ -304,10 +297,8 @@ public class EditorAlunoService {
         return Optional.of(d);
     }
 
-    // ... (Seu método nz, fetchVersaoAtual antigo, isAbaValidada, copiarFlagsValidacao) ...
     private String nz(String s){ return s == null ? "" : s; }
     public boolean isAbaValidada(long trabalhoId, int abaNumero) throws SQLException {
-        // ... (Este método está OK como estava) ...
         String versao = fetchTrabalhoInfo(trabalhoId).map(TrabalhoInfo::versao).orElse(null);
         if (versao == null || versao.isBlank()) return false;
         if (abaNumero == 1) { return apDao.getApresentacaoValidada(trabalhoId, versao) == 1; }

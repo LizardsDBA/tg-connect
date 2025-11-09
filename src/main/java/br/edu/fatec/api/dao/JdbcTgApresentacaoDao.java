@@ -20,7 +20,6 @@ public class JdbcTgApresentacaoDao implements TgApresentacaoDao {
                              String historicoProf, String contatos, String conhecimentos,
                              String consideracoes) throws SQLException {
         // CORREÇÃO: Não reseta mais os status para 0 aqui.
-        // O método copyValidacaoFromUltimaVersao fará isso (ou copiará os antigos).
         final String sql = """
             INSERT INTO tg_apresentacao (
                 trabalho_id, versao,
