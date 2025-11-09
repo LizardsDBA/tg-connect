@@ -2,9 +2,10 @@ package br.edu.fatec.api.controller.orientador;
 
 import br.edu.fatec.api.controller.BaseController;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
-import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO; // Necessário para o método carregarStatusAluno
+import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.OrientandoDTO;
 import br.edu.fatec.api.controller.orientador.ModalPreviewController;
+import br.edu.fatec.api.dao.JdbcTrabalhosGraduacaoDao;
 import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
@@ -59,6 +60,7 @@ public class EditorOrientadorController extends BaseController {
     // ===== Estado =====
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
     private final ObservableList<OrientandoTableItem> alunos = FXCollections.observableArrayList();
+    @FXML private TableColumn<OrientandoTableItem, String> colStatus;
 
     private Long professorId;
     private Long alunoSelecionadoId;
@@ -91,6 +93,48 @@ public class EditorOrientadorController extends BaseController {
         colNome.setCellValueFactory(c -> c.getValue().nomeProperty);
         tblAlunos.setItems(alunos);
 
+        if (colStatus != null) {
+            colStatus.setCellValueFactory(c -> c.getValue().statusProperty());
+            colStatus.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String status, boolean empty) {
+                    super.updateItem(status, empty);
+                    if (empty || status == null) {
+                        setText(null);
+                        setGraphic(null);
+                        getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
+                    } else {
+                        String texto;
+                        String styleClass;
+
+                        switch (status) {
+                            case "ENTREGUE" -> {
+                                texto = "Aguardando Revisão";
+                                styleClass = "badge-pendente"; // (Estilo Laranja/Amarelo)
+                            }
+                            case "APROVADO" -> {
+                                texto = "Concluído";
+                                styleClass = "badge-ok"; // (Verde)
+                            }
+                            case "REPROVADO" -> {
+                                texto = "Revisado (Pendências)";
+                                styleClass = "badge-reprovado"; // (Vermelho)
+                            }
+                            default -> { // EM_ANDAMENTO
+                                texto = "Em Andamento";
+                                styleClass = ""; // (Sem cor)
+                            }
+                        }
+                        setText(texto);
+                        getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
+                        if (!styleClass.isEmpty()) {
+                            getStyleClass().add(styleClass);
+                        }
+                    }
+                }
+            });
+        }
+
         tblAlunos.setRowFactory(tv -> {
             TableRow<OrientandoTableItem> row = new TableRow<>();
             row.setOnMouseClicked(evt -> {
@@ -121,13 +165,14 @@ public class EditorOrientadorController extends BaseController {
                 )
         );
 
-        // Desabilita o botão de feedback se nenhum aluno estiver selecionado
         if (btnAbrirModalFeedback != null) {
             btnAbrirModalFeedback.disableProperty().bind(
                     tblAlunos.getSelectionModel().selectedItemProperty().isNull()
+                            .or(lblStatus.textProperty().isNotEqualTo("ENTREGUE")) // <-- LÓGICA DA TRAVA
             );
         }
 
+        // (O botão de preview pode ficar habilitado)
         if (btnAbrirModalPreview != null) {
             btnAbrirModalPreview.disableProperty().bind(
                     tblAlunos.getSelectionModel().selectedItemProperty().isNull()
@@ -182,12 +227,17 @@ public class EditorOrientadorController extends BaseController {
     private void carregarStatusAluno(Long trabalhoId) {
         if (trabalhoId == null) return;
         try {
-            // Usamos o DAO para buscar a última versão e seu status
-            // (Usando a "Apresentação" como referência para o status geral)
+            // Busca a versão atual
             ApresentacaoCamposDTO dto = dao.carregarCamposApresentacao(trabalhoId);
             this.versaoAtual = dto.versao();
             lblVersao.setText(dto.versao());
-            atualizarStatusVisual(dto.concluida());
+
+            // Busca o status do fluxo (ex: "ENTREGUE")
+            JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
+            String statusFluxo = tgDao.findStatusById(trabalhoId).orElse("EM_ANDAMENTO");
+
+            atualizarStatusVisual(statusFluxo, dto.concluida());
+
         } catch (SQLException e) {
             erro("Falha ao carregar status do aluno.", e);
         }
@@ -196,13 +246,15 @@ public class EditorOrientadorController extends BaseController {
     /**
      * Atualiza o status principal da versão (Concluída / Pendente)
      */
-    private void atualizarStatusVisual(boolean validada) {
+    private void atualizarStatusVisual(String statusFluxo, boolean concluida) {
         if (lblStatus == null) return;
-        lblStatus.setText(validada ? "Concluída" : "Pendente Validação");
-        lblStatus.getStyleClass().removeAll("badge-ok", "badge-pendente");
-        lblStatus.getStyleClass().add(validada ? "badge-ok" : "badge-pendente");
-    }
 
+        // Salva o status real (EM_ANDAMENTO, ENTREGUE, etc.)
+        lblStatus.setText(statusFluxo);
+
+        // (Podemos usar o 'concluida' para o label de Versão, se quisermos)
+        // lblVersao.setText(versaoAtual + (concluida ? " (Concluída)" : ""));
+    }
     /**
      * Abre o modal de feedback por campo.
      */
@@ -301,11 +353,19 @@ public class EditorOrientadorController extends BaseController {
     public static class OrientandoTableItem {
         private final SimpleLongProperty alunoId = new SimpleLongProperty();
         private final SimpleStringProperty nomeProperty = new SimpleStringProperty();
+        private final SimpleStringProperty statusProperty = new SimpleStringProperty(); // NOVO
+
         public static OrientandoTableItem from(OrientandoDTO d) {
             OrientandoTableItem it = new OrientandoTableItem();
             it.alunoId.set(Objects.requireNonNullElse(d.alunoId(), 0L));
             it.nomeProperty.set(Objects.requireNonNullElse(d.nome(), "—"));
+            it.statusProperty.set(Objects.requireNonNullElse(d.status(), "—")); // NOVO
             return it;
+        }
+
+        // Getter para o status
+        public SimpleStringProperty statusProperty() {
+            return statusProperty;
         }
     }
 

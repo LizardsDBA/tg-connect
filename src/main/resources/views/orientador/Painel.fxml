@@ -59,6 +59,9 @@
                 <Label text="Buscar:"/>
                 <TextField fx:id="txtBuscaAluno" promptText="Nome do aluno..."/>
                 <Region HBox.hgrow="ALWAYS"/>
+
+                <CheckBox fx:id="chkAguardandoRevisao" text="Mostrar apenas TGs aguardando revisão" />
+
                 <Button text="Limpar" onAction="#limparFiltros"/>
             </HBox>
 

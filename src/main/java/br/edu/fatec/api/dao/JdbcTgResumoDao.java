@@ -24,9 +24,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
          LIMIT 1
     """;
 
-    /**
-     * CORRIGIDO: Este método agora implementa a interface corretamente.
-     */
     @Override
     public Optional<ResumoDto> findByTrabalhoId(long trabalhoId) {
         try (Connection c = Database.get();
@@ -45,9 +42,6 @@ public class JdbcTgResumoDao implements TgResumoDao {
         return Optional.empty();
     }
 
-    /**
-     * CORRIGIDO: Este método agora implementa a interface corretamente.
-     */
     @Override
     public boolean upsert(long trabalhoId, String resumoMd) {
         // Esta implementação provavelmente não é usada pelo seu fluxo de "salvar tudo",

@@ -1,7 +1,7 @@
 package br.edu.fatec.api.dao;
 
 import br.edu.fatec.api.config.Database;
-import br.edu.fatec.api.dto.PainelOrientadorRow;
+import br.edu.fatec.api.dto.PainelOrientadorRow; // Precisamos atualizar este DTO no próximo passo
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,33 +13,28 @@ import java.util.List;
 public class JdbcPainelOrientadorDao {
 
     public List<PainelOrientadorRow> listarParaCoordenador() {
+        // ... (seu código existente) ...
         List<PainelOrientadorRow> out = new ArrayList<>();
-
         final String sqlIds = "SELECT DISTINCT orientador_id FROM trabalhos_graduacao";
-
         try (Connection con = Database.get();
              PreparedStatement ps = con.prepareStatement(sqlIds);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
                 long orientadorId = rs.getLong(1);
-                // Reuso do método já existente (mantém o MESMO formato do DTO)
                 out.addAll(listar(orientadorId));
             }
-
         } catch (SQLException e) {
-            e.printStackTrace(); // (depois podemos logar melhor)
+            e.printStackTrace();
         }
         return out;
     }
 
 
     /**
-     * CONSULTA SQL ATUALIZADA PARA O NOVO SCHEMA (*_status)
-     * Total de campos = 58
-     * (Apresentação = 9 campos)
-     * (API 1-6 = 6 seções * 8 campos = 48 campos)
-     * (Resumo = 1 campo)
+     * SQL ATUALIZADA:
+     * 1. Remove o CASE complexo para 'status'.
+     * 2. Seleciona o 'tg.status' real (EM_ANDAMENTO, ENTREGUE, etc.)
+     * 3. O cálculo de pendencias/percentual (58 campos) já está correto.
      */
     private static final String SQL =
             """
@@ -49,41 +44,32 @@ public class JdbcPainelOrientadorDao {
               tg.titulo,
               tg.tema,
               tg.versao_atual,
+              tg.status        AS status_fluxo, -- NOVO CAMPO DE STATUS
               
-              -- Total Validadas (Aprovado = 1)
               (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0)) AS total_validadas,
-              
-              -- Pendências (Total de 58 campos - Aprovados)
               (58 - (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0))) AS pendencias,
-              
-              -- Status
-              CASE
-                WHEN (58 - (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0))) = 0 THEN 'Concluído'
-                WHEN (58 - (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0))) = 58 THEN 'Não avaliado'
-                ELSE 'Em andamento'
-              END AS status,
-              
-              -- Percentual (Aprovados / 58)
               ROUND(((COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0)) / 58.0) * 100, 2) AS percentual_conclusao
               
             FROM trabalhos_graduacao tg
-            INNER JOIN usuarios uAluno      ON uAluno.id       = tg.aluno_id
+            INNER JOIN usuarios uAluno      ON uAluno.id       = tg.aluno_id AND uAluno.ativo = TRUE
             INNER JOIN usuarios uOrientador ON uOrientador.id  = tg.orientador_id
-            
+            INNER JOIN orientacoes o       ON o.aluno_id      = uAluno.id AND o.ativo = TRUE
+
             -- Subquery para Apresentação (9 campos)
             LEFT JOIN (
                 SELECT 
                     trabalho_id, versao,
-                    (CASE WHEN nome_completo_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN idade_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN curso_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN historico_academico_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN motivacao_fatec_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN historico_profissional_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN contatos_email_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN principais_conhecimentos_status = 1 THEN 1 ELSE 0 END) +
-                    (CASE WHEN consideracoes_finais_status = 1 THEN 1 ELSE 0 END) AS valid_ap
+                    SUM(CASE WHEN nome_completo_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN idade_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN curso_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_academico_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN motivacao_fatec_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_profissional_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN contatos_email_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN principais_conhecimentos_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN consideracoes_finais_status = 1 THEN 1 ELSE 0 END) AS valid_ap
                 FROM tg_apresentacao
+                GROUP BY trabalho_id, versao
             ) ap ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
 
             -- Subquery para Seções (8 campos * 6 seções = 48)
@@ -110,6 +96,7 @@ public class JdbcPainelOrientadorDao {
                     trabalho_id, versao,
                     (CASE WHEN versao_validada = 1 THEN 1 ELSE 0 END) AS valid_res
                 FROM tg_resumo
+                GROUP BY trabalho_id, versao
             ) res ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
             
             WHERE uOrientador.id = ?
@@ -130,7 +117,7 @@ public class JdbcPainelOrientadorDao {
                             rs.getString("versao_atual"),
                             rs.getInt("total_validadas"),
                             rs.getInt("pendencias"),
-                            rs.getString("status"),
+                            rs.getString("status_fluxo"), // ATUALIZADO
                             rs.getDouble("percentual_conclusao")
                     ));
                 }

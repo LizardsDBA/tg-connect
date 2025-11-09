@@ -1,5 +1,7 @@
 package br.edu.fatec.api.controller.aluno;
 
+import br.edu.fatec.api.dao.JdbcFeedbackDao;
+import javafx.concurrent.Task; // <-- IMPORT ADICIONADO
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -10,6 +12,7 @@ import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.controller.BaseController;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.List;
 
 // imports
 import br.edu.fatec.api.model.auth.User;
@@ -20,6 +23,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.layout.Priority;
 
 public class EditorAlunoController extends BaseController {
 
@@ -31,20 +35,8 @@ public class EditorAlunoController extends BaseController {
     @FXML private Label lbStatusAba;
 
     // ====== ABA 1 - Apresentação
-    @FXML private TextArea taInfoPessoais;
-    @FXML private TextArea taHistoricoAcad;
-    @FXML private TextArea taMotivacao;
-    @FXML private TextArea taHistoricoProf;
-    @FXML private TextArea taContatos;
-    @FXML private TextArea taConhecimentos;
-    // (Labels de status da Aba 1)
-    @FXML private Label lblInfoPessoaisStatus;
-    @FXML private Label lblHistoricoAcadStatus;
-    @FXML private Label lblMotivacaoStatus;
-    @FXML private Label lblHistoricoProfStatus;
-    @FXML private Label lblContatosStatus;
-    @FXML private Label lblConhecimentosStatus;
-
+    @FXML private TextArea taInfoPessoais, taHistoricoAcad, taMotivacao, taHistoricoProf, taContatos, taConhecimentos;
+    @FXML private Label lblInfoPessoaisStatus, lblHistoricoAcadStatus, lblMotivacaoStatus, lblHistoricoProfStatus, lblContatosStatus, lblConhecimentosStatus;
 
     // ====== ABAS 2..7 - Projetos API (1º..6º)
     @FXML private TextField tfApi1Empresa, tfApi2Empresa, tfApi3Empresa, tfApi4Empresa, tfApi5Empresa, tfApi6Empresa;
@@ -69,10 +61,22 @@ public class EditorAlunoController extends BaseController {
     // ====== ABA 9 - Considerações
     @FXML private TextArea taConclusoes;
 
-    // ... (Estado, Service, Navegação - Sem alterações) ...
+    // ====== Estado
     private TextInputControl focusedTextInput;
     @FXML private Button btnSalvarTudo;
+    @FXML private Button btnSolicitarRevisao;
+    @FXML private Button btnPreview; // <-- fx:id adicionado
+
     private final EditorAlunoService service = new EditorAlunoService();
+    private final JdbcFeedbackDao feedbackDao = new JdbcFeedbackDao();
+    private final Map<String, CampoInfo> campoMap = new HashMap<>();
+    private long trabalhoId;
+    private String versaoAtual;
+    private String statusAtualDoFluxo;
+    private final List<TextInputControl> todosOsCamposEditaveis = new ArrayList<>();
+
+
+    // ====== Navegação ======
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goDashboard(){ SceneManager.go("aluno/Dashboard.fxml"); }
@@ -95,7 +99,7 @@ public class EditorAlunoController extends BaseController {
     public void goHistorico(){ SceneManager.go("aluno/Historico.fxml"); }
 
 
-    // ====== Ciclo de vida (Sem alterações) ======
+    // ====== Ciclo de vida ======
     @FXML
     public void initialize() {
         User u = Session.getUser();
@@ -106,13 +110,94 @@ public class EditorAlunoController extends BaseController {
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");
         }
+
+        mapearCampos();
+        coletarCamposEditaveis();
+
         onReady();
         hookFocusHandlers();
         applyTips();
         wireTabStatus();
     }
 
-    // ... (wireTabStatus, refreshTabStatus, hookFocusHandlers, applyTips - Sem alterações) ...
+    private void coletarCamposEditaveis() {
+        todosOsCamposEditaveis.addAll(List.of(
+                taInfoPessoais, taHistoricoAcad, taMotivacao, taHistoricoProf, taContatos, taConhecimentos
+        ));
+        todosOsCamposEditaveis.addAll(List.of(
+                tfApi1Empresa, taApi1Problema, taApi1Solucao, tfApi1Repo, taApi1Tecnologias, taApi1Contrib, taApi1Hard, taApi1Soft,
+                tfApi2Empresa, taApi2Problema, taApi2Solucao, tfApi2Repo, taApi2Tecnologias, taApi2Contrib, taApi2Hard, taApi2Soft,
+                tfApi3Empresa, taApi3Problema, taApi3Solucao, tfApi3Repo, taApi3Tecnologias, taApi3Contrib, taApi3Hard, taApi3Soft,
+                tfApi4Empresa, taApi4Problema, taApi4Solucao, tfApi4Repo, taApi4Tecnologias, taApi4Contrib, taApi4Hard, taApi4Soft,
+                tfApi5Empresa, taApi5Problema, taApi5Solucao, tfApi5Repo, taApi5Tecnologias, taApi5Contrib, taApi5Hard, taApi5Soft,
+                tfApi6Empresa, taApi6Problema, taApi6Solucao, tfApi6Repo, taApi6Tecnologias, taApi6Contrib, taApi6Hard, taApi6Soft
+        ));
+        todosOsCamposEditaveis.addAll(List.of(
+                tfSem1, tfEmp1, taSol1, tfSem2, tfEmp2, taSol2, tfSem3, tfEmp3, taSol3,
+                tfSem4, tfEmp4, taSol4, tfSem5, tfEmp5, taSol5, tfSem6, tfEmp6, taSol6
+        ));
+        todosOsCamposEditaveis.add(taConclusoes);
+    }
+
+    private void atualizarTravaEdicao(String status) {
+        boolean camposHabilitados = false;
+        boolean podeSalvar = false;
+        boolean podeSolicitar = false;
+
+        switch (status) {
+            case "EM_ANDAMENTO", "REPROVADO" -> {
+                camposHabilitados = true;
+                podeSalvar = true;
+                podeSolicitar = true;
+            }
+            case "ENTREGUE", "APROVADO" -> {
+                camposHabilitados = false;
+                podeSalvar = false;
+                podeSolicitar = false;
+            }
+        }
+
+        for (TextInputControl campo : todosOsCamposEditaveis) {
+            if (campo != null) {
+                campo.setDisable(!camposHabilitados);
+            }
+        }
+
+        if (btnSalvarTudo != null) btnSalvarTudo.setDisable(!podeSalvar);
+        if (btnSolicitarRevisao != null) btnSolicitarRevisao.setDisable(!podeSolicitar);
+        if (btnPreview != null) btnPreview.setDisable(!camposHabilitados);
+    }
+
+    private void mapearCampos() {
+        campoMap.put("taInfoPessoais", new CampoInfo("APRESENTACAO", "nome_completo"));
+        campoMap.put("taHistoricoAcad", new CampoInfo("APRESENTACAO", "historico_academico"));
+        campoMap.put("taMotivacao", new CampoInfo("APRESENTACAO", "motivacao_fatec"));
+        campoMap.put("taHistoricoProf", new CampoInfo("APRESENTACAO", "historico_profissional"));
+        campoMap.put("taContatos", new CampoInfo("APRESENTACAO", "contatos_email"));
+        campoMap.put("taConhecimentos", new CampoInfo("APRESENTACAO", "principais_conhecimentos"));
+        campoMap.put("taConclusoes", new CampoInfo("FINAIS", "consideracoes_finais"));
+        String[][] camposResumo = {
+                {"tfSem1", "tfEmp1", "taSol1"}, {"tfSem2", "tfEmp2", "taSol2"}, {"tfSem3", "tfEmp3", "taSol3"},
+                {"tfSem4", "tfEmp4", "taSol4"}, {"tfSem5", "tfEmp5", "taSol5"}, {"tfSem6", "tfEmp6", "taSol6"}
+        };
+        for (String[] linha : camposResumo) {
+            for (String id : linha) {
+                campoMap.put(id, new CampoInfo("RESUMO", "resumo_md"));
+            }
+        }
+        for (int i = 1; i <= 6; i++) {
+            campoMap.put("tfApi" + i + "Empresa", new CampoInfo("API" + i, "empresa_parceira"));
+            campoMap.put("taApi" + i + "Problema", new CampoInfo("API" + i, "problema"));
+            campoMap.put("taApi" + i + "Solucao", new CampoInfo("API" + i, "solucao_resumo"));
+            campoMap.put("tfApi" + i + "Repo", new CampoInfo("API" + i, "link_repositorio"));
+            campoMap.put("taApi" + i + "Tecnologias", new CampoInfo("API" + i, "tecnologias"));
+            campoMap.put("taApi" + i + "Contrib", new CampoInfo("API" + i, "contribuicoes"));
+            campoMap.put("taApi" + i + "Hard", new CampoInfo("API" + i, "hard_skills"));
+            campoMap.put("taApi" + i + "Soft", new CampoInfo("API" + i, "soft_skills"));
+        }
+    }
+    private record CampoInfo(String secao, String campoChave) {}
+
     private void wireTabStatus(){
         if (tabPane == null) return;
         tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldV, newV) -> {
@@ -120,12 +205,12 @@ public class EditorAlunoController extends BaseController {
         });
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
+
     private void refreshTabStatus(int idx){
         if (lbStatusAba == null) return;
-        int abaNumero = idx + 1; // 1..9
+        int abaNumero = idx + 1;
         String statusTxt = "Pendente Validação";
         try {
-            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
             boolean validada = service.isAbaValidada(trabalhoId, abaNumero);
             statusTxt = validada ? "Concluída" : "Pendente Validação";
         } catch (Exception ignore){ /* mantém default */ }
@@ -133,25 +218,65 @@ public class EditorAlunoController extends BaseController {
         lbStatusAba.getStyleClass().removeAll("badge-ok","badge-pendente");
         lbStatusAba.getStyleClass().add(statusTxt.equals("Concluída") ? "badge-ok" : "badge-pendente");
     }
+
     private void hookFocusHandlers() {
         tabPane.addEventFilter(MouseEvent.MOUSE_PRESSED, evt -> {
             Node n = evt.getPickResult().getIntersectedNode();
+            TextInputControl campoFocado = null;
             while (n != null) {
                 if (n instanceof TextInputControl) {
-                    focusedTextInput = (TextInputControl) n;
+                    campoFocado = (TextInputControl) n;
                     break;
                 }
                 n = n.getParent();
             }
+            focusedTextInput = campoFocado;
+            if (campoFocado != null) {
+                carregarParecerDoCampo(campoFocado);
+            }
         });
     }
+
+    private void carregarParecerDoCampo(TextInputControl campo) {
+        if (commentsSection == null || campo == null || campo.getId() == null) {
+            return;
+        }
+        commentsSection.getChildren().clear();
+        CampoInfo info = campoMap.get(campo.getId());
+        if (info == null) {
+            commentsSection.getChildren().add(new Label("Comentários do Orientador (Aba)"));
+            return;
+        }
+        try {
+            Optional<String> parecer = feedbackDao.findUltimoParecer(this.trabalhoId, this.versaoAtual, info.secao(), info.campoChave());
+            Label titulo = new Label("Feedback: " + info.secao() + " / " + info.campoChave());
+            titulo.setStyle("-fx-font-weight: bold;");
+            commentsSection.getChildren().add(titulo);
+            if (parecer.isPresent() && !parecer.get().isBlank()) {
+                TextArea parecerTexto = new TextArea(parecer.get());
+                parecerTexto.setEditable(false);
+                parecerTexto.setWrapText(true);
+                parecerTexto.getStyleClass().add("msg-peer");
+                VBox.setVgrow(parecerTexto, Priority.ALWAYS);
+                commentsSection.getChildren().add(parecerTexto);
+            } else {
+                Label semParecer = new Label("Nenhum parecer específico do orientador para este campo.");
+                semParecer.setWrapText(true);
+                commentsSection.getChildren().add(semParecer);
+            }
+        } catch (Exception e) {
+            commentsSection.getChildren().add(new Label("Erro ao carregar parecer: " + e.getMessage()));
+            e.printStackTrace();
+        }
+    }
+
     private void applyTips() {
         if (taApi1Problema != null) taApi1Problema.setTooltip(new Tooltip("Descreva o problema (mín. 3 linhas)."));
         if (taApi1Solucao != null) taApi1Solucao.setTooltip(new Tooltip("Explique a solução (≈5 linhas; tipo do sistema)."));
         if (tfApi1Repo != null) tfApi1Repo.setTooltip(new Tooltip("URL do repositório no GitHub."));
     }
 
-    // ... (Toolbar, SalvarTudo, Montagem MD - Sem alterações) ...
+    // ====== Toolbar – Markdown ======
     private void insertAtCaret(String text){
         TextInputControl target = (focusedTextInput != null) ? focusedTextInput : getFirstVisibleTextInput();
         if (target == null) return;
@@ -197,11 +322,13 @@ public class EditorAlunoController extends BaseController {
         if (sel == null || sel.isEmpty()) sel = "Sublinhado";
         replaceSelection(target, wrapper + sel + wrapper);
     }
-    public void toggleBold(){ insertAroundBold("**"); }
-    public void toggleItalic(){ insertAroundItalic("*"); }
-    public void toggleUnderline(){ insertAroundUnderline("__"); }
-    public void insertH1(){ insertAtCaret("\n# Título\n"); }
-    public void insertLink(){ insertAtCaret("[Texto](https://)"); }
+    @FXML public void toggleBold(){ insertAroundBold("**"); }
+    @FXML public void toggleItalic(){ insertAroundItalic("*"); }
+    @FXML public void toggleUnderline(){ insertAroundUnderline("__"); }
+    @FXML public void insertH1(){ insertAtCaret("\n# Título\n"); }
+    @FXML public void insertLink(){ insertAtCaret("[Texto](https://)"); }
+
+    @FXML
     public void preview() {
         String mdCompleto = montarMarkdownCompleto();
         try {
@@ -219,6 +346,7 @@ public class EditorAlunoController extends BaseController {
             erro("Falha ao abrir o modal de preview.", e);
         }
     }
+
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
@@ -226,44 +354,137 @@ public class EditorAlunoController extends BaseController {
         a.showAndWait();
         if (e != null) e.printStackTrace();
     }
+
+    // ====== Salvar TUDO (ATUALIZADO PARA BACKGROUND THREAD) ======
+    @FXML
     public void salvarTudo() {
+        // 1. Coleta os dados da UI (rápido, na thread principal)
+        EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
         try {
-            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-            EditorAlunoService.DadosEditor d = new EditorAlunoService.DadosEditor();
             d.infoPessoais   = val(taInfoPessoais);
             d.historicoAcad  = val(taHistoricoAcad);
             d.motivacao      = val(taMotivacao);
             d.historicoProf  = val(taHistoricoProf);
             d.contatos       = val(taContatos);
             d.conhecimentos  = val(taConhecimentos);
+
             d.api1Empresa=val(tfApi1Empresa); d.api1Problema=val(taApi1Problema); d.api1Solucao=val(taApi1Solucao); d.api1Repo=val(tfApi1Repo);
             d.api1Tecnologias=val(taApi1Tecnologias); d.api1Contrib=val(taApi1Contrib); d.api1Hard=val(taApi1Hard); d.api1Soft=val(taApi1Soft);
+
             d.api2Empresa=val(tfApi2Empresa); d.api2Problema=val(taApi2Problema); d.api2Solucao=val(taApi2Solucao); d.api2Repo=val(tfApi2Repo);
             d.api2Tecnologias=val(taApi2Tecnologias); d.api2Contrib=val(taApi2Contrib); d.api2Hard=val(taApi2Hard); d.api2Soft=val(taApi2Soft);
+
             d.api3Empresa=val(tfApi3Empresa); d.api3Problema=val(taApi3Problema); d.api3Solucao=val(taApi3Solucao); d.api3Repo=val(tfApi3Repo);
             d.api3Tecnologias=val(taApi3Tecnologias); d.api3Contrib=val(taApi3Contrib); d.api3Hard=val(taApi3Hard); d.api3Soft=val(taApi3Soft);
+
             d.api4Empresa=val(tfApi4Empresa); d.api4Problema=val(taApi4Problema); d.api4Solucao=val(taApi4Solucao); d.api4Repo=val(tfApi4Repo);
             d.api4Tecnologias=val(taApi4Tecnologias); d.api4Contrib=val(taApi4Contrib); d.api4Hard=val(taApi4Hard); d.api4Soft=val(taApi4Soft);
+
             d.api5Empresa=val(tfApi5Empresa); d.api5Problema=val(taApi5Problema); d.api5Solucao=val(taApi5Solucao); d.api5Repo=val(tfApi5Repo);
             d.api5Tecnologias=val(taApi5Tecnologias); d.api5Contrib=val(taApi5Contrib); d.api5Hard=val(taApi5Hard); d.api5Soft=val(taApi5Soft);
+
             d.api6Empresa=val(tfApi6Empresa); d.api6Problema=val(taApi6Problema); d.api6Solucao=val(taApi6Solucao); d.api6Repo=val(tfApi6Repo);
             d.api6Tecnologias=val(taApi6Tecnologias); d.api6Contrib=val(taApi6Contrib); d.api6Hard=val(taApi6Hard); d.api6Soft=val(taApi6Soft);
+
             d.resumoMd = montarMdResumo();
             d.consideracoesFinais = val(taConclusoes);
             d.mdCompleto = montarMarkdownCompleto();
-            String novaVersao = service.salvarTudo(trabalhoId, d);
+
+        } catch (Exception ex) {
+            erro("Falha ao coletar dados da UI para salvar.", ex);
+            return;
+        }
+
+        // 2. Trava a UI para evitar cliques duplicados
+        travarBotoesToolbar(true);
+
+        // 3. Cria a Task (tarefa de background)
+        Task<String> salvarTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                // Esta é a única linha que roda na thread de background
+                return service.salvarTudo(trabalhoId, d);
+            }
+        };
+
+        // 4. O que fazer quando a Task terminar (na thread da UI)
+        salvarTask.setOnSucceeded(e -> {
+            String novaVersao = salvarTask.getValue();
+
             Alert ok = new Alert(Alert.AlertType.INFORMATION);
             ok.setHeaderText("Salvo com sucesso!");
             ok.setContentText("Nova versão: " + novaVersao);
             ok.showAndWait();
-            refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
-        } catch (Exception ex) {
-            Alert err = new Alert(Alert.AlertType.ERROR);
-            err.setHeaderText("Falha ao salvar");
-            err.setContentText(ex.getMessage());
-            err.showAndWait();
+
+            travarBotoesToolbar(false); // Destrava a UI
+            onReady(); // Recarrega os dados (e status) após salvar
+        });
+
+        // 5. O que fazer se a Task falhar
+        salvarTask.setOnFailed(e -> {
+            Throwable ex = salvarTask.getException();
+            erro("Falha ao salvar", (Exception) ex);
+            travarBotoesToolbar(false); // Destrava a UI
+        });
+
+        // 6. Inicia a Task
+        new Thread(salvarTask).start();
+    }
+
+    /**
+     * NOVO: Handler para o botão "Solicitar Revisão"
+     */
+    @FXML
+    private void handleSolicitarRevisao() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Envio");
+        confirm.setHeaderText("Solicitar Revisão do Orientador");
+        confirm.setContentText("Você tem certeza que deseja enviar esta versão para revisão?\n\nApós o envio, você não poderá editar o trabalho até receber a devolutiva.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+
+            travarBotoesToolbar(true); // Trava a UI
+
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    service.solicitarRevisao(trabalhoId);
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> {
+                Alert info = new Alert(Alert.AlertType.INFORMATION);
+                info.setHeaderText("Enviado com Sucesso!");
+                info.setContentText("Sua versão (" + this.versaoAtual + ") foi enviada para o orientador.");
+                info.showAndWait();
+
+                onReady(); // Recarrega a tela (que agora estará travada)
+                // Os botões permanecem travados pelo onReady -> atualizarTravaEdicao
+            });
+
+            task.setOnFailed(e -> {
+                erro("Falha ao solicitar revisão.", (Exception) task.getException());
+                travarBotoesToolbar(false); // Destrava em caso de erro
+            });
+
+            new Thread(task).start();
         }
     }
+
+    /**
+     * NOVO: Trava os botões da toolbar durante operações
+     */
+    private void travarBotoesToolbar(boolean travar) {
+        if (btnSalvarTudo != null) btnSalvarTudo.setDisable(travar);
+        if (btnSolicitarRevisao != null) btnSolicitarRevisao.setDisable(travar);
+        if (btnPreview != null) btnPreview.setDisable(travar);
+    }
+
+
+    // ====== Montagem de Markdown (por seção) ======
     private String montarMdAba1(){
         StringBuilder sb = new StringBuilder();
         sb.append("# APRESENTAÇÃO DO ALUNO\n\n");
@@ -360,7 +581,6 @@ public class EditorAlunoController extends BaseController {
     }
     private void preencherResumoAPartirDoMarkdown(String md) {
         List<String[]> linhas = extrairLinhasTabela(md);
-        // Limpar campos antes de preencher
         TextField[] sems = {tfSem1, tfSem2, tfSem3, tfSem4, tfSem5, tfSem6};
         TextField[] emps = {tfEmp1, tfEmp2, tfEmp3, tfEmp4, tfEmp5, tfEmp6};
         TextArea[] sols = {taSol1, taSol2, taSol3, taSol4, taSol5, taSol6};
@@ -369,11 +589,9 @@ public class EditorAlunoController extends BaseController {
             if(emps[i]!=null) emps[i].clear();
             if(sols[i]!=null) sols[i].clear();
         }
-
         int linha = 0;
         for (String[] cols : linhas) {
             if (cols.length < 3) continue;
-
             if (linha < 6) {
                 if (sems[linha]!=null) sems[linha].setText(cols[0]);
                 if (emps[linha]!=null) emps[linha].setText(cols[1]);
@@ -385,8 +603,7 @@ public class EditorAlunoController extends BaseController {
 
 
     /**
-     * Chamado toda vez que a cena é exibida.
-     * Carrega os dados mais recentes do banco.
+     * ATUALIZADO: Carrega dados E status (Badges e Bordas) e aplica a trava de edição
      */
     public void onReady() {
         User u = Session.getUser();
@@ -396,43 +613,22 @@ public class EditorAlunoController extends BaseController {
         }
 
         try {
-            long trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
-            // ATUALIZADO: Chama o service que agora retorna o DTO com status
+            this.trabalhoId = service.resolveTrabalhoIdDoAlunoLogado();
+            EditorAlunoService.TrabalhoInfo info = service.fetchTrabalhoInfo(trabalhoId)
+                    .orElse(new EditorAlunoService.TrabalhoInfo("v1", "EM_ANDAMENTO"));
+
+            this.versaoAtual = info.versao();
+            this.statusAtualDoFluxo = info.status();
+
             service.carregarTudo(trabalhoId).ifPresent(d -> {
-
-                // Aba 1 - Apresentação (com Badges)
-                if (taInfoPessoais != null) {
-                    taInfoPessoais.setText(d.infoPessoais);
-                    atualizarStatusLabel(lblInfoPessoaisStatus, d.infoPessoaisStatus);
-                }
-                if (taHistoricoAcad != null) {
-                    taHistoricoAcad.setText(d.historicoAcad);
-                    atualizarStatusLabel(lblHistoricoAcadStatus, d.historicoAcadStatus);
-                }
-                if (taMotivacao != null) {
-                    taMotivacao.setText(d.motivacao);
-                    atualizarStatusLabel(lblMotivacaoStatus, d.motivacaoStatus);
-                }
-                if (taHistoricoProf != null) {
-                    taHistoricoProf.setText(d.historicoProf);
-                    atualizarStatusLabel(lblHistoricoProfStatus, d.historicoProfStatus);
-                }
-                if (taContatos != null) {
-                    taContatos.setText(d.contatos);
-                    atualizarStatusLabel(lblContatosStatus, d.contatosStatus);
-                }
-                if (taConhecimentos != null) {
-                    taConhecimentos.setText(d.conhecimentos);
-                    atualizarStatusLabel(lblConhecimentosStatus, d.conhecimentosStatus);
-                }
-                if (taConclusoes != null) {
-                    taConclusoes.setText(d.consideracoes);
-                    atualizarEstiloCampo(taConclusoes, d.consideracoesStatus); // Aba 9 (Considerações) usa borda
-                }
-
-
-                // Abas 2-7 - APIs (com Bordas)
-
+                // Aba 1
+                if (taInfoPessoais != null) { taInfoPessoais.setText(d.infoPessoais); atualizarStatusLabel(lblInfoPessoaisStatus, d.infoPessoaisStatus); }
+                if (taHistoricoAcad != null) { taHistoricoAcad.setText(d.historicoAcad); atualizarStatusLabel(lblHistoricoAcadStatus, d.historicoAcadStatus); }
+                if (taMotivacao != null) { taMotivacao.setText(d.motivacao); atualizarStatusLabel(lblMotivacaoStatus, d.motivacaoStatus); }
+                if (taHistoricoProf != null) { taHistoricoProf.setText(d.historicoProf); atualizarStatusLabel(lblHistoricoProfStatus, d.historicoProfStatus); }
+                if (taContatos != null) { taContatos.setText(d.contatos); atualizarStatusLabel(lblContatosStatus, d.contatosStatus); }
+                if (taConhecimentos != null) { taConhecimentos.setText(d.conhecimentos); atualizarStatusLabel(lblConhecimentosStatus, d.conhecimentosStatus); }
+                if (taConclusoes != null) { taConclusoes.setText(d.consideracoes); atualizarEstiloCampo(taConclusoes, d.consideracoesStatus); }
                 // API 1
                 if (tfApi1Empresa != null) { tfApi1Empresa.setText(d.api1Empresa); atualizarEstiloCampo(tfApi1Empresa, d.api1EmpresaStatus); }
                 if (taApi1Problema != null) { taApi1Problema.setText(d.api1Problema); atualizarEstiloCampo(taApi1Problema, d.api1ProblemaStatus); }
@@ -442,7 +638,6 @@ public class EditorAlunoController extends BaseController {
                 if (taApi1Contrib != null) { taApi1Contrib.setText(d.api1Contrib); atualizarEstiloCampo(taApi1Contrib, d.api1ContribStatus); }
                 if (taApi1Hard != null) { taApi1Hard.setText(d.api1Hard); atualizarEstiloCampo(taApi1Hard, d.api1HardStatus); }
                 if (taApi1Soft != null) { taApi1Soft.setText(d.api1Soft); atualizarEstiloCampo(taApi1Soft, d.api1SoftStatus); }
-
                 // API 2
                 if (tfApi2Empresa != null) { tfApi2Empresa.setText(d.api2Empresa); atualizarEstiloCampo(tfApi2Empresa, d.api2EmpresaStatus); }
                 if (taApi2Problema != null) { taApi2Problema.setText(d.api2Problema); atualizarEstiloCampo(taApi2Problema, d.api2ProblemaStatus); }
@@ -452,7 +647,6 @@ public class EditorAlunoController extends BaseController {
                 if (taApi2Contrib != null) { taApi2Contrib.setText(d.api2Contrib); atualizarEstiloCampo(taApi2Contrib, d.api2ContribStatus); }
                 if (taApi2Hard != null) { taApi2Hard.setText(d.api2Hard); atualizarEstiloCampo(taApi2Hard, d.api2HardStatus); }
                 if (taApi2Soft != null) { taApi2Soft.setText(d.api2Soft); atualizarEstiloCampo(taApi2Soft, d.api2SoftStatus); }
-
                 // API 3
                 if (tfApi3Empresa != null) { tfApi3Empresa.setText(d.api3Empresa); atualizarEstiloCampo(tfApi3Empresa, d.api3EmpresaStatus); }
                 if (taApi3Problema != null) { taApi3Problema.setText(d.api3Problema); atualizarEstiloCampo(taApi3Problema, d.api3ProblemaStatus); }
@@ -462,7 +656,6 @@ public class EditorAlunoController extends BaseController {
                 if (taApi3Contrib != null) { taApi3Contrib.setText(d.api3Contrib); atualizarEstiloCampo(taApi3Contrib, d.api3ContribStatus); }
                 if (taApi3Hard != null) { taApi3Hard.setText(d.api3Hard); atualizarEstiloCampo(taApi3Hard, d.api3HardStatus); }
                 if (taApi3Soft != null) { taApi3Soft.setText(d.api3Soft); atualizarEstiloCampo(taApi3Soft, d.api3SoftStatus); }
-
                 // API 4
                 if (tfApi4Empresa != null) { tfApi4Empresa.setText(d.api4Empresa); atualizarEstiloCampo(tfApi4Empresa, d.api4EmpresaStatus); }
                 if (taApi4Problema != null) { taApi4Problema.setText(d.api4Problema); atualizarEstiloCampo(taApi4Problema, d.api4ProblemaStatus); }
@@ -472,7 +665,6 @@ public class EditorAlunoController extends BaseController {
                 if (taApi4Contrib != null) { taApi4Contrib.setText(d.api4Contrib); atualizarEstiloCampo(taApi4Contrib, d.api4ContribStatus); }
                 if (taApi4Hard != null) { taApi4Hard.setText(d.api4Hard); atualizarEstiloCampo(taApi4Hard, d.api4HardStatus); }
                 if (taApi4Soft != null) { taApi4Soft.setText(d.api4Soft); atualizarEstiloCampo(taApi4Soft, d.api4SoftStatus); }
-
                 // API 5
                 if (tfApi5Empresa != null) { tfApi5Empresa.setText(d.api5Empresa); atualizarEstiloCampo(tfApi5Empresa, d.api5EmpresaStatus); }
                 if (taApi5Problema != null) { taApi5Problema.setText(d.api5Problema); atualizarEstiloCampo(taApi5Problema, d.api5ProblemaStatus); }
@@ -482,7 +674,6 @@ public class EditorAlunoController extends BaseController {
                 if (taApi5Contrib != null) { taApi5Contrib.setText(d.api5Contrib); atualizarEstiloCampo(taApi5Contrib, d.api5ContribStatus); }
                 if (taApi5Hard != null) { taApi5Hard.setText(d.api5Hard); atualizarEstiloCampo(taApi5Hard, d.api5HardStatus); }
                 if (taApi5Soft != null) { taApi5Soft.setText(d.api5Soft); atualizarEstiloCampo(taApi5Soft, d.api5SoftStatus); }
-
                 // API 6
                 if (tfApi6Empresa != null) { tfApi6Empresa.setText(d.api6Empresa); atualizarEstiloCampo(tfApi6Empresa, d.api6EmpresaStatus); }
                 if (taApi6Problema != null) { taApi6Problema.setText(d.api6Problema); atualizarEstiloCampo(taApi6Problema, d.api6ProblemaStatus); }
@@ -492,47 +683,37 @@ public class EditorAlunoController extends BaseController {
                 if (taApi6Contrib != null) { taApi6Contrib.setText(d.api6Contrib); atualizarEstiloCampo(taApi6Contrib, d.api6ContribStatus); }
                 if (taApi6Hard != null) { taApi6Hard.setText(d.api6Hard); atualizarEstiloCampo(taApi6Hard, d.api6HardStatus); }
                 if (taApi6Soft != null) { taApi6Soft.setText(d.api6Soft); atualizarEstiloCampo(taApi6Soft, d.api6SoftStatus); }
-
-                // Aba 8: Tabela Resumo
+                // Aba 8
                 if (d.resumoMd != null && !d.resumoMd.isBlank()) {
                     preencherResumoAPartirDoMarkdown(d.resumoMd);
-                    // Aplica o status a todos os campos da tabela
                     aplicarEstiloTabelaResumo(d.resumoMdStatus);
                 } else {
                     preencherResumoAPartirDoMarkdown("");
-                    aplicarEstiloTabelaResumo(0); // Pendente
+                    aplicarEstiloTabelaResumo(0);
                 }
             });
         } catch (Exception e) {
             alertWarn("Falha ao carregar a última versão: " + e.getMessage());
         }
 
+        atualizarTravaEdicao(this.statusAtualDoFluxo);
         refreshTabStatus(tabPane.getSelectionModel().getSelectedIndex());
     }
 
-    // ====== NOVOS MÉTODOS HELPER PARA STATUS ======
 
-    /**
-     * Aplica o estilo de status (borda) em um campo de texto.
-     */
+    // ====== NOVOS MÉTODOS HELPER PARA STATUS ======
     private void atualizarEstiloCampo(Node campo, int status) {
         if (campo == null) return;
         campo.getStyleClass().removeAll("status-aprovado", "status-reprovado", "status-pendente");
-
         switch (status) {
             case 1 -> campo.getStyleClass().add("status-aprovado");
             case 2 -> campo.getStyleClass().add("status-reprovado");
             default -> campo.getStyleClass().add("status-pendente");
         }
     }
-
-    /**
-     * Aplica o estilo de status (badge) em um label.
-     */
     private void atualizarStatusLabel(Label label, int status) {
         if (label == null) return;
         label.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
-
         switch (status) {
             case 1 -> {
                 label.setText("Aprovado");
@@ -542,35 +723,23 @@ public class EditorAlunoController extends BaseController {
                 label.setText("Reprovado");
                 label.getStyleClass().add("badge-reprovado");
             }
-            default -> { // 0 ou qualquer outro valor
+            default -> {
                 label.setText("Pendente");
                 label.getStyleClass().add("badge-pendente");
             }
         }
     }
-
-    /**
-     * Aplica o estilo de status a todos os campos da tabela Resumo.
-     */
     private void aplicarEstiloTabelaResumo(int status) {
-        // Lista de todos os TextFields e TextAreas da aba 8
         TextInputControl[] camposResumo = {
-                tfSem1, tfEmp1, taSol1,
-                tfSem2, tfEmp2, taSol2,
-                tfSem3, tfEmp3, taSol3,
-                tfSem4, tfEmp4, taSol4,
-                tfSem5, tfEmp5, taSol5,
-                tfSem6, tfEmp6, taSol6
+                tfSem1, tfEmp1, taSol1, tfSem2, tfEmp2, taSol2,
+                tfSem3, tfEmp3, taSol3, tfSem4, tfEmp4, taSol4,
+                tfSem5, tfEmp5, taSol5, tfSem6, tfEmp6, taSol6
         };
-
         for (TextInputControl campo : camposResumo) {
             atualizarEstiloCampo(campo, status);
         }
     }
-
     // =======================================================
-
-
     private List<String[]> extrairLinhasTabela(String md) {
         List<String[]> out = new ArrayList<>();
         boolean dentro = false;
@@ -578,16 +747,12 @@ public class EditorAlunoController extends BaseController {
         for (String raw : md.split("\\R")) {
             String line = raw.trim();
             if (!line.startsWith("|")) {
-                if (dentro) break; // saiu da tabela
+                if (dentro) break;
                 continue;
             }
-            // linha de separadores --- (ativa modo tabela)
             if (line.matches("\\|\\s*-+\\s*\\|.*")) { dentro = true; continue; }
-            // primeira linha com '|' deve ser o header; marca e segue
             if (!headerVisto) { headerVisto = true; continue; }
             if (!dentro) continue;
-
-            // linha de dados: remove bordas e separa por '|'
             String inner = line;
             if (inner.startsWith("|")) inner = inner.substring(1);
             if (inner.endsWith("|")) inner = inner.substring(0, inner.length()-1);
@@ -598,8 +763,6 @@ public class EditorAlunoController extends BaseController {
         }
         return out;
     }
-
-    // ====== utils
     private static String val(TextInputControl c){ return (c == null || c.getText()==null) ? "" : c.getText().trim(); }
     private static String safe(String s){ return s == null ? "" : s.trim().replace("\n"," "); }
     private void alertWarn(String msg){ Alert a = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK); a.setHeaderText(null); a.showAndWait(); }
