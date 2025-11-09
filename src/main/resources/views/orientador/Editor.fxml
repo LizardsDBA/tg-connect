@@ -62,7 +62,9 @@
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar por nome..."/>
                     <TableView fx:id="tblAlunos" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="colNome" editable="false" prefWidth="315.0" resizable="false" sortable="false" text="Nome"/>
+                            <TableColumn fx:id="colNome" editable="false" prefWidth="195" resizable="false" sortable="false" text="Nome" />
+
+                            <TableColumn fx:id="colStatus" editable="false" prefWidth="120" resizable="false" sortable="false" text="Status" />
                         </columns>
                     </TableView>
                 </VBox>

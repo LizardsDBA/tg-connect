@@ -108,7 +108,7 @@ public class JdbcFeedbackDao {
     // ====== PARTES do TG ======
     public enum Parte { APRESENTACAO, API1, API2, API3, API4, API5, API6, RESUMO, FINAIS }
     // ====== DTOs ======
-    public record OrientandoDTO(Long alunoId, String nome, Long trabalhoId) {}
+    public record OrientandoDTO(Long alunoId, String nome, Long trabalhoId, String status) {}
     public record ApresentacaoCamposDTO(
             String versao, boolean concluida,
             String nomeCompleto, int nomeCompletoStatus,
@@ -137,8 +137,9 @@ public class JdbcFeedbackDao {
             String softSkills, int softSkillsStatus
     ) {}
     public List<OrientandoDTO> listarOrientandos(Long orientadorId) throws SQLException {
+        // ATUALIZADO: Adiciona t.status à consulta
         String sql = """
-            SELECT u.id AS aluno_id, u.nome, t.id AS trabalho_id
+            SELECT u.id AS aluno_id, u.nome, t.id AS trabalho_id, t.status
               FROM usuarios u
               JOIN orientacoes o ON o.aluno_id = u.id AND o.ativo = TRUE
               LEFT JOIN trabalhos_graduacao t ON t.aluno_id = u.id
@@ -154,7 +155,8 @@ public class JdbcFeedbackDao {
                     out.add(new OrientandoDTO(
                             rs.getLong("aluno_id"),
                             rs.getString("nome"),
-                            rs.getObject("trabalho_id") == null ? null : rs.getLong("trabalho_id")
+                            rs.getObject("trabalho_id") == null ? null : rs.getLong("trabalho_id"),
+                            rs.getString("status") // <-- NOVO CAMPO
                     ));
                 }
                 return out;

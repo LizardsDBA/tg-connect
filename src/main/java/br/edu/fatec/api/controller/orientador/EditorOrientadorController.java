@@ -59,6 +59,7 @@ public class EditorOrientadorController extends BaseController {
     // ===== Estado =====
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
     private final ObservableList<OrientandoTableItem> alunos = FXCollections.observableArrayList();
+    @FXML private TableColumn<OrientandoTableItem, String> colStatus;
 
     private Long professorId;
     private Long alunoSelecionadoId;
@@ -90,6 +91,48 @@ public class EditorOrientadorController extends BaseController {
     private void initTabelaAlunos() {
         colNome.setCellValueFactory(c -> c.getValue().nomeProperty);
         tblAlunos.setItems(alunos);
+
+        if (colStatus != null) {
+            colStatus.setCellValueFactory(c -> c.getValue().statusProperty());
+            colStatus.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String status, boolean empty) {
+                    super.updateItem(status, empty);
+                    if (empty || status == null) {
+                        setText(null);
+                        setGraphic(null);
+                        getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
+                    } else {
+                        String texto;
+                        String styleClass;
+
+                        switch (status) {
+                            case "ENTREGUE" -> {
+                                texto = "Aguardando Revisão";
+                                styleClass = "badge-pendente"; // (Estilo Laranja/Amarelo)
+                            }
+                            case "APROVADO" -> {
+                                texto = "Concluído";
+                                styleClass = "badge-ok"; // (Verde)
+                            }
+                            case "REPROVADO" -> {
+                                texto = "Revisado (Pendências)";
+                                styleClass = "badge-reprovado"; // (Vermelho)
+                            }
+                            default -> { // EM_ANDAMENTO
+                                texto = "Em Andamento";
+                                styleClass = ""; // (Sem cor)
+                            }
+                        }
+                        setText(texto);
+                        getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
+                        if (!styleClass.isEmpty()) {
+                            getStyleClass().add(styleClass);
+                        }
+                    }
+                }
+            });
+        }
 
         tblAlunos.setRowFactory(tv -> {
             TableRow<OrientandoTableItem> row = new TableRow<>();
@@ -297,11 +340,19 @@ public class EditorOrientadorController extends BaseController {
     public static class OrientandoTableItem {
         private final SimpleLongProperty alunoId = new SimpleLongProperty();
         private final SimpleStringProperty nomeProperty = new SimpleStringProperty();
+        private final SimpleStringProperty statusProperty = new SimpleStringProperty(); // NOVO
+
         public static OrientandoTableItem from(OrientandoDTO d) {
             OrientandoTableItem it = new OrientandoTableItem();
             it.alunoId.set(Objects.requireNonNullElse(d.alunoId(), 0L));
             it.nomeProperty.set(Objects.requireNonNullElse(d.nome(), "—"));
+            it.statusProperty.set(Objects.requireNonNullElse(d.status(), "—")); // NOVO
             return it;
+        }
+
+        // Getter para o status
+        public SimpleStringProperty statusProperty() {
+            return statusProperty;
         }
     }
 
