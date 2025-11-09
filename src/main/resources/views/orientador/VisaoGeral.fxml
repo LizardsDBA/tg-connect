@@ -68,27 +68,23 @@
                     <RowConstraints vgrow="SOMETIMES" />
                 </rowConstraints>
 
-                <!-- Pendentes -->
                 <VBox alignment="CENTER" GridPane.columnIndex="0" styleClass="kpi">
-                    <Label text="Pendentes" />
+                    <Label text="Pendências de Revisão" />
                     <Label fx:id="lblPendentes" styleClass="title" text="0" />
                 </VBox>
 
-                <!-- Para Hoje -->
                 <VBox alignment="CENTER" GridPane.columnIndex="1" styleClass="kpi">
-                    <Label text="Hoje" />
+                    <Label text="Total de Orientandos" />
                     <Label fx:id="lblHoje" styleClass="title" text="0" />
                 </VBox>
 
-                <!-- Atrasados -->
                 <VBox alignment="CENTER" GridPane.columnIndex="2" styleClass="kpi">
-                    <Label text="Atrasados" />
+                    <Label text="Alunos com Reprovações" />
                     <Label fx:id="lblAtrasados" styleClass="title" text="0" />
                 </VBox>
 
-                <!-- Próximos prazos -->
                 <VBox alignment="CENTER" GridPane.columnIndex="3" styleClass="kpi">
-                    <Label text="Prazo" />
+                    <Label text="TGs Concluídos" />
                     <Label fx:id="lblPrazo" styleClass="title" text="0" />
                 </VBox>
             </GridPane>
