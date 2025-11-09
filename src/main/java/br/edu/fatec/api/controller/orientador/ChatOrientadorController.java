@@ -158,6 +158,10 @@ public class ChatOrientadorController extends BaseController {
         }
     }
 
+    public void goHistorico() {
+        SceneManager.go("orientador/Historico.fxml");
+    }
+
     /**
      * Para o polling ao sair da tela
      */

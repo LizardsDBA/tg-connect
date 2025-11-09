@@ -84,6 +84,7 @@ public class ModalPreviewController {
         stage.close();
     }
 
+
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
