@@ -23,6 +23,8 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -58,6 +60,7 @@ public class EditorOrientadorController extends BaseController {
     @FXML private Button btnEnviarComentario;
 
     // ===== Estado =====
+    private final JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
     private final ObservableList<OrientandoTableItem> alunos = FXCollections.observableArrayList();
     @FXML private TableColumn<OrientandoTableItem, String> colStatus;
@@ -74,6 +77,8 @@ public class EditorOrientadorController extends BaseController {
         initBuscaFiltro();
         initBotoes();
     }
+
+    private StringProperty statusAtualDoFluxo = new SimpleStringProperty("—");
 
     private void initUserAndLoad() {
         User user = Session.getUser();
@@ -165,14 +170,16 @@ public class EditorOrientadorController extends BaseController {
                 )
         );
 
+        // --- CORREÇÃO AQUI ---
         if (btnAbrirModalFeedback != null) {
             btnAbrirModalFeedback.disableProperty().bind(
                     tblAlunos.getSelectionModel().selectedItemProperty().isNull()
-                            .or(lblStatus.textProperty().isNotEqualTo("ENTREGUE")) // <-- LÓGICA DA TRAVA
+                            // AGORA CHECA A PROPRIEDADE DE ESTADO, NÃO O TEXTO DO LABEL
+                            .or(statusAtualDoFluxo.isNotEqualTo("ENTREGUE"))
             );
         }
+        // --- FIM DA CORREÇÃO ---
 
-        // (O botão de preview pode ficar habilitado)
         if (btnAbrirModalPreview != null) {
             btnAbrirModalPreview.disableProperty().bind(
                     tblAlunos.getSelectionModel().selectedItemProperty().isNull()
@@ -225,7 +232,15 @@ public class EditorOrientadorController extends BaseController {
      * Carrega o status geral (versão e se está concluído) do aluno.
      */
     private void carregarStatusAluno(Long trabalhoId) {
-        if (trabalhoId == null) return;
+        if (trabalhoId == null) {
+            // Limpa os dados se o aluno não tiver TG
+            this.versaoAtual = "—";
+            lblVersao.setText("—");
+            this.statusAtualDoFluxo.set("—"); // <-- ATUALIZADO
+            atualizarStatusVisual("—", false);
+            return;
+        }
+
         try {
             // Busca a versão atual
             ApresentacaoCamposDTO dto = dao.carregarCamposApresentacao(trabalhoId);
@@ -233,13 +248,18 @@ public class EditorOrientadorController extends BaseController {
             lblVersao.setText(dto.versao());
 
             // Busca o status do fluxo (ex: "ENTREGUE")
-            JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
             String statusFluxo = tgDao.findStatusById(trabalhoId).orElse("EM_ANDAMENTO");
 
+            // ATUALIZADO: Seta a propriedade de estado
+            this.statusAtualDoFluxo.set(statusFluxo);
+
+            // Passa os dois dados para o método de UI
             atualizarStatusVisual(statusFluxo, dto.concluida());
 
         } catch (SQLException e) {
             erro("Falha ao carregar status do aluno.", e);
+            this.statusAtualDoFluxo.set("—"); // Limpa em caso de erro
+            atualizarStatusVisual("—", false);
         }
     }
 
