@@ -9,6 +9,8 @@ target/
 .idea/compiler.xml
 .idea/libraries/
 /.idea/
+.idea/data_source_mapping.xml
+.idea/dataSources.xml
 .idea/
 *.iws
 *.iml
