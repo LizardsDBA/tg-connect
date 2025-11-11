@@ -95,7 +95,7 @@
                     <TableColumn fx:id="colTema" text="Tema" prefWidth="300"/>
                     <TableColumn fx:id="colStatus" text="Status" prefWidth="120"/>
                     <TableColumn fx:id="colPercentual" text="\% Conclusão" prefWidth="160"/>
-                    <TableColumn fx:id="colAtualizado" text="Atualizado em" prefWidth="160"/>
+                    <TableColumn fx:id="colAtualizado" text="Criado em" prefWidth="160"/>
                 </columns>
             </TableView>
         </VBox>
