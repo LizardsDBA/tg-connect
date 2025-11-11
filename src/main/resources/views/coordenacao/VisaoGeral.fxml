@@ -67,22 +67,22 @@
                     <RowConstraints vgrow="SOMETIMES"/>
                 </rowConstraints>
 
-                <!-- Cursos -->
+                <!-- Orientadores Sem Alunos -->
                 <VBox alignment="CENTER" GridPane.columnIndex="0" styleClass="kpi">
-                    <Label text="Cursos"/>
-                    <Label fx:id="lblCursos" styleClass="title" text="0"/>
+                    <Label text="Orientadores sem Alunos"/>
+                    <Label fx:id="lblOrientadoresSemAlunos" styleClass="title" text="..."/>
                 </VBox>
 
                 <!-- Alunos -->
                 <VBox alignment="CENTER" GridPane.columnIndex="1" styleClass="kpi">
                     <Label text="Alunos"/>
-                    <Label fx:id="lblAlunos" styleClass="title" text="0"/>
+                    <Label fx:id="lblAlunos" styleClass="title" text="..."/>
                 </VBox>
 
-                <!-- Orientadores -->
+                <!-- Orientadores Com Alunos -->
                 <VBox alignment="CENTER" GridPane.columnIndex="2" styleClass="kpi">
-                    <Label text="Orientadores"/>
-                    <Label fx:id="lblOrientadores" styleClass="title" text="0"/>
+                    <Label text="Orientadores com Alunos"/>
+                    <Label fx:id="lblOrientadoresComAlunos" styleClass="title" text="..."/>
                 </VBox>
             </GridPane>
         </VBox>
