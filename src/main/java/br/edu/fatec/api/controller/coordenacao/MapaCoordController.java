@@ -8,6 +8,13 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import br.edu.fatec.api.controller.BaseController;
+import javafx.collections.ObservableList;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
+import br.edu.fatec.api.dao.JdbcPainelOrientadorDao;
+import br.edu.fatec.api.dto.PainelOrientadorRow;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapaCoordController extends BaseController {
 
@@ -23,6 +30,7 @@ public class MapaCoordController extends BaseController {
     @FXML private TableColumn<MapaVM, String> colProfessor, colAluno, colTema, colStatus;
 
     private FilteredList<MapaVM> filtered;
+    private final ObservableList<MapaVM> base = FXCollections.observableArrayList();
 
     @FXML
     private void initialize() {
@@ -42,24 +50,67 @@ public class MapaCoordController extends BaseController {
         colStatus.setCellValueFactory(d -> d.getValue().status);
 
         // Dados mock (trocar por DAO/Service)
-        var data = FXCollections.observableArrayList(
-                new MapaVM("Prof. Almeida", "Ana Souza", "Visão computacional em JavaFX", "Em andamento"),
-                new MapaVM("Prof. Almeida", "Bruno Lima", "Integração JDBC/SQLite", "Atrasado"),
-                new MapaVM("Profa. Carla", "Carla Mendes", "UI/UX para JavaFX", "Entregue"),
-                new MapaVM("Profa. Carla", "Diego Rocha", "Relatórios e KPIs", "Em andamento")
-        );
+        // Define o placeholder inicial
+        tblMapa.setPlaceholder(new Label("Carregando dados..."));
 
-        filtered = new FilteredList<>(data, r -> true);
-        tblMapa.setItems(filtered);
-        tblMapa.setPlaceholder(new Label("Sem registros para exibir."));
+        // ===== Carga assíncrona (DAO) =====
+        Task<List<MapaVM>> task = new Task<>() {
+            @Override
+            protected List<MapaVM> call() throws Exception {
+                // Reutiliza o DAO que já criamos
+                JdbcPainelOrientadorDao painelDao = new JdbcPainelOrientadorDao();
+                List<PainelOrientadorRow> rows = painelDao.listarParaCoordenador();
 
-        // Filtro status
-        cbStatus.getItems().setAll("Todos", "Em andamento", "Atrasado", "Entregue");
-        cbStatus.getSelectionModel().selectFirst();
+                List<MapaVM> list = new ArrayList<>();
 
-        // Reatividade de filtros
-        txtBusca.textProperty().addListener((obs, o, n) -> aplicarFiltros());
-        cbStatus.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> aplicarFiltros());
+                // Converte o DTO (Row) para a VM (da tela)
+                for (PainelOrientadorRow r : rows) {
+                    list.add(new MapaVM(
+                            r.getOrientador(),
+                            r.getAluno(),
+                            r.getTema(),
+                            // DECISÃO: Usando Opção A (o status que já vem do DAO)
+                            r.getStatus()
+                    ));
+                }
+                return list;
+            }
+        };
+
+        // O que fazer quando a tarefa (call()) terminar com SUCESSO
+        task.setOnSucceeded(ev -> {
+            base.setAll(task.getValue()); // Popula a lista base
+
+            // Configura o filtro (apontando para a base)
+            filtered = new FilteredList<>(base, r -> true);
+            tblMapa.setItems(filtered);
+
+            // Configura os filtros (agora que os dados chegaram)
+            // Adicionamos os status do DAO aos que já existiam no mock
+            cbStatus.getItems().setAll("Todos", "Em andamento", "Atrasado", "Entregue", "Concluído", "Não avaliado");
+            cbStatus.getSelectionModel().selectFirst();
+
+            // Liga os listeners
+            txtBusca.textProperty().addListener((obs, o, n) -> aplicarFiltros());
+            cbStatus.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> aplicarFiltros());
+
+            // Define o placeholder para caso a lista esteja vazia
+            tblMapa.setPlaceholder(new Label("Sem registros para exibir."));
+        });
+
+        // O que fazer se a tarefa (call()) FALHAR
+        task.setOnFailed(ev -> {
+            tblMapa.setPlaceholder(new Label("Erro ao carregar dados."));
+            if (task.getException() != null) {
+                // Imprime o erro no console para debug
+                task.getException().printStackTrace();
+            }
+        });
+
+        // Inicia a tarefa em uma nova Thread
+        Thread t = new Thread(task);
+        t.setDaemon(true); // Garante que a thread não impeça o app de fechar
+        t.start();
     }
 
     private void aplicarFiltros() {

@@ -5,6 +5,7 @@ import br.edu.fatec.api.config.Database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class JdbcKpiDao implements KpiDao {
@@ -171,5 +172,72 @@ public class JdbcKpiDao implements KpiDao {
             e.printStackTrace();
         }
         return 0.0;
+    }
+
+    /**
+     * CONTAGEM KPI: Total de Alunos Ativos
+     */
+    public int countAlunosAtivos() {
+        // (Usamos 'ativo = 1' se quiséssemos filtrar, mas por enquanto contamos todos)
+        String sql = "SELECT COUNT(id) FROM usuarios WHERE tipo = 'ALUNO'";
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * CONTAGEM KPI: Total de Orientadores COM Alunos
+     */
+    public int countOrientadoresComAlunos() {
+        // Conta Orientadores + Coordenadores que TÊM vínculo na tabela 'orientacoes'
+        String sql = """
+            SELECT COUNT(DISTINCT u.id)
+            FROM usuarios u
+            JOIN orientacoes o ON u.id = o.orientador_id
+            WHERE (u.tipo = 'ORIENTADOR' OR u.tipo = 'COORDENADOR')
+        """;
+        // (Nota: 'JOIN' naturalmente só pega quem tem vínculo)
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * CONTAGEM KPI: Total de Orientadores SEM Alunos
+     */
+    public int countOrientadoresSemAlunos() {
+        // Conta Orientadores + Coordenadores que NÃO TÊM vínculo na 'orientacoes'
+        String sql = """
+            SELECT COUNT(DISTINCT u.id)
+            FROM usuarios u
+            LEFT JOIN orientacoes o ON u.id = o.orientador_id
+            WHERE (u.tipo = 'ORIENTADOR' OR u.tipo = 'COORDENADOR')
+            AND o.id IS NULL
+        """;
+        // (Nota: 'LEFT JOIN' com 'IS NULL' pega quem não tem vínculo)
+        try (Connection con = Database.get();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

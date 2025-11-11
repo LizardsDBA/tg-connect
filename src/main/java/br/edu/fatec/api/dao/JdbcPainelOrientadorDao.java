@@ -1,6 +1,7 @@
 package br.edu.fatec.api.dao;
 
 import br.edu.fatec.api.config.Database;
+import br.edu.fatec.api.dto.AndamentoRow;
 import br.edu.fatec.api.dto.PainelOrientadorRow; // Precisamos atualizar este DTO no próximo passo
 
 import java.sql.Connection;
@@ -102,6 +103,76 @@ public class JdbcPainelOrientadorDao {
             WHERE uOrientador.id = ?
             """;
 
+    // SQL_ANDAMENTO_GERAL é uma cópia da SQL de 58 campos, mas:
+    // 1. Não tem o WHERE por orientador_id
+    // 2. Adiciona a coluna tg.data_inicio
+    private static final String SQL_ANDAMENTO_GERAL =
+            """
+            SELECT
+              uOrientador.nome AS orientador,
+              uAluno.nome      AS aluno,
+              tg.titulo,
+              tg.tema,
+              tg.versao_atual,
+              tg.status        AS status_fluxo,
+              tg.data_inicio, -- <-- Usando a data de criação
+              
+              (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0)) AS total_validadas,
+              (58 - (COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0))) AS pendencias,
+              ROUND(((COALESCE(ap.valid_ap, 0) + COALESCE(sec.valid_sec, 0) + COALESCE(res.valid_res, 0)) / 58.0) * 100, 2) AS percentual_conclusao
+              
+            FROM trabalhos_graduacao tg
+            INNER JOIN usuarios uAluno      ON uAluno.id       = tg.aluno_id AND uAluno.ativo = TRUE
+            INNER JOIN usuarios uOrientador ON uOrientador.id  = tg.orientador_id
+            INNER JOIN orientacoes o       ON o.aluno_id      = uAluno.id AND o.ativo = TRUE
+
+            -- Subquery para Apresentação (9 campos)
+            LEFT JOIN (
+                SELECT 
+                    trabalho_id, versao,
+                    SUM(CASE WHEN nome_completo_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN idade_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN curso_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_academico_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN motivacao_fatec_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN historico_profissional_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN contatos_email_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN principais_conhecimentos_status = 1 THEN 1 ELSE 0 END +
+                        CASE WHEN consideracoes_finais_status = 1 THEN 1 ELSE 0 END) AS valid_ap
+                FROM tg_apresentacao
+                GROUP BY trabalho_id, versao
+            ) ap ON ap.trabalho_id = tg.id AND ap.versao = tg.versao_atual
+
+            -- Subquery para Seções (8 campos * 6 seções = 48)
+            LEFT JOIN (
+                SELECT 
+                    trabalho_id, versao,
+                    SUM(
+                        (CASE WHEN empresa_parceira_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN problema_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN solucao_resumo_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN link_repositorio_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN tecnologias_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN contribuicoes_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN hard_skills_status = 1 THEN 1 ELSE 0 END) +
+                        (CASE WHEN soft_skills_status = 1 THEN 1 ELSE 0 END)
+                    ) AS valid_sec
+                FROM tg_secao
+                GROUP BY trabalho_id, versao
+            ) sec ON sec.trabalho_id = tg.id AND sec.versao = tg.versao_atual
+
+            -- Subquery para Resumo (1 campo)
+            LEFT JOIN (
+                SELECT 
+                    trabalho_id, versao,
+                    (CASE WHEN versao_validada = 1 THEN 1 ELSE 0 END) AS valid_res
+                FROM tg_resumo
+                GROUP BY trabalho_id, versao
+            ) res ON res.trabalho_id = tg.id AND res.versao = tg.versao_atual
+            
+            -- (SEM O 'WHERE' DO ORIENTADOR)
+            """;
+
     public List<PainelOrientadorRow> listar(long orientadorId) {
         List<PainelOrientadorRow> out = new ArrayList<>();
         try (Connection con = Database.get();
@@ -121,6 +192,39 @@ public class JdbcPainelOrientadorDao {
                             rs.getDouble("percentual_conclusao")
                     ));
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    /**
+     * Busca dados para a tela de Andamento Geral, usando o DTO AndamentoRow.
+     * Este método é separado para não quebrar o 'listar()' e 'listarParaCoordenador()'.
+     */
+    public List<AndamentoRow> listarAndamentoGeral() {
+        List<AndamentoRow> out = new ArrayList<>();
+        try (Connection con = Database.get();
+             // Usa a SQL_ANDAMENTO_GERAL (corrigida)
+             PreparedStatement ps = con.prepareStatement(SQL_ANDAMENTO_GERAL);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                // Usa o NOVO DTO 'AndamentoRow' (com 10 argumentos)
+                out.add(new AndamentoRow(
+                        rs.getString("orientador"),
+                        rs.getString("aluno"),
+                        rs.getString("titulo"),
+                        rs.getString("tema"),
+                        rs.getString("versao_atual"),
+                        rs.getInt("total_validadas"),
+                        rs.getInt("pendencias"),
+                        rs.getString("status_fluxo"), // <-- Usando o status da SQL nova
+                        rs.getDouble("percentual_conclusao"),
+                        rs.getTimestamp("data_inicio") != null ?
+                                rs.getTimestamp("data_inicio").toLocalDateTime() : null
+                ));
             }
         } catch (Exception e) {
             e.printStackTrace();
