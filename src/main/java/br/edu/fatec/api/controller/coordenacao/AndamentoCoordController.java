@@ -14,7 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.concurrent.Task;
 import br.edu.fatec.api.dao.JdbcPainelOrientadorDao;
 import br.edu.fatec.api.dao.JdbcKpiDao;
-import br.edu.fatec.api.dto.PainelOrientadorRow;
+import br.edu.fatec.api.dto.AndamentoRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.format.DateTimeFormatter;
@@ -90,12 +90,12 @@ public class AndamentoCoordController extends BaseController {
             protected List<AndamentoVM> call() throws Exception {
                 JdbcPainelOrientadorDao painelDao = new JdbcPainelOrientadorDao();
                 JdbcKpiDao kpiDao = new JdbcKpiDao();
-                List<PainelOrientadorRow> rows = painelDao.listarParaCoordenador();
+                List<AndamentoRow> rows = painelDao.listarAndamentoGeral();
 
                 List<AndamentoVM> list = new ArrayList<>();
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-                for (PainelOrientadorRow r : rows) {
+                for (AndamentoRow r : rows) {
                     // Status conforme combinado: pendências == 0 → "Em dia"
                     int pendencias = r.getPendencias();
                     String status = (pendencias == 0) ? "Em dia" : "Atrasado";
@@ -105,8 +105,9 @@ public class AndamentoCoordController extends BaseController {
                     pct = Math.max(0, Math.min(100, pct));
 
 
-                    // Atualizado: se o DTO original não tem data, deixamos "-"
-                    String atualizado = "-";
+                    // Pega a data real que veio do novo DTO
+                    LocalDateTime data = r.getAtualizadoEm();
+                    String atualizado = (data != null) ? data.format(fmt) : "-";
 
                     // Curso será ignorado por ora ("—")
                     list.add(new AndamentoVM(
