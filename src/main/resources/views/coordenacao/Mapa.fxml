@@ -35,6 +35,8 @@
                     onAction="#goMapa" styleClass="sidebar-link" text="Mapa de Orientação"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>
 
         <!-- Main Content -->

@@ -252,4 +252,5 @@ public class AndamentoCoordController extends BaseController {
     public void goVisaoGeral(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goMapa(){ SceneManager.go("coordenacao/Mapa.fxml"); }
     public void goAndamento(){ SceneManager.go("coordenacao/Andamento.fxml"); }
+    public void goHistorico() { SceneManager.go("coordenacao/HistoricoCoord.fxml"); }
 }

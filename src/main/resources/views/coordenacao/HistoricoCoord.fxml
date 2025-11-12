@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="br.edu.fatec.api.controller.coordenacao.HistoricoCoordController"
+      spacing="0">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="header">
+        <padding><Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/></padding>
+        <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
+        <Label styleClass="logo" text="API/TG"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Sou Orientador" styleClass="btn-trade" onAction="#goHomeOrient"/>
+        <Button text="Home" onAction="#goHome"/>
+        <Button text="Sair" onAction="#logout"/>
+    </HBox>
+
+    <!-- Main Layout with Sidebar -->
+    <HBox fx:id="mainLayout" VBox.vgrow="ALWAYS" spacing="16.0">
+        <padding>
+            <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
+        </padding>
+
+        <!-- Sidebar -->
+        <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
+            <Label styleClass="sidebar-title" text="Coordenador"/>
+            <Label styleClass="sidebar-group" text="GERAL"/>
+
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Visão Geral" onAction="#goVisaoGeral"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Mapa de Orientação" onAction="#goMapa"/>
+            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
+        </VBox>
+
+        <!-- Main Content (card) -->
+        <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
+
+            <!-- Título -->
+            <VBox spacing="6.0">
+                <Label styleClass="title" text="Histórico de Versões — Orientador"/>
+                <Label styleClass="subtitle"
+                       text="Selecione um aluno para visualizar o histórico completo de versões do TG."/>
+            </VBox>
+
+            <!-- Layout: Lista de Alunos + Preview -->
+            <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+
+                <!-- Painel Esquerdo: Lista de Alunos -->
+                <VBox spacing="8.0" style="-fx-padding: 8;">
+                    <Label text="Meus Orientandos" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                    <!-- Busca -->
+                    <TextField fx:id="txtBuscaAluno" promptText="Buscar aluno..."
+                               style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
+
+                    <!-- Tabela de Alunos -->
+                    <TableView fx:id="tblAlunos" VBox.vgrow="ALWAYS"
+                               style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;">
+                        <columns>
+                            <TableColumn fx:id="colNome" text="Nome do Aluno" prefWidth="250"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <!-- Painel Direito: Preview (inicialmente oculto) -->
+                <VBox fx:id="previewContainer" spacing="12.0" style="-fx-padding: 8;">
+
+                    <!-- Cabeçalho do Preview -->
+                    <VBox spacing="8.0" style="-fx-background-color: #f8f9fa; -fx-padding: 12;
+                                                -fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;">
+                        <Label text="Aluno:" style="-fx-font-size: 12px; -fx-text-fill: #6f6f6f;"/>
+                        <Label fx:id="lblAlunoSelecionado" text="—"
+                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    </VBox>
+
+                    <!-- Split: Lista de Versões + Conteúdo -->
+                    <SplitPane dividerPositions="0.25" VBox.vgrow="ALWAYS">
+
+                        <!-- Lista de Versões -->
+                        <VBox spacing="4.0">
+                            <Label text="Versões" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
+                            <ListView fx:id="listVersions" VBox.vgrow="ALWAYS"
+                                      style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
+                        </VBox>
+
+                        <!-- Conteúdo da Versão -->
+                        <VBox spacing="8.0">
+
+                            <!-- Info da Versão -->
+                            <HBox spacing="16.0" alignment="CENTER_LEFT">
+                                <VBox spacing="4.0">
+                                    <Label text="Versão:" style="-fx-font-size: 12px; -fx-text-fill: #6f6f6f;"/>
+                                    <Label fx:id="lblVersaoSelecionada" text="—"
+                                           style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                                </VBox>
+                                <VBox spacing="4.0">
+                                    <Label text="Data:" style="-fx-font-size: 12px; -fx-text-fill: #6f6f6f;"/>
+                                    <Label fx:id="lblDataEnvio" text="—" style="-fx-font-size: 14px;"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- Split Horizontal: Markdown + Preview -->
+                            <SplitPane orientation="HORIZONTAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+
+                                <!-- Markdown Source -->
+                                <VBox spacing="4.0">
+                                    <Label text="Markdown" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
+                                    <TextArea fx:id="txtMarkdownSource" editable="false" wrapText="true"
+                                              VBox.vgrow="ALWAYS"
+                                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;
+                                                     -fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;
+                                                     -fx-control-inner-background: #f8f9fa;"/>
+                                </VBox>
+
+                                <!-- Preview -->
+                                <VBox spacing="4.0">
+                                    <Label text="Preview" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
+                                    <WebView fx:id="webPreview" VBox.vgrow="ALWAYS"
+                                             style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
+                                </VBox>
+
+                            </SplitPane>
+                        </VBox>
+
+                    </SplitPane>
+
+                </VBox>
+
+            </SplitPane>
+
+        </VBox>
+    </HBox>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER" spacing="12.0" styleClass="footer">
+        <padding>
+            <Insets top="12.0" right="12.0" bottom="12.0" left="16.0"/>
+        </padding>
+        <Label styleClass="subtle" text="TG Connect API 2025-2"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label styleClass="subtle" text="Grupo LizardsDBA"/>
+    </HBox>
+
+</VBox>

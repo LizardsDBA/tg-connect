@@ -136,9 +136,12 @@ public class MapaCoordController extends BaseController {
     public void goHomeOrient(){ SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void goHome(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
+
     public void goVisaoGeral(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goMapa(){ SceneManager.go("coordenacao/Mapa.fxml"); }
     public void goAndamento(){ SceneManager.go("coordenacao/Andamento.fxml"); }
+    public void goHistorico() { SceneManager.go("coordenacao/HistoricoCoord.fxml"); }
+
 
     /* ===== VM ===== */
     public static class MapaVM {
