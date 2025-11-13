@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="br.edu.fatec.api.controller.aluno.SolicitarOrientacaoController"
+      spacing="0"
+      stylesheets="@/application.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="header">
+        <padding><Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/></padding>
+        <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
+        <Label styleClass="logo" text="API/TG"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Home" onAction="#goHome"/>
+        <Button text="Sair" onAction="#logout"/>
+    </HBox>
+
+    <!-- Main Content -->
+    <HBox fx:id="mainLayout" VBox.vgrow="ALWAYS" spacing="16.0">
+        <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
+
+        <!-- Sidebar (vazio por enquanto, mas mantém consistência) -->
+        <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
+            <Label styleClass="sidebar-title" text="Aluno"/>
+            <Label styleClass="sidebar-group" text="ORIENTAÇÃO"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    styleClass="sidebar-link" text="Solicitar Orientação"/>
+        </VBox>
+
+        <!-- Main Content Card -->
+        <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
+
+            <!-- Page Title -->
+            <VBox spacing="6.0">
+                <Label styleClass="title" text="Bem-vindo(a)!"/>
+                <Label styleClass="subtitle" 
+                       text="Para continuar, escolha seu professor orientador e aguarde a aprovação da sua solicitação."/>
+            </VBox>
+
+            <!-- Formulário de Solicitação -->
+            <VBox fx:id="vboxForm" spacing="16.0" VBox.vgrow="ALWAYS">
+                
+                <!-- Status -->
+                <Label fx:id="lblStatus" styleClass="field-label" 
+                       text="Selecione um orientador disponível:"/>
+                
+                <!-- Tabela de Orientadores -->
+                <TableView fx:id="tblOrientadores" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colNome" text="Nome" prefWidth="250"/>
+                        <TableColumn fx:id="colEmail" text="E-mail" prefWidth="200"/>
+                        <TableColumn fx:id="colOrientandos" text="Orientandos" prefWidth="100"/>
+                        <TableColumn fx:id="colDisponivel" text="Status" prefWidth="120"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Carregando orientadores disponíveis..."/>
+                    </placeholder>
+                </TableView>
+                
+                <!-- Mensagem Opcional -->
+                <VBox spacing="8.0">
+                    <Label styleClass="field-label" text="Mensagem (opcional):"/>
+                    <TextArea fx:id="txtMensagem" 
+                              promptText="Escreva uma breve apresentação ou motivo para escolher este orientador..."
+                              prefRowCount="4"
+                              wrapText="true"/>
+                </VBox>
+                
+                <!-- Botões -->
+                <HBox spacing="12.0" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnSolicitar" 
+                            text="Solicitar Orientação" 
+                            onAction="#onSolicitar"
+                            disable="true"
+                            styleClass="btn-primary"/>
+                </HBox>
+            </VBox>
+
+            <!-- Tela de Aguardando Resposta -->
+            <VBox fx:id="vboxAguardando" spacing="24.0" alignment="CENTER" 
+                  visible="false" managed="false" VBox.vgrow="ALWAYS">
+                
+                <VBox spacing="12.0" alignment="CENTER" styleClass="kpi">
+                    <Label styleClass="title" text="⏳"/>
+                    <Label fx:id="lblStatusSolicitacao" styleClass="title" 
+                           text="Status: Aguardando resposta"/>
+                    <Label fx:id="lblOrientadorSolicitado" 
+                           text="Orientador: Carregando..."/>
+                    <Label fx:id="lblDataSolicitacao" 
+                           text="Data da solicitação: --/--/----"/>
+                </VBox>
+                
+                <Label styleClass="subtitle" wrapText="true" maxWidth="500" textAlignment="CENTER"
+                       text="Sua solicitação foi enviada com sucesso! Aguarde a resposta do orientador. Você será notificado assim que houver uma resposta."/>
+                
+                <Button text="Atualizar Status" onAction="#onAtualizarStatus"/>
+            </VBox>
+
+        </VBox>
+    </HBox>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER" spacing="12.0" styleClass="footer">
+        <padding><Insets top="12.0" right="12.0" bottom="12.0" left="16.0"/></padding>
+        <Label styleClass="subtle" text="TG Connect API 2025-2"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label styleClass="subtle" text="Grupo LizardsDBA"/>
+    </HBox>
+</VBox>

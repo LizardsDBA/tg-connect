@@ -270,6 +270,26 @@ SELECT @aluno_id, @orientador_id, TRUE
     WHERE o.aluno_id = @aluno_id AND o.orientador_id = @orientador_id AND o.ativo = TRUE
 );
 
+CREATE TABLE IF NOT EXISTS solicitacoes_orientacao (
+                                                       id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                                       aluno_id            BIGINT NOT NULL,
+                                                       orientador_id       BIGINT NOT NULL,
+                                                       status              ENUM('PENDENTE', 'APROVADA', 'RECUSADA') NOT NULL DEFAULT 'PENDENTE',
+    mensagem_aluno      TEXT NULL,
+    justificativa_recusa TEXT NULL,
+    data_solicitacao    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_resposta       DATETIME NULL,
+
+    FOREIGN KEY (aluno_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (orientador_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+
+    INDEX idx_solicitacao_aluno (aluno_id),
+    INDEX idx_solicitacao_orientador (orientador_id),
+    INDEX idx_solicitacao_status (status),
+    INDEX idx_orientador_pendente (orientador_id, status),
+    INDEX idx_aluno_data (aluno_id, data_solicitacao DESC)
+    ) ENGINE=InnoDB;
+
 -- TG do aluno
 INSERT INTO trabalhos_graduacao (aluno_id, orientador_id, titulo, tema, versao_atual, percentual_conclusao)
 SELECT @aluno_id, @orientador_id, 'Portfólio TG - Alice', 'Histórico de APIs e Portfólio', 'v1', 0.00
@@ -277,6 +297,7 @@ SELECT @aluno_id, @orientador_id, 'Portfólio TG - Alice', 'Histórico de APIs e
   AND NOT EXISTS (SELECT 1 FROM trabalhos_graduacao t WHERE t.aluno_id = @aluno_id);
 
 SET @tg_id := (SELECT id FROM trabalhos_graduacao WHERE aluno_id=@aluno_id);
+
 
 -- =========================
 -- TG v1 (suas novas seeds)

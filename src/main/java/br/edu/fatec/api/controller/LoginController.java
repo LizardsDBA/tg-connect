@@ -15,13 +15,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import br.edu.fatec.api.dao.JdbcSolicitacaoOrientacaoDao;
+import javafx.concurrent.Task;
 
 public class LoginController {
 
-
     private final LoginService loginService = new LoginService(new JdbcLoginDao());
 
-    // ajuste os fx:id conforme seu FXML
     @FXML private VBox allView;
     @FXML private TextField txtEmail;
     @FXML private PasswordField pfSenha;
@@ -33,7 +33,7 @@ public class LoginController {
         allView.addEventFilter(KeyEvent.KEY_PRESSED, evt -> {
             if (evt.getCode() == KeyCode.ENTER) {
                 btnEnter.fire();
-                evt.consume(); // evita propagação se quiser
+                evt.consume();
             }
         });
     }
@@ -48,7 +48,7 @@ public class LoginController {
             Session.setUser(u);
             switch (u.getRole()) {
                 case ALUNO:
-                    SceneManager.go("aluno/Dashboard.fxml");
+                    verificarOrientadorAluno(u.getId());
                     break;
                 case ORIENTADOR:
                     SceneManager.go("orientador/VisaoGeral.fxml");
@@ -60,5 +60,33 @@ public class LoginController {
                     lblErro.setText("Perfil desconhecido.");
             }
         }, () -> lblErro.setText("E-mail ou senha inválidos"));
+    }
+
+    private void verificarOrientadorAluno(Long alunoId) {
+        Task<Boolean> task = new Task<>() {
+            @Override
+            protected Boolean call() throws Exception {
+                JdbcSolicitacaoOrientacaoDao dao = new JdbcSolicitacaoOrientacaoDao();
+                return dao.alunoTemOrientador(alunoId);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            boolean temOrientador = task.getValue();
+
+            if (temOrientador) {
+                SceneManager.go("aluno/Dashboard.fxml");
+            } else {
+                SceneManager.go("aluno/SolicitarOrientacao.fxml");
+            }
+        });
+
+        task.setOnFailed(e -> {
+            // CORRIGIDO: pegar exceção da task, não do evento
+            task.getException().printStackTrace();
+            SceneManager.go("aluno/Dashboard.fxml");
+        });
+
+        new Thread(task).start();
     }
 }
