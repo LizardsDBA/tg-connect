@@ -7,6 +7,7 @@ module org.example {
     requires flexmark.ext.tables;
     requires flexmark;
     requires flexmark.util.data;
+    requires org.apache.commons.text;
 
     // Abre pacotes para JavaFX FXML (reflexão)
     opens br.edu.fatec.api to javafx.graphics, javafx.fxml;
