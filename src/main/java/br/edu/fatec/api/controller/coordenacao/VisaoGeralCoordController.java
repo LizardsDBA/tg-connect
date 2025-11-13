@@ -84,7 +84,5 @@ public class VisaoGeralCoordController extends BaseController {
     public void goVisaoGeral(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goMapa(){ SceneManager.go("coordenacao/Mapa.fxml"); }
     public void goAndamento(){ SceneManager.go("coordenacao/Andamento.fxml"); }
-
-    // (Opcional) futuros handlers:
-    // public void goRelatorios(){ SceneManager.go("coordenacao/Relatorios.fxml"); }
+    public void goHistorico() { SceneManager.go("coordenacao/HistoricoCoord.fxml"); }
 }

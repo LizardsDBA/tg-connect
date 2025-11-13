@@ -7,6 +7,13 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import br.edu.fatec.api.dao.JdbcFeedbackDao.OrientandoDTO; // Para reutilizar o DTO
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JdbcVersoesTrabalhoDao {
     
@@ -77,5 +84,36 @@ public class JdbcVersoesTrabalhoDao {
         }
         
         throw new SQLException("Trabalho não encontrado para o aluno " + alunoId);
+    }
+
+    /**
+     * Lista TODOS os alunos (para o Coordenador) que possuem um TG.
+     * Reutiliza o OrientandoDTO para transportar os dados.
+     */
+    public List<OrientandoDTO> listarTodosAlunosParaHistorico() throws SQLException {
+        String sql = """
+            SELECT u.id AS aluno_id, u.nome, t.id AS trabalho_id, t.status
+              FROM usuarios u
+              LEFT JOIN trabalhos_graduacao t ON t.aluno_id = u.id
+             WHERE u.tipo = 'ALUNO' AND u.ativo = TRUE
+             ORDER BY u.nome
+        """;
+
+        List<OrientandoDTO> out = new ArrayList<>();
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    out.add(new OrientandoDTO(
+                            rs.getLong("aluno_id"),
+                            rs.getString("nome"),
+                            rs.getObject("trabalho_id") == null ? null : rs.getLong("trabalho_id"),
+                            rs.getString("status")
+                    ));
+                }
+            }
+        }
+        return out;
     }
 }
