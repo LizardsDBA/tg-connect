@@ -20,6 +20,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.controller.BaseController;
+// <-- IMPORT ADICIONADO
+import br.edu.fatec.api.controller.orientador.HistoricoOrientadorController;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -32,11 +34,11 @@ import java.util.List;
  * HISTÓRICO DE ALTERAÇÕES:
  * - Versão original: Mock com dados estáticos
  * - 18/10/2025 (ALTERADO POR MATHEUS): Implementação completa do chat real
- *   - Integração com banco de dados MySQL
- *   - Sistema de polling a cada 2 segundos
- *   - Lista dinâmica de conversas com badges
- *   - Marcação automática de lidas
- *   - Suporte para TableView e ListView (fallback)
+ * - Integração com banco de dados MySQL
+ * - Sistema de polling a cada 2 segundos
+ * - Lista dinâmica de conversas com badges
+ * - Marcação automática de lidas
+ * - Suporte para TableView e ListView (fallback)
  *
  * @author Matheus
  * @date 18/10/2025
@@ -158,8 +160,15 @@ public class ChatOrientadorController extends BaseController {
         }
     }
 
+    /**
+     * ATUALIZADO: Agora chama onRefreshData() para recarregar o histórico.
+     */
     public void goHistorico() {
-        SceneManager.go("orientador/Historico.fxml");
+        stopPolling(); // Para o polling antes de sair
+        SceneManager.go("orientador/Historico.fxml", c -> {
+            HistoricoOrientadorController ctrl = (HistoricoOrientadorController) c;
+            ctrl.onRefreshData();
+        });
     }
 
     /**
@@ -579,7 +588,7 @@ public class ChatOrientadorController extends BaseController {
     }
 
     /**
-     *  Adicionado callback onReady()
+     * Adicionado callback onReady()
      */
     public void goChat() {
         stopPolling();

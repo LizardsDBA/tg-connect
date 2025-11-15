@@ -6,7 +6,7 @@ import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
 import br.edu.fatec.api.dao.JdbcPainelOrientadorDao;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList; // NOVO IMPORT
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -15,8 +15,11 @@ import javafx.scene.layout.HBox;
 import br.edu.fatec.api.controller.BaseController;
 
 import br.edu.fatec.api.model.auth.Role;
+import br.edu.fatec.api.controller.orientador.ChatOrientadorController;
+// ----- IMPORT ADICIONADO AQUI -----
+import br.edu.fatec.api.controller.orientador.HistoricoOrientadorController;
 
-import java.util.function.Predicate; // NOVO IMPORT
+import java.util.function.Predicate;
 
 public class PainelOrientadorController extends BaseController {
 
@@ -26,7 +29,7 @@ public class PainelOrientadorController extends BaseController {
 
     // Filtros
     @FXML private TextField txtBuscaAluno;
-    @FXML private CheckBox chkAguardandoRevisao; // NOVO
+    @FXML private CheckBox chkAguardandoRevisao;
 
     // Tabela
     @FXML private TableView<PainelOrientadorRow> tblPendencias;
@@ -36,7 +39,7 @@ public class PainelOrientadorController extends BaseController {
 
     private final JdbcPainelOrientadorDao dao = new JdbcPainelOrientadorDao();
 
-    // ATUALIZADO: Precisamos da lista original e da filtrada
+
     private ObservableList<PainelOrientadorRow> masterData = FXCollections.observableArrayList();
     private FilteredList<PainelOrientadorRow> filteredData;
 
@@ -60,7 +63,7 @@ public class PainelOrientadorController extends BaseController {
         colValidadas.setCellValueFactory(c -> javafx.beans.binding.Bindings.createIntegerBinding(c.getValue()::getTotalValidadas));
         colPendencias.setCellValueFactory(c -> javafx.beans.binding.Bindings.createIntegerBinding(c.getValue()::getPendencias));
 
-        // ATUALIZADO: Status agora mostra o status do fluxo
+        // Status agora mostra o status do fluxo
         colStatus.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String status, boolean empty) {
@@ -75,19 +78,19 @@ public class PainelOrientadorController extends BaseController {
                     switch (status) {
                         case "ENTREGUE" -> {
                             texto = "Aguardando Revisão";
-                            styleClass = "badge-pendente"; // Amarelo/Laranja (Precisa de ação)
+                            styleClass = "badge-pendente";
                         }
                         case "APROVADO" -> {
                             texto = "Concluído";
-                            styleClass = "badge-ok"; // Verde
+                            styleClass = "badge-ok";
                         }
                         case "REPROVADO" -> {
                             texto = "Revisado (Pendências)";
-                            styleClass = "badge-reprovado"; // Vermelho
+                            styleClass = "badge-reprovado";
                         }
                         default -> { // EM_ANDAMENTO
                             texto = "Em Andamento";
-                            styleClass = ""; // Sem cor
+                            styleClass = "";
                         }
                     }
                     setText(texto);
@@ -103,7 +106,7 @@ public class PainelOrientadorController extends BaseController {
         // Progresso (OK)
         colProgresso.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
         colProgresso.setCellFactory(col -> new TableCell<>() {
-            // ... (Seu código original da barra de progresso está perfeito) ...
+
             private final ProgressBar bar = new ProgressBar(0);
             private final Label lbl = new Label("0%");
             private final HBox box = new HBox(8, bar, lbl);
@@ -139,16 +142,16 @@ public class PainelOrientadorController extends BaseController {
         User u = Session.getUser();
         if (u == null) { SceneManager.go("login/Login.fxml"); return; }
 
-        // ATUALIZADO: Configura o FilteredList
+
         masterData.addAll(dao.listar(u.getId()));
         filteredData = new FilteredList<>(masterData, r -> true);
         tblPendencias.setItems(filteredData);
 
-        // ATUALIZADO: Listeners para os filtros combinados
+
         txtBuscaAluno.textProperty().addListener((obs, old, val) -> aplicarFiltros());
         chkAguardandoRevisao.selectedProperty().addListener((obs, old, val) -> aplicarFiltros());
 
-        // ... (Seu código do btnSouCoordenador está OK) ...
+
         boolean isCoord = (u != null && u.getRole() == Role.COORDENADOR);
         if (btnSouCoordenador != null) {
             btnSouCoordenador.setVisible(isCoord);
@@ -173,16 +176,22 @@ public class PainelOrientadorController extends BaseController {
     public void limparFiltros() {
         if (txtBuscaAluno != null) txtBuscaAluno.clear();
         if (chkAguardandoRevisao != null) chkAguardandoRevisao.setSelected(false);
-        // aplicarFiltros(); // O listener do checkbox já chama isso
     }
 
     public void abrirEditor() {
         SceneManager.go("orientador/Editor.fxml");
     }
 
+    /**
+     * ATUALIZADO: Agora chama onRefreshData() para recarregar o histórico.
+     */
     public void goHistorico() {
-        SceneManager.go("orientador/Historico.fxml");
-    }    // ... (Restante dos seus métodos de navegação) ...
+        SceneManager.go("orientador/Historico.fxml", c -> {
+            HistoricoOrientadorController ctrl = (HistoricoOrientadorController) c;
+            ctrl.onRefreshData();
+        });
+    }
+
     public void abrirChat() {
         SceneManager.go("orientador/Chat.fxml", c -> {
             ChatOrientadorController ctrl = (ChatOrientadorController) c;
