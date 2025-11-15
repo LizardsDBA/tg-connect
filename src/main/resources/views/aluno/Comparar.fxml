@@ -61,7 +61,7 @@
 
                 <VBox GridPane.columnIndex="0" spacing="8.0" styleClass="version-column">
                     <HBox alignment="BASELINE_LEFT" spacing="8.0">
-                        <Label text="Última Versão Corrigida" styleClass="version-title"/>
+                        <Label text="Versão Anterior" styleClass="version-title"/>
                         <Label fx:id="lblVersaoA" styleClass="version-tag" text="(v1.0)"/>
                     </HBox>
                     <WebView fx:id="webA" VBox.vgrow="ALWAYS"
