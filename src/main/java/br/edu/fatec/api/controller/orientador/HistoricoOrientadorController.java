@@ -2,13 +2,13 @@ package br.edu.fatec.api.controller.orientador;
 
 import br.edu.fatec.api.controller.BaseController;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
-import br.edu.fatec.api.dto.HistoricoItemDTO; // <-- DTO NOVO
+import br.edu.fatec.api.dto.HistoricoItemDTO;
 import br.edu.fatec.api.dto.VersaoHistoricoDTO;
-import br.edu.fatec.api.model.Mensagem; // <-- MODEL PARA FEEDBACK
+import br.edu.fatec.api.model.Mensagem;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
-import br.edu.fatec.api.service.HistoricoService; // <-- SERVIÇO NOVO
+import br.edu.fatec.api.service.HistoricoService;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -21,8 +21,10 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.sql.SQLException;
+import java.time.LocalDate; // <-- NOVO IMPORT
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Stream; // <-- NOVO IMPORT
 
 public class HistoricoOrientadorController extends BaseController {
 
@@ -31,7 +33,6 @@ public class HistoricoOrientadorController extends BaseController {
     @FXML private TableColumn<AlunoTableItem, String> colNome;
     @FXML private TextField txtBuscaAluno;
 
-    // ATUALIZADO: O tipo da ListView agora é o nosso DTO unificado
     @FXML private ListView<HistoricoItemDTO> listVersions;
 
     @FXML private TextArea txtMarkdownSource;
@@ -43,12 +44,16 @@ public class HistoricoOrientadorController extends BaseController {
     @FXML private VBox feedbackContainer;
     @FXML private VBox previewContainer;
 
+    // =======================================================
+    // NOVOS CAMPOS FXML PARA O FILTRO
+    @FXML private DatePicker dpDataInicio;
+    @FXML private DatePicker dpDataFim;
+    @FXML private Button btnFiltrar;
+    // =======================================================
+
     // --- DAOs E SERVIÇOS ---
     private final JdbcFeedbackDao feedbackDao = new JdbcFeedbackDao();
-
-    // NOVO: Instancia o serviço que criamos
     private final HistoricoService historicoService = new HistoricoService();
-
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     // --- VARIÁVEIS DE ESTADO ---
@@ -97,7 +102,6 @@ public class HistoricoOrientadorController extends BaseController {
         txtBuscaAluno.textProperty().addListener((obs, old, val) -> filtrarAlunos(val));
 
         // --- CONFIGURAÇÃO DA LISTA DE HISTÓRICO (ListView) ---
-        // ATUALIZADO: Configura a ListView para o DTO unificado
         listVersions.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(HistoricoItemDTO item, boolean empty) {
@@ -117,7 +121,6 @@ public class HistoricoOrientadorController extends BaseController {
                             data);
                     setText(texto);
 
-                    // Adiciona um estilo visual
                     if (item.tipo() == HistoricoItemDTO.TipoHistorico.VERSAO) {
                         setStyle("-fx-font-weight: bold;");
                     } else {
@@ -127,20 +130,23 @@ public class HistoricoOrientadorController extends BaseController {
             }
         });
 
-        // ATUALIZADO: O listener agora trata os dois tipos de item
+        // Listener da lista (não muda)
         listVersions.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
             if (selected == null) return;
 
             if (selected.tipo() == HistoricoItemDTO.TipoHistorico.VERSAO) {
-                // É uma Versão, extrai o DTO original e chama o método antigo
                 VersaoHistoricoDTO versao = (VersaoHistoricoDTO) selected.payload();
                 exibirVersao(versao);
             } else {
-                // É um Feedback (Mensagem), chama o novo método
                 Mensagem msg = (Mensagem) selected.payload();
                 exibirFeedback(msg);
             }
         });
+
+        // =======================================================
+        // NOVA AÇÃO DO BOTÃO DE FILTRO
+        btnFiltrar.setOnAction(e -> carregarHistoricoAluno());
+        // =======================================================
 
         // Carregar lista de alunos
         carregarOrientandos();
@@ -196,41 +202,64 @@ public class HistoricoOrientadorController extends BaseController {
         previewContainer.setVisible(true);
         previewContainer.setManaged(true);
 
-        // Limpar seleções anteriores
+        // Limpar seleções e filtros anteriores
         listVersions.getItems().clear();
         txtMarkdownSource.clear();
         webPreview.getEngine().loadContent("");
         feedbackContainer.setVisible(false);
         feedbackContainer.setManaged(false);
+        dpDataInicio.setValue(null); // Limpa o filtro de data
+        dpDataFim.setValue(null);    // Limpa o filtro de data
 
         // Carregar histórico do aluno
         carregarHistoricoAluno();
     }
 
     /**
-     * ATUALIZADO: Carrega a lista unificada (Versões + Feedbacks) do Service.
+     * ATUALIZADO: Carrega a lista unificada E APLICA O FILTRO DE DATA.
      */
     private void carregarHistoricoAluno() {
         if (trabalhoIdSelecionado == null) return;
 
-        try {
-            // USA O NOVO SERVIÇO para buscar a lista unificada
-            List<HistoricoItemDTO> historico = historicoService.getHistoricoUnificado(trabalhoIdSelecionado);
+        // =======================================================
+        // LÓGICA DE FILTRO DE DATA
+        LocalDate inicio = dpDataInicio.getValue();
+        LocalDate fim = dpDataFim.getValue();
+        // =======================================================
 
-            if (historico.isEmpty()) {
+        try {
+            // 1. Busca a lista COMPLETA no service
+            List<HistoricoItemDTO> historicoCompleto = historicoService.getHistoricoUnificado(trabalhoIdSelecionado);
+
+            // 2. Aplica o filtro de data
+            Stream<HistoricoItemDTO> stream = historicoCompleto.stream();
+            if (inicio != null) {
+                stream = stream.filter(item -> !item.data().toLocalDate().isBefore(inicio)); // "on or after"
+            }
+            if (fim != null) {
+                stream = stream.filter(item -> !item.data().toLocalDate().isAfter(fim)); // "on or before"
+            }
+            List<HistoricoItemDTO> historicoFiltrado = stream.toList();
+
+            // 3. Exibe o resultado
+            if (historicoFiltrado.isEmpty()) {
+                String msg = (inicio != null || fim != null)
+                        ? "Nenhum item encontrado para este filtro de data."
+                        : "Este aluno ainda não possui versões ou feedbacks.";
+
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Histórico Vazio");
                 alert.setHeaderText(null);
-                alert.setContentText("Este aluno ainda não possui versões ou feedbacks.");
+                alert.setContentText(msg);
                 alert.showAndWait();
-                listVersions.getItems().clear(); // Limpa a lista
+                listVersions.getItems().clear();
                 return;
             }
 
-            listVersions.getItems().setAll(historico);
+            listVersions.getItems().setAll(historicoFiltrado);
 
             // Selecionar o último item (mais recente)
-            if (!historico.isEmpty()) {
+            if (!historicoFiltrado.isEmpty()) {
                 listVersions.getSelectionModel().selectLast();
             }
 
@@ -366,7 +395,6 @@ public class HistoricoOrientadorController extends BaseController {
 
     /**
      * Classe interna (DTO) para popular a Tabela de Alunos.
-     * (Esta é a classe que estava faltando e causando os 7 erros)
      */
     public static class AlunoTableItem {
         private final SimpleLongProperty alunoId;
