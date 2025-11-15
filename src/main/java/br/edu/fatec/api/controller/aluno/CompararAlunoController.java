@@ -12,13 +12,11 @@ import com.github.difflib.patch.Patch;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
-// Removidos imports de Node e Parent
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-// Removido import do ScrollPane
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import netscape.javascript.JSObject; // NOVO: Import para a ponte JS
+import netscape.javascript.JSObject;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.sql.SQLException;
@@ -40,7 +38,6 @@ public class CompararAlunoController extends BaseController {
     private final JdbcVersoesTrabalhoDao dao = new JdbcVersoesTrabalhoDao();
     private final LevenshteinDistance levenshtein = new LevenshteinDistance();
 
-    // NOVO: Flag de sincronia em nível de classe
     private volatile boolean isSyncing = false;
 
     @FXML
@@ -60,39 +57,50 @@ public class CompararAlunoController extends BaseController {
         loadVersions(u.getId());
     }
 
+    /**
+     * ATUALIZADO: Carrega a versão ATUAL (B) e a ÚLTIMA CORRIGIDA (A).
+     */
     private void loadVersions(Long alunoId) {
+        String mdA = "# Nenhuma versão anterior corrigida encontrada.";
+        String mdB = "# Nenhuma versão atual encontrada.";
+        String tagA = "(N/A)";
+        String tagB = "(N/A)";
+
         try {
             Long trabalhoId = dao.obterTrabalhoIdPorAluno(alunoId);
+
+            // 1. Busca a Versão B (Atual - a mais recente de todas)
             List<VersaoHistoricoDTO> historico = dao.listarHistoricoCompleto(trabalhoId);
-
-            VersaoHistoricoDTO versaoAtual = null;
-            VersaoHistoricoDTO versaoAnterior = null;
-
-            if (historico.size() >= 1) {
-                versaoAtual = historico.get(0);
-            }
-            if (historico.size() >= 2) {
-                versaoAnterior = historico.get(1);
+            if (!historico.isEmpty()) {
+                VersaoHistoricoDTO versaoAtual = historico.get(0);
+                mdB = versaoAtual.conteudoMd();
+                tagB = "(" + versaoAtual.versao() + ")";
             }
 
-            String mdA = (versaoAnterior != null) ? versaoAnterior.conteudoMd() : "# Nenhuma versão anterior encontrada.";
-            String mdB = (versaoAtual != null) ? versaoAtual.conteudoMd() : "# Nenhuma versão atual encontrada.";
+            // 2. Busca a Versão A (A última que o orientador corrigiu)
+            Optional<VersaoHistoricoDTO> optVersaoAnterior = dao.findUltimaVersaoCorrigida(trabalhoId);
+            if (optVersaoAnterior.isPresent()) {
+                VersaoHistoricoDTO versaoAnterior = optVersaoAnterior.get();
+                mdA = versaoAnterior.conteudoMd();
+                tagA = "(" + versaoAnterior.versao() + ")";
+            }
 
-            renderDiff(webA, webB, mdA, mdB); // Método atualizado
+            // 3. Renderiza a diferença
+            renderDiff(webA, webB, mdA, mdB);
 
-            lblVersaoA.setText((versaoAnterior != null) ? "(" + versaoAnterior.versao() + ")" : "");
-            lblVersaoB.setText((versaoAtual != null) ? "(" + versaoAtual.versao() + ")" : "");
+            lblVersaoA.setText(tagA);
+            lblVersaoB.setText(tagB);
 
+            // 4. Calcula a similaridade
             double similaridade = calculateSimilarity(mdA, mdB);
             similarityBar.setProgress(similaridade);
             similarityPct.setText(String.format("%.0f%%", similaridade * 100));
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // Configura a sincronia mesmo em caso de erro
-            setupScrollBinding(webA.getEngine(), webB.getEngine());
-            renderMarkdown(webA, "# Erro ao carregar versão: " + e.getMessage());
-            renderMarkdown(webB, "# Erro ao carregar versão: " + e.getMessage());
+            setupScrollBinding(webA.getEngine(), webB.getEngine()); // Configura a sincronia mesmo em erro
+            renderMarkdown(webA, "# Erro ao carregar versão A: " + e.getMessage());
+            renderMarkdown(webB, "# Erro ao carregar versão B: " + e.getMessage());
         }
     }
 
@@ -113,7 +121,6 @@ public class CompararAlunoController extends BaseController {
             int startA = delta.getSource().getPosition();
             int startB = delta.getTarget().getPosition();
 
-            // ... (Lógica do Diff - inalterada) ...
             for (int i = lastA; i < startA; i++) {
                 htmlA.append(formatLine("line-unchanged", linesA.get(i)));
             }
@@ -157,54 +164,32 @@ public class CompararAlunoController extends BaseController {
             htmlB.append(formatLine("line-unchanged", linesB.get(i)));
         }
 
-        // Configura os listeners de scroll ANTES de carregar o conteúdo
         setupScrollBinding(webViewA.getEngine(), webViewB.getEngine());
-
-        // Carrega o HTML final
         webViewA.getEngine().loadContent(getHtmlTemplate(htmlA.toString(), true));
         webViewB.getEngine().loadContent(getHtmlTemplate(htmlB.toString(), true));
     }
 
 
     // ==========================================================
-    // MÉTODOS PARA SINCRONIZAR O SCROLL (Plano E: Ponte Java-JS)
+    // MÉTODOS PARA SINCRONIZAR O SCROLL (Inalterados)
     // ==========================================================
-
-    /**
-     * Classe interna que servirá como "ponte" entre o JS (WebView) e o Java.
-     */
     public class ScrollBridge {
-        private final WebEngine otherEngine; // O motor do "outro" WebView
-
+        private final WebEngine otherEngine;
         public ScrollBridge(WebEngine otherEngine) {
             this.otherEngine = otherEngine;
         }
-
-        /**
-         * Este método é CHAMADO PELO JAVASCRIPT (do onscroll).
-         * @param scrollY A posição Y do scroll (ex: 500.5)
-         */
         public void onScroll(double scrollY) {
             if (isSyncing) {
-                // Este scroll foi causado por nós (loop), então ignore.
                 return;
             }
-
-            // 1. Marca que estamos sincronizando (evita o loop)
             isSyncing = true;
-
-            // 2. Executa o scroll no outro WebView
-            // Usamos Platform.runLater para garantir que isso rode na thread do JavaFX
             Platform.runLater(() -> {
                 String script = String.format("window.scrollTo(0, %f);", scrollY);
                 otherEngine.executeScript(script);
             });
-
-            // 3. Reseta a flag (após um pequeno delay para o outro scroll terminar)
-            // Esta é a forma mais simples de "debounce"
             new Thread(() -> {
                 try {
-                    Thread.sleep(50); // Espera 50ms
+                    Thread.sleep(50);
                     isSyncing = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -213,35 +198,25 @@ public class CompararAlunoController extends BaseController {
         }
     }
 
-    /**
-     * Injeta os objetos "ScrollBridge" no contexto JavaScript de cada WebView
-     * assim que eles terminarem de carregar.
-     */
     private void setupScrollBinding(WebEngine engineA, WebEngine engineB) {
-
         engineA.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
-                // Quando A carregar, injeta a ponte que controla B
                 JSObject windowA = (JSObject) engineA.executeScript("window");
                 windowA.setMember("javaBridge", new ScrollBridge(engineB));
-                System.out.println("[SCROLL_DEBUG] Ponte JS-Java injetada em A (controla B)");
             }
         });
 
         engineB.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
-                // Quando B carregar, injeta a ponte que controla A
                 JSObject windowB = (JSObject) engineB.executeScript("window");
                 windowB.setMember("javaBridge", new ScrollBridge(engineA));
-                System.out.println("[SCROLL_DEBUG] Ponte JS-Java injetada em B (controla A)");
             }
         });
     }
 
     // ==========================================================
-    // MÉTODOS DE RENDERIZAÇÃO E NAVEGAÇÃO
+    // MÉTODOS DE RENDERIZAÇÃO E NAVEGAÇÃO (Inalterados)
     // ==========================================================
-
     private String formatLine(String cssClass, String content) {
         String escapedContent = escapeHtml(content);
         return String.format("<div class=\"diff-line %s\">%s</div>\n", cssClass, escapedContent.isEmpty() ? "&nbsp;" : escapedContent);
@@ -256,16 +231,11 @@ public class CompararAlunoController extends BaseController {
                 .replace("'", "&#39;");
     }
 
-    /**
-     * Retorna o template HTML (ATUALIZADO com onscroll)
-     */
     private String getHtmlTemplate(String contentHtml, boolean isDiff) {
         String script;
         if (isDiff) {
-            // Script de Diff (vazio, pois o onscroll está no body)
             script = "<script>\n    // Diff content is pre-rendered HTML\n</script>";
         } else {
-            // Script de Fallback (Erro)
             String escapedMarkdown = escapeForJavaScript(contentHtml);
             script = "<script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"></script>\n" +
                     "<script>\n" +
@@ -274,28 +244,18 @@ public class CompararAlunoController extends BaseController {
                     "</script>";
             contentHtml = "";
         }
-
-        // Adicionamos 'onscroll="javaBridge.onScroll(window.scrollY)"' na tag <body>
         return """
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
                 <style>
-                    /* ... (Todo o seu CSS de antes está aqui) ... */
                     body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                         line-height: 1.6; padding: 10px; color: #333;
                         background: #fff; margin: 0;
                     }
-                    h1, h2, h3 { 
-                        margin-top: 16px; margin-bottom: 10px; font-weight: 600; 
-                        line-height: 1.25; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em;
-                    }
-                    h1 { font-size: 1.8em; } h2 { font-size: 1.4em; } h3 { font-size: 1.2em; }
-                    code { background-color: #f6f8fa; border-radius: 3px; padding: 2px 4px; font-family: 'Courier New', Courier, monospace; font-size: 85%%; }
-                    pre { background-color: #f6f8fa; border-radius: 3px; padding: 12px; overflow: auto; margin-bottom: 12px; }
-                    blockquote { padding: 0 1em; color: #6a737d; border-left: 0.25em solid #dfe2e5; margin: 0 0 16px 0; }
+                    /* ... (seu CSS de diff) ... */
                     .diff-line {
                         font-family: 'Courier New', monospace;
                         font-size: 13px;
@@ -303,23 +263,10 @@ public class CompararAlunoController extends BaseController {
                         padding: 2px 10px;
                         min-height: 1.2em;
                     }
-                    .line-added {
-                        background-color: #e6ffed;
-                        border-left: 4px solid #28a745;
-                    }
-                    .line-removed {
-                        background-color: #ffeef0;
-                        border-left: 4px solid #dc3545;
-                        text-decoration: line-through;
-                    }
-                    .line-unchanged {
-                        color: #6a737d;
-                    }
-                    .line-placeholder {
-                        background-color: #f6f8fa;
-                        color: #f6f8fa;
-                        min-height: 1.2em;
-                    }
+                    .line-added { background-color: #e6ffed; border-left: 4px solid #28a745; }
+                    .line-removed { background-color: #ffeef0; border-left: 4px solid #dc3545; text-decoration: line-through; }
+                    .line-unchanged { color: #6a737d; }
+                    .line-placeholder { background-color: #f6f8fa; color: #f6f8fa; min-height: 1.2em; }
                 </style>
             </head>
             <body onscroll="if (window.javaBridge) javaBridge.onScroll(window.scrollY);">
@@ -364,7 +311,6 @@ public class CompararAlunoController extends BaseController {
     public void goHome(){ SceneManager.go("aluno/Dashboard.fxml"); }
     public void logout(){ SceneManager.go("login/Login.fxml"); }
     public void goDashboard(){ SceneManager.go("aluno/Dashboard.fxml"); }
-
     public void goInbox(){
         SceneManager.go("aluno/Inbox.fxml", c -> {
             var ctrl = (InboxAlunoController) c;
@@ -374,9 +320,10 @@ public class CompararAlunoController extends BaseController {
             ctrl.onReady();
         });
     }
-
     public void goEditor(){
-        SceneManager.go("aluno/Editor.fxml");
+        SceneManager.go("aluno/Editor.fxml", c -> {
+            ((EditorAlunoController) c).onReady();
+        });
     }
     public void goComparar(){ /* Já está aqui */ }
     public void goConclusao(){ SceneManager.go("aluno/Conclusao.fxml"); }
