@@ -32,6 +32,13 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+// Imports existentes
+import br.edu.fatec.api.controller.orientador.ChatOrientadorController;
+import br.edu.fatec.api.controller.orientador.ModalFeedbackController;
+// <-- IMPORT ADICIONADO
+import br.edu.fatec.api.controller.orientador.HistoricoOrientadorController;
+
+
 /**
  * Controller da tela principal de Feedback.
  * Responsável por:
@@ -187,8 +194,14 @@ public class EditorOrientadorController extends BaseController {
         }
     }
 
+    /**
+     * ATUALIZADO: Agora chama onRefreshData() para recarregar o histórico.
+     */
     public void goHistorico() {
-        SceneManager.go("orientador/Historico.fxml");
+        SceneManager.go("orientador/Historico.fxml", c -> {
+            HistoricoOrientadorController ctrl = (HistoricoOrientadorController) c;
+            ctrl.onRefreshData();
+        });
     }
 
     private void enviarComentario() {
