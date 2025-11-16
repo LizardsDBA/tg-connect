@@ -28,13 +28,11 @@
 
         <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
             <Label styleClass="sidebar-title" text="Orientador"/>
-
             <Label styleClass="sidebar-group" text="GERAL"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Visão Geral" onAction="#goVisaoGeral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Painel de Alunos" onAction="#goPainel"/>
-
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
             <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
@@ -54,10 +52,8 @@
 
                 <VBox spacing="8.0" style="-fx-padding: 8;">
                     <Label text="Meus Orientandos" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar aluno..."
                                style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
-
                     <TableView fx:id="tblAlunos" VBox.vgrow="ALWAYS"
                                style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;">
                         <columns>
@@ -77,8 +73,17 @@
 
                     <SplitPane dividerPositions="0.25" VBox.vgrow="ALWAYS">
 
-                        <VBox spacing="4.0">
+                        <VBox spacing="8.0">
                             <Label text="Histórico (Versões e Feedbacks)" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
+
+                            <HBox spacing="4.0" alignment="CENTER_LEFT">
+                                <DatePicker fx:id="dpDataInicio" promptText="Data Início" prefWidth="110"/>
+                                <Label text="até"/>
+                                <DatePicker fx:id="dpDataFim" promptText="Data Fim" prefWidth="110"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="btnFiltrar" text="Filtrar" styleClass="btn-primary" prefWidth="70"/>
+                            </HBox>
+
                             <ListView fx:id="listVersions" VBox.vgrow="ALWAYS"
                                       style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
                         </VBox>
@@ -98,7 +103,6 @@
                             </HBox>
 
                             <SplitPane orientation="HORIZONTAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
-
                                 <VBox spacing="4.0">
                                     <Label text="Markdown" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
                                     <TextArea fx:id="txtMarkdownSource" editable="false" wrapText="true"
@@ -107,13 +111,11 @@
                                                      -fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;
                                                      -fx-control-inner-background: #f8f9fa;"/>
                                 </VBox>
-
                                 <VBox spacing="4.0">
                                     <Label text="Preview" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
                                     <WebView fx:id="webPreview" VBox.vgrow="ALWAYS"
                                              style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
                                 </VBox>
-
                             </SplitPane>
 
                             <VBox fx:id="feedbackContainer" spacing="4.0" managed="false" visible="false"
@@ -127,15 +129,10 @@
                                                  -fx-border-color: transparent;
                                                  -fx-text-fill: #0c5460;"/>
                             </VBox>
-
                         </VBox>
-
                     </SplitPane>
-
                 </VBox>
-
             </SplitPane>
-
         </VBox>
     </HBox>
 
