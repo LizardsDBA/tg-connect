@@ -3,79 +3,99 @@
     -fx-base: #f2f2f2;
     -fx-background-color: #f2f2f2;
 
-    --red0: #b20f19;
-    --red1: #78050c;
-    --red2: #58050a;
-
-    --white: #fff;
-    --gray0: #e6e6e6;
-    --gray1: #cccccc;
-    --gray2: #b3b3b3;
-    --gray3: #4d4d4d;
-    --gray4: #1a1a1a;
-    --black: #000;
-
-    --blue0: #cedee8;
-    --blue1: #a9bcc8;
-    --blue2: #3c5361;
-    --blue3: #223541;
-
 }
 
-/* ===== CORES ===== */
+/* ===== HEADER/FOOTER ===== */
+.header, .footer {
+    -fx-background-color: #3c5361;
+}
+.footer .label{
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+.logo {
+    -fx-font-weight: 700;
+    -fx-font-size: 14px;
+    -fx-padding: 6 10;
+    -fx-border-color: #b3b3b3;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8;
+    -fx-background-color: #223541;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 3, 0, 0, 1);
+}
 
+/* ===== FUNDO ===== */
+.standart-bg{
+    -fx-background-color: #e6e6e6;
+}
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+}
 
 /* ===== BOTÕES ===== */
+/* Botão padrão */
 .button {
-    -fx-background-color: linear-gradient(#fbfbfb, #efefef);
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1px;
-    -fx-background-radius: 8;
+    -fx-background-color: linear-gradient(#ffffff, #cccccc);
+    -fx-border-color: #b3b3b3;
+    -fx-border-width: 2px;
+    -fx-background-radius: 10;
     -fx-border-radius: 8;
     -fx-font-weight: 600;
     -fx-cursor: hand;
     -fx-padding: 8 12;
     -fx-font-size: 14px;
-    -fx-text-fill: #1a1a1a;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 1);
+    -fx-text-fill: black;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 3, 0, 0, 1);
 }
-
-.button:hover {
-    -fx-background-color: linear-gradient(derive(#fbfbfb, -2%), derive(#efefef, -2%));
+.button:hover, .button:focused {
+    -fx-border-color: #b20f19;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
 }
-
-.button:pressed {
-    -fx-background-color: linear-gradient(derive(#efefef, -5%), derive(#e0e0e0, -5%));
-}
-
-.button:focused {
-    -fx-border-color: #3b7dd8;
-    -fx-border-width: 2px;
-}
-
 /* Botão primário */
 .btn-primary {
-    -fx-background-color: linear-gradient(#3e86ea, #366fc5);
+    -fx-background-color: linear-gradient(#b20f19, #78050c);
     -fx-text-fill: white;
-    -fx-border-color: #2f62ac;
+    -fx-border-color: #58050a;
 }
-.btn-primary:hover {
-    -fx-background-color: linear-gradient(derive(#3e86ea, 5%), derive(#366fc5, 5%));
-}
-.btn-primary:pressed {
-    -fx-background-color: linear-gradient(derive(#366fc5, -5%), derive(#2f62ac, -5%));
+.btn-primary:hover, .btn-primary:focused {
+    -fx-background-color: linear-gradient(#ffffff, #cccccc);
+    -fx-border-color: #58050a;
+    -fx-text-fill: #58050a;
 }
 
-/* ===== CARDS ===== */
-.card {
+/* ===== CAMPOS DE ENTRADA ===== */
+.text-field, .password-field, .text-area {
     -fx-background-color: white;
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #e6e6e6;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10;
+    -fx-font-size: 14px;
     -fx-background-insets: 0;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.06), 8, 0, 0, 2);
-    -fx-padding: 14;
+    -fx-border-insets: 0;
 }
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #b20f19;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+.field-label {
+    -fx-font-size: 14;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-weight: bold;
+}
+
+
 
 /* ===== KPIs ===== */
 .kpi {
@@ -119,35 +139,9 @@
     -fx-font-size: 12;
 }
 
-/* ===== CAMPOS DE ENTRADA ===== */
-.text-field, .password-field, .text-area {
-    -fx-background-color: white;
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1px;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 8 10;
-    -fx-font-size: 14px;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-}
-.text-field:focused, .password-field:focused, .text-area:focused {
-    -fx-border-color: #3b7dd8;
-    -fx-border-width: 2px;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-}
 
 /* ===== LABELS ===== */
-.label {
-    -fx-text-fill: #1a1a1a;
-    -fx-font-size: 14px;
-}
-.field-label {
-    -fx-font-size: 12;
-    -fx-text-fill: #6f6f6f;
-    -fx-font-weight: bold;
-}
+
 
 /* ===== LISTAS ===== */
 .list-view {
@@ -315,29 +309,8 @@
 .scroll-pane { -fx-background-color: transparent; }
 .scroll-bar:horizontal { -fx-opacity: 0; -fx-max-height: 0; }
 
-/* ===== HEADER/FOOTER ===== */
-.header {
-    -fx-background-color: linear-gradient(#ffffff, #f7f7f7);
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 0 0 1 0;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 1);
-}
-.footer {
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1 0 0 0;
-    -fx-background-color: linear-gradient(#ffffff, #f7f7f7);
-}
-.logo {
-    -fx-font-weight: 700;
-    -fx-font-size: 14px;
-    -fx-padding: 6 10;
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1px;
-    -fx-border-radius: 8;
-    -fx-background-color: linear-gradient(#fbfbfb, #efefef);
-    -fx-background-radius: 8;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 1);
-}
+
+
 
 /* ===== ESPAÇAMENTOS ===== */
 .spacing-small { -fx-spacing: 8; }
