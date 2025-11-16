@@ -2,11 +2,13 @@ package br.edu.fatec.api.controller.orientador;
 
 import br.edu.fatec.api.controller.BaseController;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
-import br.edu.fatec.api.dao.JdbcVersoesTrabalhoDao;
+import br.edu.fatec.api.dto.HistoricoItemDTO; // <-- DTO NOVO
 import br.edu.fatec.api.dto.VersaoHistoricoDTO;
+import br.edu.fatec.api.model.Mensagem; // <-- MODEL PARA FEEDBACK
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
+import br.edu.fatec.api.service.HistoricoService; // <-- SERVIÇO NOVO
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -24,11 +26,14 @@ import java.util.List;
 
 public class HistoricoOrientadorController extends BaseController {
 
+    // --- CAMPOS FXML (DA SUA TELA) ---
     @FXML private TableView<AlunoTableItem> tblAlunos;
     @FXML private TableColumn<AlunoTableItem, String> colNome;
     @FXML private TextField txtBuscaAluno;
-    
-    @FXML private ListView<VersaoHistoricoDTO> listVersions;
+
+    // ATUALIZADO: O tipo da ListView agora é o nosso DTO unificado
+    @FXML private ListView<HistoricoItemDTO> listVersions;
+
     @FXML private TextArea txtMarkdownSource;
     @FXML private WebView webPreview;
     @FXML private Label lblAlunoSelecionado;
@@ -38,15 +43,23 @@ public class HistoricoOrientadorController extends BaseController {
     @FXML private VBox feedbackContainer;
     @FXML private VBox previewContainer;
 
+    // --- DAOs E SERVIÇOS ---
     private final JdbcFeedbackDao feedbackDao = new JdbcFeedbackDao();
-    private final JdbcVersoesTrabalhoDao versoesDao = new JdbcVersoesTrabalhoDao();
+
+    // NOVO: Instancia o serviço que criamos
+    private final HistoricoService historicoService = new HistoricoService();
+
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    
+
+    // --- VARIÁVEIS DE ESTADO ---
     private final ObservableList<AlunoTableItem> alunos = FXCollections.observableArrayList();
     private Long orientadorId;
     private Long alunoSelecionadoId;
     private Long trabalhoIdSelecionado;
 
+    /**
+     * Método principal, executado quando a tela é carregada.
+     */
     @FXML
     private void initialize() {
         if (btnToggleSidebar != null) {
@@ -65,7 +78,7 @@ public class HistoricoOrientadorController extends BaseController {
         previewContainer.setVisible(false);
         previewContainer.setManaged(false);
 
-        // Configurar tabela de alunos
+        // --- CONFIGURAÇÃO DA TABELA DE ALUNOS ---
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         tblAlunos.setItems(alunos);
 
@@ -83,23 +96,49 @@ public class HistoricoOrientadorController extends BaseController {
         // Filtro de busca
         txtBuscaAluno.textProperty().addListener((obs, old, val) -> filtrarAlunos(val));
 
-        // Configurar ListView de versões
+        // --- CONFIGURAÇÃO DA LISTA DE HISTÓRICO (ListView) ---
+        // ATUALIZADO: Configura a ListView para o DTO unificado
         listVersions.setCellFactory(lv -> new ListCell<>() {
             @Override
-            protected void updateItem(VersaoHistoricoDTO item, boolean empty) {
+            protected void updateItem(HistoricoItemDTO item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
+                    setStyle(""); // Limpa o estilo
                 } else {
-                    setText(item.versao() + " - " + item.createdAt().format(dateFormatter));
+                    // Formata a data e a descrição
+                    String data = item.data().format(dateFormatter);
+                    String desc = item.descricao();
+                    String descCurta = desc.length() > 60 ? desc.substring(0, 60) + "..." : desc;
+
+                    String texto = String.format("[%s] %s (%s)",
+                            item.tipo(),
+                            descCurta.replace("\n", " "), // remove quebra de linha
+                            data);
+                    setText(texto);
+
+                    // Adiciona um estilo visual
+                    if (item.tipo() == HistoricoItemDTO.TipoHistorico.VERSAO) {
+                        setStyle("-fx-font-weight: bold;");
+                    } else {
+                        setStyle("-fx-font-weight: normal;");
+                    }
                 }
             }
         });
 
-        // Listener para seleção de versão
+        // ATUALIZADO: O listener agora trata os dois tipos de item
         listVersions.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
-            if (selected != null) {
-                exibirVersao(selected);
+            if (selected == null) return;
+
+            if (selected.tipo() == HistoricoItemDTO.TipoHistorico.VERSAO) {
+                // É uma Versão, extrai o DTO original e chama o método antigo
+                VersaoHistoricoDTO versao = (VersaoHistoricoDTO) selected.payload();
+                exibirVersao(versao);
+            } else {
+                // É um Feedback (Mensagem), chama o novo método
+                Mensagem msg = (Mensagem) selected.payload();
+                exibirFeedback(msg);
             }
         });
 
@@ -107,6 +146,9 @@ public class HistoricoOrientadorController extends BaseController {
         carregarOrientandos();
     }
 
+    /**
+     * Carrega a lista de alunos do orientador na tabela da esquerda.
+     */
     private void carregarOrientandos() {
         alunos.clear();
         if (orientadorId == null) return;
@@ -125,91 +167,140 @@ public class HistoricoOrientadorController extends BaseController {
         }
     }
 
+    /**
+     * Filtra a tabela de alunos com base no texto digitado.
+     */
     private void filtrarAlunos(String query) {
         if (query == null || query.trim().isEmpty()) {
             tblAlunos.setItems(alunos);
             return;
         }
-        
+
         String q = query.trim().toLowerCase();
-        var filtered = alunos.filtered(item -> 
-            item.getNome().toLowerCase().contains(q)
+        var filtered = alunos.filtered(item ->
+                item.getNome().toLowerCase().contains(q)
         );
         tblAlunos.setItems(FXCollections.observableArrayList(filtered));
     }
 
+    /**
+     * Chamado ao dar duplo clique em um aluno na tabela.
+     */
     private void selecionarAluno(AlunoTableItem item) {
         this.alunoSelecionadoId = item.getAlunoId();
         this.trabalhoIdSelecionado = item.getTrabalhoId();
-        
+
         lblAlunoSelecionado.setText(item.getNome());
-        
-        // Mostrar preview
+
+        // Mostrar container de preview
         previewContainer.setVisible(true);
         previewContainer.setManaged(true);
-        
+
+        // Limpar seleções anteriores
+        listVersions.getItems().clear();
+        txtMarkdownSource.clear();
+        webPreview.getEngine().loadContent("");
+        feedbackContainer.setVisible(false);
+        feedbackContainer.setManaged(false);
+
         // Carregar histórico do aluno
         carregarHistoricoAluno();
     }
 
+    /**
+     * ATUALIZADO: Carrega a lista unificada (Versões + Feedbacks) do Service.
+     */
     private void carregarHistoricoAluno() {
         if (trabalhoIdSelecionado == null) return;
-        
+
         try {
-            List<VersaoHistoricoDTO> versoes = versoesDao.listarHistoricoCompleto(trabalhoIdSelecionado);
-            
-            if (versoes.isEmpty()) {
+            // USA O NOVO SERVIÇO para buscar a lista unificada
+            List<HistoricoItemDTO> historico = historicoService.getHistoricoUnificado(trabalhoIdSelecionado);
+
+            if (historico.isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Histórico Vazio");
                 alert.setHeaderText(null);
-                alert.setContentText("Este aluno ainda não possui versões do TG salvas.");
+                alert.setContentText("Este aluno ainda não possui versões ou feedbacks.");
                 alert.showAndWait();
+                listVersions.getItems().clear(); // Limpa a lista
                 return;
             }
-            
-            listVersions.getItems().setAll(versoes);
-            
-            // Selecionar primeira versão
-            if (!versoes.isEmpty()) {
-                listVersions.getSelectionModel().select(0);
+
+            listVersions.getItems().setAll(historico);
+
+            // Selecionar o último item (mais recente)
+            if (!historico.isEmpty()) {
+                listVersions.getSelectionModel().selectLast();
             }
-            
+
         } catch (SQLException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erro");
-            alert.setHeaderText("Erro ao carregar histórico");
+            alert.setHeaderText("Erro ao carregar histórico unificado");
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
 
+    /**
+     * Exibe os detalhes de um item do tipo VERSAO.
+     */
     private void exibirVersao(VersaoHistoricoDTO versao) {
         // Atualizar informações
         lblVersaoSelecionada.setText(versao.versao());
         lblDataEnvio.setText(versao.createdAt().format(dateFormatter));
-        
-        // Exibir markdown
+
+        // Exibir markdown e preview
         txtMarkdownSource.setText(versao.conteudoMd());
-        
-        // Renderizar preview
         renderMarkdown(versao.conteudoMd());
-        
-        // Exibir feedback (se houver)
+
+        // Garante que os painéis de preview estão visíveis
+        txtMarkdownSource.setVisible(true);
+        txtMarkdownSource.setManaged(true);
+        webPreview.setVisible(true);
+        webPreview.setManaged(true);
+
+        // Exibir feedback da versão (comentário de submissão)
         if (versao.comentario() != null && !versao.comentario().trim().isEmpty()) {
             feedbackContainer.setVisible(true);
             feedbackContainer.setManaged(true);
-            txtFeedback.setText(versao.comentario());
+            txtFeedback.setText("Comentário da Submissão: " + versao.comentario());
         } else {
             feedbackContainer.setVisible(false);
             feedbackContainer.setManaged(false);
         }
     }
 
+    /**
+     * NOVO: Exibe os detalhes de um item do tipo FEEDBACK (Mensagem).
+     */
+    private void exibirFeedback(Mensagem msg) {
+        // Atualizar informações
+        lblVersaoSelecionada.setText("Feedback (Chat)");
+        lblDataEnvio.setText(msg.getCreatedAt().format(dateFormatter));
+
+        // Esconde os painéis de markdown e preview
+        txtMarkdownSource.setText("");
+        txtMarkdownSource.setVisible(false);
+        txtMarkdownSource.setManaged(false);
+        webPreview.setVisible(false);
+        webPreview.setManaged(false);
+        renderMarkdown("### Este item é um feedback (mensagem de chat)\n\nNão há preview de TG associado.");
+
+        // Mostra o painel de feedback com o conteúdo da mensagem
+        feedbackContainer.setVisible(true);
+        feedbackContainer.setManaged(true);
+        txtFeedback.setText(msg.getConteudo());
+    }
+
+    /**
+     * Renderiza o texto Markdown no WebView.
+     */
     private void renderMarkdown(String markdown) {
         WebEngine engine = webPreview.getEngine();
-        
         String escapedMarkdown = escapeForJavaScript(markdown);
-        
+
         String html = String.format("""
                 <!DOCTYPE html>
                 <html>
@@ -218,52 +309,15 @@ public class HistoricoOrientadorController extends BaseController {
                     <style>
                         body {
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                            line-height: 1.6;
-                            padding: 20px;
-                            color: #333;
-                            background: #fff;
-                            max-width: 100%%;
-                            margin: 0 auto;
+                            line-height: 1.6; padding: 20px; color: #333; background: #fff;
+                            max-width: 100%%; margin: 0 auto;
                         }
-                        h1, h2, h3, h4, h5, h6 {
-                            margin-top: 24px;
-                            margin-bottom: 16px;
-                            font-weight: 600;
-                            line-height: 1.25;
-                        }
-                        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-                        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-                        h3 { font-size: 1.25em; }
-                        p { margin-bottom: 16px; }
-                        ul, ol { padding-left: 2em; margin-bottom: 16px; }
-                        code {
-                            background-color: #f6f8fa;
-                            border-radius: 3px;
-                            padding: 2px 4px;
-                            font-family: 'Courier New', Courier, monospace;
-                            font-size: 85%%;
-                        }
-                        pre {
-                            background-color: #f6f8fa;
-                            border-radius: 3px;
-                            padding: 16px;
-                            overflow: auto;
-                            margin-bottom: 16px;
-                        }
-                        table {
-                            border-collapse: collapse;
-                            width: 100%%;
-                            margin-bottom: 16px;
-                        }
-                        table th, table td {
-                            border: 1px solid #dfe2e5;
-                            padding: 6px 13px;
-                        }
-                        table th {
-                            background-color: #f6f8fa;
-                            font-weight: 600;
-                        }
-                        strong { font-weight: 600; }
+                        h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+                        h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }
+                        pre { background-color: #f6f8fa; border-radius: 3px; padding: 16px; overflow: auto; }
+                        code { background-color: #f6f8fa; border-radius: 3px; padding: 2px 4px; font-family: 'Courier New', monospace; }
+                        table { border-collapse: collapse; }
+                        table th, table td { border: 1px solid #dfe2e5; padding: 6px 13px; }
                     </style>
                     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
                 </head>
@@ -276,21 +330,24 @@ public class HistoricoOrientadorController extends BaseController {
                 </body>
                 </html>
                 """, escapedMarkdown);
-        
+
         engine.loadContent(html);
     }
 
+    /**
+     * Escapa caracteres especiais para inserir o Markdown dentro do script JS.
+     */
     private String escapeForJavaScript(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")
-                  .replace("`", "\\`")
-                  .replace("$", "\\$")
-                  .replace("\r\n", "\\n")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\n");
+                .replace("`", "\\`")
+                .replace("$", "\\$")
+                .replace("\r\n", "\\n")
+                .replace("\n", "\\n")
+                .replace("\r", "\\n");
     }
 
-    // Navegação
+    // --- NAVEGAÇÃO (Sidebar) ---
     public void goHome() { SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout() { SceneManager.go("login/Login.fxml"); }
     public void goVisaoGeral() { SceneManager.go("orientador/VisaoGeral.fxml"); }
@@ -299,7 +356,7 @@ public class HistoricoOrientadorController extends BaseController {
     public void goParecer() { SceneManager.go("orientador/Parecer.fxml"); }
     public void goImportar() { SceneManager.go("orientador/Importar.fxml"); }
     public void goHistorico() { SceneManager.go("orientador/Historico.fxml"); }
-    
+
     public void goChat() {
         SceneManager.go("orientador/Chat.fxml", c -> {
             ChatOrientadorController ctrl = (ChatOrientadorController) c;
@@ -307,7 +364,10 @@ public class HistoricoOrientadorController extends BaseController {
         });
     }
 
-    // Classe interna para item da tabela
+    /**
+     * Classe interna (DTO) para popular a Tabela de Alunos.
+     * (Esta é a classe que estava faltando e causando os 7 erros)
+     */
     public static class AlunoTableItem {
         private final SimpleLongProperty alunoId;
         private final SimpleStringProperty nome;
