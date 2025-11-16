@@ -2,7 +2,28 @@
     -fx-font-family: "Segoe UI", "Roboto", system-ui;
     -fx-base: #f2f2f2;
     -fx-background-color: #f2f2f2;
+
+    --red0: #b20f19;
+    --red1: #78050c;
+    --red2: #58050a;
+
+    --white: #fff;
+    --gray0: #e6e6e6;
+    --gray1: #cccccc;
+    --gray2: #b3b3b3;
+    --gray3: #4d4d4d;
+    --gray4: #1a1a1a;
+    --black: #000;
+
+    --blue0: #cedee8;
+    --blue1: #a9bcc8;
+    --blue2: #3c5361;
+    --blue3: #223541;
+
 }
+
+/* ===== CORES ===== */
+
 
 /* ===== BOTÕES ===== */
 .button {
