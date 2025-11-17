@@ -41,6 +41,8 @@
                     onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goSolicitacoes" styleClass="sidebar-link" text="Solicitações"/>
         </VBox>
 
         <!-- Main Content -->
