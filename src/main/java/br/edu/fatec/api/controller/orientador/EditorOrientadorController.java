@@ -63,8 +63,8 @@ public class EditorOrientadorController extends BaseController {
     @FXML private Button btnAbrirModalPreview;
 
     // ===== Comentário (Chat) =====
-    @FXML private TextArea txtComentario;
-    @FXML private Button btnEnviarComentario;
+//    @FXML private TextArea txtComentario;
+//    @FXML private Button btnEnviarComentario;
 
     // ===== Estado =====
     private final JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
@@ -167,15 +167,15 @@ public class EditorOrientadorController extends BaseController {
     }
 
     private void initBotoes() {
-        btnEnviarComentario.setOnAction(e -> enviarComentario());
-        btnEnviarComentario.disableProperty().bind(
-                Bindings.createBooleanBinding(
-                        () -> alunoSelecionadoId == null
-                                || trabalhoIdSelecionado == null
-                                || txtComentario.getText().isBlank(),
-                        txtComentario.textProperty()
-                )
-        );
+//        btnEnviarComentario.setOnAction(e -> enviarComentario());
+//        btnEnviarComentario.disableProperty().bind(
+//                Bindings.createBooleanBinding(
+//                        () -> alunoSelecionadoId == null
+//                                || trabalhoIdSelecionado == null
+//                                || txtComentario.getText().isBlank(),
+//                        txtComentario.textProperty()
+//                )
+//        );
 
         // --- CORREÇÃO AQUI ---
         if (btnAbrirModalFeedback != null) {
@@ -204,10 +204,10 @@ public class EditorOrientadorController extends BaseController {
         });
     }
 
-    private void enviarComentario() {
-        // ... (lógica para enviar comentário)
-        info("Comentário (stub): " + txtComentario.getText());
-    }
+//    private void enviarComentario() {
+//        // ... (lógica para enviar comentário)
+//        info("Comentário (stub): " + txtComentario.getText());
+//    }
 
     private void carregarOrientandos() {
         alunos.clear();

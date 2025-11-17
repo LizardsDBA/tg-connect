@@ -84,15 +84,6 @@
                             text="Abrir Preview Completo"
                             maxWidth="Infinity" />
 
-                    <Separator/>
-
-                    <Label text="Comentário para o aluno (aparecerá na tela de Chat)"/>
-                    <HBox spacing="12" VBox.vgrow="ALWAYS">
-                        <TextArea fx:id="txtComentario" prefRowCount="3" promptText="Escreva seu comentário..." HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
-                        <VBox alignment="TOP_RIGHT" spacing="8">
-                            <Button fx:id="btnEnviarComentario" maxWidth="Infinity" text="Enviar comentário"/>
-                        </VBox>
-                    </HBox>
                 </VBox>
 
             </HBox>
