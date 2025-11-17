@@ -61,6 +61,11 @@
                         <Button text="H1" onAction="#insertH1"/>
                         <Button text="Link" onAction="#insertLink"/>
                         <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblVersaoAtual" styleClass="subtitle" text="Versão: —">
+                            <HBox.margin>
+                                <Insets right="10.0" />
+                            </HBox.margin>
+                        </Label>
                         <Label fx:id="lbStatusAba" text="Aba 1 - Status: ..." styleClass="status-badge"/>
 
                         <Button fx:id="btnPreview" text="Preview" onAction="#preview">
