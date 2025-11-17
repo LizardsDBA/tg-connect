@@ -596,4 +596,157 @@ public class JdbcFeedbackDao {
         // Retorna 999 em caso de erro (força o status 'REPROVADO')
         return 999;
     }
+
+    // Em: src/main/java/br/edu/fatec/api/dao/JdbcFeedbackDao.java
+
+    /**
+     * NOVO MÉTODO (Sobrecarga): Carrega os campos da Apresentação de uma VERSÃO ESPECÍFICA.
+     */
+    public ApresentacaoCamposDTO carregarCamposApresentacao(Long trabalhoId, String versao) throws SQLException {
+        String sql = """
+            SELECT
+                versao,
+                nome_completo, nome_completo_status,
+                idade, idade_status,
+                curso, curso_status,
+                historico_academico, historico_academico_status,
+                motivacao_fatec, motivacao_fatec_status,
+                historico_profissional, historico_profissional_status,
+                contatos_email, contatos_email_status,
+                principais_conhecimentos, principais_conhecimentos_status,
+                consideracoes_finais, consideracoes_finais_status,
+                
+                (   nome_completo_status = 1 AND
+                    idade_status = 1 AND
+                    curso_status = 1 AND
+                    historico_academico_status = 1 AND
+                    motivacao_fatec_status = 1 AND
+                    historico_profissional_status = 1 AND
+                    contatos_email_status = 1 AND
+                    principais_conhecimentos_status = 1 AND
+                    consideracoes_finais_status = 1
+                ) AS concluida
+                
+            FROM tg_apresentacao
+            WHERE trabalho_id = ? AND versao = ?
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao); // <-- NOVO PARÂMETRO
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ApresentacaoCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("nome_completo"), rs.getInt("nome_completo_status"),
+                            rs.getString("idade"), rs.getInt("idade_status"),
+                            rs.getString("curso"), rs.getInt("curso_status"),
+                            rs.getString("historico_academico"), rs.getInt("historico_academico_status"),
+                            rs.getString("motivacao_fatec"), rs.getInt("motivacao_fatec_status"),
+                            rs.getString("historico_profissional"), rs.getInt("historico_profissional_status"),
+                            rs.getString("contatos_email"), rs.getInt("contatos_email_status"),
+                            rs.getString("principais_conhecimentos"), rs.getInt("principais_conhecimentos_status"),
+                            rs.getString("consideracoes_finais"), rs.getInt("consideracoes_finais_status")
+                    );
+                }
+            }
+        }
+        // Retorna um DTO vazio se não houver dados para aquela versão
+        return new ApresentacaoCamposDTO(versao, false, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0);
+    }
+
+    /**
+     * NOVO MÉTODO (Sobrecarga): Carrega os campos do Resumo de uma VERSÃO ESPECÍFICA.
+     */
+    public ResumoCamposDTO carregarCamposResumo(Long trabalhoId, String versao) throws SQLException {
+        String sql = """
+            SELECT 
+                versao, 
+                resumo_md, 
+                versao_validada,
+                (versao_validada = 1) AS concluida
+            FROM tg_resumo
+            WHERE trabalho_id = ? AND versao = ?
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao); // <-- NOVO PARÂMETRO
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ResumoCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("resumo_md"),
+                            rs.getInt("versao_validada")
+                    );
+                }
+            }
+        }
+        return new ResumoCamposDTO(versao, false, null, 0);
+    }
+
+    /**
+     * NOVO MÉTODO (Sobrecarga): Carrega os campos da API de uma VERSÃO ESPECÍFICA.
+     */
+    public ApiCamposDTO carregarCamposApi(Long trabalhoId, String versao, int semestreApi) throws SQLException {
+        String sql = """
+            SELECT
+                versao,
+                empresa_parceira, empresa_parceira_status,
+                problema, problema_status,
+                solucao_resumo, solucao_resumo_status,
+                link_repositorio, link_repositorio_status,
+                tecnologias, tecnologias_status,
+                contribuicoes, contribuicoes_status,
+                hard_skills, hard_skills_status,
+                soft_skills, soft_skills_status,
+                
+                (   empresa_parceira_status = 1 AND
+                    problema_status = 1 AND
+                    solucao_resumo_status = 1 AND
+                    link_repositorio_status = 1 AND
+                    tecnologias_status = 1 AND
+                    contribuicoes_status = 1 AND
+                    hard_skills_status = 1 AND
+                    soft_skills_status = 1
+                ) AS concluida
+                
+            FROM tg_secao
+            WHERE trabalho_id = ? AND versao = ? AND semestre_api = ?
+            LIMIT 1
+        """;
+        try (Connection c = Database.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, trabalhoId);
+            ps.setString(2, versao); // <-- NOVO PARÂMETRO
+            ps.setInt(3, semestreApi);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ApiCamposDTO(
+                            rs.getString("versao"),
+                            rs.getBoolean("concluida"),
+                            rs.getString("empresa_parceira"), rs.getInt("empresa_parceira_status"),
+                            rs.getString("problema"), rs.getInt("problema_status"),
+                            rs.getString("solucao_resumo"), rs.getInt("solucao_resumo_status"),
+                            rs.getString("link_repositorio"), rs.getInt("link_repositorio_status"),
+                            rs.getString("tecnologias"), rs.getInt("tecnologias_status"),
+                            rs.getString("contribuicoes"), rs.getInt("contribuicoes_status"),
+                            rs.getString("hard_skills"), rs.getInt("hard_skills_status"),
+                            rs.getString("soft_skills"), rs.getInt("soft_skills_status")
+                    );
+                }
+            }
+        }
+        return new ApiCamposDTO(versao, false, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0);
+    }
+
+    public ApresentacaoCamposDTO carregarCamposFinais(Long trabalhoId, String versao) throws SQLException {
+        // "Finais" usa os dados da Apresentação, então chamamos o método
+        // sobrecarregado que já criamos.
+        return carregarCamposApresentacao(trabalhoId, versao);
+    }
 }
