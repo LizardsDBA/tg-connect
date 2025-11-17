@@ -31,7 +31,7 @@
 
             <Tab fx:id="tabApresentacao" text="Apresentação">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApresentacao" />
                             <VBox fx:id="panePreviewApresentacao" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -79,7 +79,7 @@
 
             <Tab fx:id="tabApi1" text="API 1">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi1" />
                             <VBox fx:id="panePreviewApi1" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -122,7 +122,7 @@
 
             <Tab fx:id="tabApi2" text="API 2">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi2" />
                             <VBox fx:id="panePreviewApi2" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -163,7 +163,7 @@
 
             <Tab fx:id="tabApi3" text="API 3">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi3" />
                             <VBox fx:id="panePreviewApi3" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -204,7 +204,7 @@
 
             <Tab fx:id="tabApi4" text="API 4">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi4" />
                             <VBox fx:id="panePreviewApi4" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -245,7 +245,7 @@
 
             <Tab fx:id="tabApi5" text="API 5">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi5" />
                             <VBox fx:id="panePreviewApi5" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -286,7 +286,7 @@
 
             <Tab fx:id="tabApi6" text="API 6">
                 <content>
-                    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+                    <SplitPane dividerPositions="0.05" VBox.vgrow="ALWAYS">
                         <items>
                             <ListView fx:id="listCamposApi6" />
                             <VBox fx:id="panePreviewApi6" spacing="10.0" VBox.vgrow="ALWAYS">

@@ -33,6 +33,7 @@ public class EditorAlunoController extends BaseController {
     // ====== Toolbar e TabPane
     @FXML private TabPane tabPane;
     @FXML private Label lbStatusAba;
+    @FXML private Label lblVersaoAtual;
 
     // ====== ABA 1 - Apresentação
     @FXML private TextArea taInfoPessoais, taHistoricoAcad, taMotivacao, taHistoricoProf, taContatos, taConhecimentos;
@@ -619,6 +620,10 @@ public class EditorAlunoController extends BaseController {
 
             this.versaoAtual = info.versao();
             this.statusAtualDoFluxo = info.status();
+
+            if (lblVersaoAtual != null) {
+                lblVersaoAtual.setText("Versão: " + this.versaoAtual);
+            }
 
             service.carregarTudo(trabalhoId).ifPresent(d -> {
                 // Aba 1
