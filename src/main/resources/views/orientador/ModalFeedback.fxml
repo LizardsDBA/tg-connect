@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -39,17 +40,37 @@
                                 </padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTitulo" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApresentacao" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecao" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApresentacao" prefHeight="200" VBox.vgrow="ALWAYS" />
 
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApresentacao" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-
-                                <HBox spacing="8.0">
-                                    <Button fx:id="btnAprovarCampo" onAction="#onAprovarCampo" text="Aprovar Campo" />
-                                    <Button fx:id="btnReprovarCampo" onAction="#onReprovarCampo" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacao" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnterior" spacing="8.0" visible="false" managed="false">
+                                        <padding>
+                                            <Insets right="5.0" />
+                                        </padding>
+                                        <Label fx:id="lblTituloAnterior" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApresentacao_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApresentacao_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtual" spacing="8.0">
+                                        <padding>
+                                            <Insets left="5.0" />
+                                        </padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApresentacao" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApresentacao_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApresentacao_Atual" prefRowCount="4" promptText="Digite seu feedback para este campo..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button fx:id="btnAprovarCampo" onAction="#onAprovarCampo" text="Aprovar Campo" />
+                                            <Button fx:id="btnReprovarCampo" onAction="#onReprovarCampo" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -67,17 +88,32 @@
                                 </padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi1" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi1" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi1" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi1" prefHeight="200" VBox.vgrow="ALWAYS" />
-
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi1" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi1" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi1" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi1" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi1_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi1_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi1" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi1" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi1_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi1_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -90,20 +126,35 @@
                         <items>
                             <ListView fx:id="listCamposApi2" />
                             <VBox fx:id="panePreviewApi2" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <padding>
-                                    <Insets left="10.0" right="10.0" top="10.0" />
-                                </padding>
+                                <padding><Insets left="10.0" right="10.0" top="10.0" /></padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi2" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi2" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi2" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi2" prefHeight="200" VBox.vgrow="ALWAYS" />
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi2" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi2" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi2" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi2" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi2_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi2_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi2" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi2" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi2_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi2_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -116,20 +167,35 @@
                         <items>
                             <ListView fx:id="listCamposApi3" />
                             <VBox fx:id="panePreviewApi3" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <padding>
-                                    <Insets left="10.0" right="10.0" top="10.0" />
-                                </padding>
+                                <padding><Insets left="10.0" right="10.0" top="10.0" /></padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi3" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi3" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi3" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi3" prefHeight="200" VBox.vgrow="ALWAYS" />
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi3" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi3" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi3" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi3" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi3_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi3_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi3" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi3" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi3_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi3_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -142,20 +208,35 @@
                         <items>
                             <ListView fx:id="listCamposApi4" />
                             <VBox fx:id="panePreviewApi4" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <padding>
-                                    <Insets left="10.0" right="10.0" top="10.0" />
-                                </padding>
+                                <padding><Insets left="10.0" right="10.0" top="10.0" /></padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi4" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi4" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi4" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi4" prefHeight="200" VBox.vgrow="ALWAYS" />
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi4" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi4" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi4" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi4" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi4_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi4_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi4" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi4" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi4_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi4_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -168,20 +249,35 @@
                         <items>
                             <ListView fx:id="listCamposApi5" />
                             <VBox fx:id="panePreviewApi5" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <padding>
-                                    <Insets left="10.0" right="10.0" top="10.0" />
-                                </padding>
+                                <padding><Insets left="10.0" right="10.0" top="10.0" /></padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi5" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi5" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi5" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi5" prefHeight="200" VBox.vgrow="ALWAYS" />
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi5" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi5" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi5" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi5" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi5_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi5_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi5" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi5" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi5_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi5_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -194,20 +290,35 @@
                         <items>
                             <ListView fx:id="listCamposApi6" />
                             <VBox fx:id="panePreviewApi6" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <padding>
-                                    <Insets left="10.0" right="10.0" top="10.0" />
-                                </padding>
+                                <padding><Insets left="10.0" right="10.0" top="10.0" /></padding>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label fx:id="lblCampoTituloApi6" styleClass="subtitle" text="Selecione um campo" />
-                                    <Label fx:id="lblCampoStatusApi6" styleClass="badge" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleButton fx:id="btnToggleCorrecaoApi6" text="Ver Última Correção" />
                                 </HBox>
-                                <WebView fx:id="webApi6" prefHeight="200" VBox.vgrow="ALWAYS" />
-                                <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                                <TextArea fx:id="txtParecerApi6" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-                                <HBox spacing="8.0">
-                                    <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
-                                    <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
-                                </HBox>
+                                <SplitPane fx:id="splitPaneComparacaoApi6" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <VBox fx:id="paneVersaoAnteriorApi6" spacing="8.0" visible="false" managed="false">
+                                        <padding><Insets right="5.0" /></padding>
+                                        <Label fx:id="lblTituloAnteriorApi6" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                        <WebView fx:id="webApi6_Anterior" VBox.vgrow="ALWAYS" />
+                                        <Label text="Parecer Anterior:" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi6_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                                    </VBox>
+                                    <VBox fx:id="paneVersaoAtualApi6" spacing="8.0">
+                                        <padding><Insets left="5.0" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                            <Label fx:id="lblCampoStatusApi6" styleClass="badge" />
+                                        </HBox>
+                                        <WebView fx:id="webApi6_Atual" VBox.vgrow="ALWAYS" />
+                                        <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                        <TextArea fx:id="txtParecerApi6_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                        <HBox spacing="8.0">
+                                            <Button onAction="#onAprovarCampoApi" text="Aprovar Campo" />
+                                            <Button onAction="#onReprovarCampoApi" text="Reprovar Campo" />
+                                        </HBox>
+                                    </VBox>
+                                </SplitPane>
                             </VBox>
                         </items>
                     </SplitPane>
@@ -222,17 +333,33 @@
                         </padding>
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label styleClass="subtitle" text="Resumo Geral da Versão" />
-                            <Label fx:id="lblResumoVersaoStatus" styleClass="badge" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <ToggleButton fx:id="btnToggleCorrecaoResumo" text="Ver Última Correção" />
                         </HBox>
-                        <WebView fx:id="webResumo" VBox.vgrow="ALWAYS" />
 
-                        <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                        <TextArea fx:id="txtParecerResumo" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-
-                        <HBox spacing="8.0">
-                            <Button onAction="#onAprovarResumo" text="Aprovar Versão" />
-                            <Button onAction="#onReprovarResumo" text="Reprovar Versão" />
-                        </HBox>
+                        <SplitPane fx:id="splitPaneComparacaoResumo" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                            <VBox fx:id="paneVersaoAnteriorResumo" spacing="8.0" visible="false" managed="false">
+                                <padding><Insets right="5.0" /></padding>
+                                <Label fx:id="lblTituloAnteriorResumo" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                <WebView fx:id="webResumo_Anterior" VBox.vgrow="ALWAYS" />
+                                <Label text="Parecer Anterior:" styleClass="field-label" />
+                                <TextArea fx:id="txtParecerResumo_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                            </VBox>
+                            <VBox fx:id="paneVersaoAtualResumo" spacing="8.0">
+                                <padding><Insets left="5.0" /></padding>
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                    <Label fx:id="lblResumoVersaoStatus" styleClass="badge" />
+                                </HBox>
+                                <WebView fx:id="webResumo_Atual" VBox.vgrow="ALWAYS" />
+                                <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                <TextArea fx:id="txtParecerResumo_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                <HBox spacing="8.0">
+                                    <Button onAction="#onAprovarResumo" text="Aprovar Versão" />
+                                    <Button onAction="#onReprovarResumo" text="Reprovar Versão" />
+                                </HBox>
+                            </VBox>
+                        </SplitPane>
                     </VBox>
                 </content>
             </Tab>
@@ -245,17 +372,33 @@
                         </padding>
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label styleClass="subtitle" text="Considerações Finais" />
-                            <Label fx:id="lblFinaisStatus" styleClass="badge" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <ToggleButton fx:id="btnToggleCorrecaoFinais" text="Ver Última Correção" />
                         </HBox>
-                        <WebView fx:id="webFinais" VBox.vgrow="ALWAYS" />
 
-                        <Label text="Comentário do Orientador (Parecer):" styleClass="field-label" />
-                        <TextArea fx:id="txtParecerFinais" prefRowCount="4" promptText="Digite seu feedback para este campo..." />
-
-                        <HBox spacing="8.0">
-                            <Button onAction="#onAprovarFinais" text="Aprovar Campo" />
-                            <Button onAction="#onReprovarFinais" text="Reprovar Campo" />
-                        </HBox>
+                        <SplitPane fx:id="splitPaneComparacaoFinais" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                            <VBox fx:id="paneVersaoAnteriorFinais" spacing="8.0" visible="false" managed="false">
+                                <padding><Insets right="5.0" /></padding>
+                                <Label fx:id="lblTituloAnteriorFinais" text="Versão Anterior (vX.X)" styleClass="field-label" />
+                                <WebView fx:id="webFinais_Anterior" VBox.vgrow="ALWAYS" />
+                                <Label text="Parecer Anterior:" styleClass="field-label" />
+                                <TextArea fx:id="txtParecerFinais_Anterior" prefRowCount="4" editable="false" wrapText="true" />
+                            </VBox>
+                            <VBox fx:id="paneVersaoAtualFinais" spacing="8.0">
+                                <padding><Insets left="5.0" /></padding>
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="Versão Atual (em revisão)" styleClass="field-label" />
+                                    <Label fx:id="lblFinaisStatus" styleClass="badge" />
+                                </HBox>
+                                <WebView fx:id="webFinais_Atual" VBox.vgrow="ALWAYS" />
+                                <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
+                                <TextArea fx:id="txtParecerFinais_Atual" prefRowCount="4" promptText="Digite seu feedback..." wrapText="true" />
+                                <HBox spacing="8.0">
+                                    <Button onAction="#onAprovarFinais" text="Aprovar Campo" />
+                                    <Button onAction="#onReprovarFinais" text="Reprovar Campo" />
+                                </HBox>
+                            </VBox>
+                        </SplitPane>
                     </VBox>
                 </content>
             </Tab>

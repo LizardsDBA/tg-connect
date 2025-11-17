@@ -10,6 +10,7 @@ module org.example {
     requires org.apache.commons.text;
     requires io.github.javadiffutils;
     requires jdk.jsobject;
+    requires flexmark.util.ast;
 
     // Abre pacotes para JavaFX FXML (reflexão)
     opens br.edu.fatec.api to javafx.graphics, javafx.fxml;

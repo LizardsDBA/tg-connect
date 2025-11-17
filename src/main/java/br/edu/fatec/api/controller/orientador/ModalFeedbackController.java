@@ -1,16 +1,20 @@
 package br.edu.fatec.api.controller.orientador;
 
+import br.edu.fatec.api.config.Database;
 import br.edu.fatec.api.dao.JdbcFeedbackDao;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ApiCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ApresentacaoCamposDTO;
 import br.edu.fatec.api.dao.JdbcFeedbackDao.ResumoCamposDTO;
-import br.edu.fatec.api.model.auth.User; // NOVO IMPORT
-import br.edu.fatec.api.nav.Session; // NOVO IMPORT
 import br.edu.fatec.api.dao.JdbcTrabalhosGraduacaoDao;
+import br.edu.fatec.api.dao.JdbcVersoesTrabalhoDao;
+import br.edu.fatec.api.dto.VersaoHistoricoDTO;
+import br.edu.fatec.api.model.auth.User;
+import br.edu.fatec.api.nav.Session;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.util.ast.Node; // Import correto para o 'Node'
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -22,14 +26,13 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import java.sql.Connection;
-import br.edu.fatec.api.config.Database;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional; // NOVO IMPORT
+import java.util.Optional;
 
 public class ModalFeedbackController {
 
@@ -37,71 +40,138 @@ public class ModalFeedbackController {
     @FXML private Label lblTituloModal, lblVersao;
     @FXML private TabPane tabPane;
 
-    // Aba Apresentação
+    // --- (Aba Apresentação) ---
     @FXML private Tab tabApresentacao;
     @FXML private ListView<String> listCamposApresentacao;
-    @FXML private VBox panePreviewApresentacao;
+    @FXML private VBox panePreviewApresentacao; // CORRIGIDO
     @FXML private Label lblCampoTitulo, lblCampoStatusApresentacao;
-    @FXML private WebView webApresentacao;
-    @FXML private TextArea txtParecerApresentacao; // NOVO
+    @FXML private ToggleButton btnToggleCorrecao;
+    @FXML private VBox paneVersaoAnterior;
+    @FXML private Label lblTituloAnterior;
+    @FXML private WebView webApresentacao_Anterior;
+    @FXML private TextArea txtParecerApresentacao_Anterior;
+    @FXML private WebView webApresentacao_Atual;
+    @FXML private TextArea txtParecerApresentacao_Atual;
 
-    // Abas API 1-6
+    // --- (Abas API 1-6) ---
     @FXML private Tab tabApi1, tabApi2, tabApi3, tabApi4, tabApi5, tabApi6;
     @FXML private ListView<String> listCamposApi1, listCamposApi2, listCamposApi3, listCamposApi4, listCamposApi5, listCamposApi6;
-    @FXML private VBox panePreviewApi1, panePreviewApi2, panePreviewApi3, panePreviewApi4, panePreviewApi5, panePreviewApi6;
+    @FXML private VBox panePreviewApi1, panePreviewApi2, panePreviewApi3, panePreviewApi4, panePreviewApi5, panePreviewApi6; // CORRIGIDO
     @FXML private Label lblCampoTituloApi1, lblCampoStatusApi1;
     @FXML private Label lblCampoTituloApi2, lblCampoStatusApi2;
     @FXML private Label lblCampoTituloApi3, lblCampoStatusApi3;
     @FXML private Label lblCampoTituloApi4, lblCampoStatusApi4;
     @FXML private Label lblCampoTituloApi5, lblCampoStatusApi5;
     @FXML private Label lblCampoTituloApi6, lblCampoStatusApi6;
-    @FXML private WebView webApi1, webApi2, webApi3, webApi4, webApi5, webApi6;
-    // NOVOS TextAreas
-    @FXML private TextArea txtParecerApi1, txtParecerApi2, txtParecerApi3, txtParecerApi4, txtParecerApi5, txtParecerApi6;
+
+    @FXML private ToggleButton btnToggleCorrecaoApi1, btnToggleCorrecaoApi2, btnToggleCorrecaoApi3, btnToggleCorrecaoApi4, btnToggleCorrecaoApi5, btnToggleCorrecaoApi6;
+    @FXML private VBox paneVersaoAnteriorApi1, paneVersaoAnteriorApi2, paneVersaoAnteriorApi3, paneVersaoAnteriorApi4, paneVersaoAnteriorApi5, paneVersaoAnteriorApi6;
+    @FXML private Label lblTituloAnteriorApi1, lblTituloAnteriorApi2, lblTituloAnteriorApi3, lblTituloAnteriorApi4, lblTituloAnteriorApi5, lblTituloAnteriorApi6;
+    @FXML private WebView webApi1_Anterior, webApi2_Anterior, webApi3_Anterior, webApi4_Anterior, webApi5_Anterior, webApi6_Anterior;
+    @FXML private TextArea txtParecerApi1_Anterior, txtParecerApi2_Anterior, txtParecerApi3_Anterior, txtParecerApi4_Anterior, txtParecerApi5_Anterior, txtParecerApi6_Anterior;
+    @FXML private WebView webApi1_Atual, webApi2_Atual, webApi3_Atual, webApi4_Atual, webApi5_Atual, webApi6_Atual;
+    @FXML private TextArea txtParecerApi1_Atual, txtParecerApi2_Atual, txtParecerApi3_Atual, txtParecerApi4_Atual, txtParecerApi5_Atual, txtParecerApi6_Atual;
 
 
-    // Aba Resumo
+    // --- (Aba Resumo) ---
     @FXML private Tab tabResumo;
     @FXML private Label lblResumoVersaoStatus;
-    @FXML private WebView webResumo;
-    @FXML private TextArea txtParecerResumo; // NOVO
+    @FXML private ToggleButton btnToggleCorrecaoResumo;
+    @FXML private VBox paneVersaoAnteriorResumo;
+    @FXML private Label lblTituloAnteriorResumo;
+    @FXML private WebView webResumo_Anterior;
+    @FXML private TextArea txtParecerResumo_Anterior;
+    @FXML private WebView webResumo_Atual;
+    @FXML private TextArea txtParecerResumo_Atual;
 
-    // Aba Finais
+    // --- (Aba Finais) ---
     @FXML private Tab tabFinais;
     @FXML private Label lblFinaisStatus;
-    @FXML private WebView webFinais;
-    @FXML private TextArea txtParecerFinais; // NOVO
+    @FXML private ToggleButton btnToggleCorrecaoFinais;
+    @FXML private VBox paneVersaoAnteriorFinais;
+    @FXML private Label lblTituloAnteriorFinais;
+    @FXML private WebView webFinais_Anterior;
+    @FXML private TextArea txtParecerFinais_Anterior;
+    @FXML private WebView webFinais_Atual;
+    @FXML private TextArea txtParecerFinais_Atual;
+
 
     // --- Estado Interno ---
     private Long trabalhoId;
-    private Long orientadorId; // NOVO
-    private String versao;
+    private Long orientadorId;
+    private String versaoAtual;
+    private String versaoAnteriorCorrigida;
+
+    // DAOs
     private final JdbcFeedbackDao dao = new JdbcFeedbackDao();
-    private Parser mdParser;
-    private HtmlRenderer mdRenderer;
-
-    // Mapeamento de Campos (Apresentação)
-    private final Map<String, String> camposApresentacaoMap = new LinkedHashMap<>();
     private final JdbcTrabalhosGraduacaoDao tgDao = new JdbcTrabalhosGraduacaoDao();
-    private ApresentacaoCamposDTO camposApresentacaoCache;
-    private String campoApresentacaoSelecionado;
+    private final JdbcVersoesTrabalhoDao versoesDao = new JdbcVersoesTrabalhoDao();
 
-    // Mapeamento de Campos (API)
-    private final Map<String, String> camposApiMap = new LinkedHashMap<>();
+    // Caches
+    private ApresentacaoCamposDTO camposApresentacaoCache;
+    private ApresentacaoCamposDTO camposApresentacaoCache_Anterior;
     private ApiCamposDTO camposApiCache;
+    private ApiCamposDTO camposApiCache_Anterior;
+
+    // Mapeamentos
+    private final Map<String, String> camposApresentacaoMap = new LinkedHashMap<>();
+    private final Map<String, String> camposApiMap = new LinkedHashMap<>();
+
+    private String campoApresentacaoSelecionado;
     private String campoApiSelecionado;
     private int apiIndexAtual;
 
+    // Renderizador
+    private Parser mdParser;
+    private HtmlRenderer mdRenderer;
+
+
     @FXML
     public void initialize() {
-
-        // 1. Configurar o renderizador de Markdown
+        // 1. Configurar o renderizador
         MutableDataSet opts = new MutableDataSet();
         opts.set(Parser.EXTENSIONS, List.of(TablesExtension.create()));
         mdParser = Parser.builder(opts).build();
         mdRenderer = HtmlRenderer.builder(opts).build();
 
-        // 2. Mapear os campos da apresentação
+        // 2. Mapear os campos
+        mapearCampos();
+
+        // 3. Configurar Listeners (Listas e Abas)
+        setupListViewApresentacao();
+        setupListViewApi(listCamposApi1, 1);
+        setupListViewApi(listCamposApi2, 2);
+        setupListViewApi(listCamposApi3, 3);
+        setupListViewApi(listCamposApi4, 4);
+        setupListViewApi(listCamposApi5, 5);
+        setupListViewApi(listCamposApi6, 6);
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldTab, newTab) -> carregarDadosAba(newTab)
+        );
+
+        // 4. Configurar Toggles de Comparação
+        setupToggleBinding(btnToggleCorrecao, paneVersaoAnterior);
+        setupToggleBinding(btnToggleCorrecaoApi1, paneVersaoAnteriorApi1);
+        setupToggleBinding(btnToggleCorrecaoApi2, paneVersaoAnteriorApi2);
+        setupToggleBinding(btnToggleCorrecaoApi3, paneVersaoAnteriorApi3);
+        setupToggleBinding(btnToggleCorrecaoApi4, paneVersaoAnteriorApi4);
+        setupToggleBinding(btnToggleCorrecaoApi5, paneVersaoAnteriorApi5);
+        setupToggleBinding(btnToggleCorrecaoApi6, paneVersaoAnteriorApi6);
+        setupToggleBinding(btnToggleCorrecaoResumo, paneVersaoAnteriorResumo);
+        setupToggleBinding(btnToggleCorrecaoFinais, paneVersaoAnteriorFinais);
+
+        // 5. Ocultar painéis
+        VBox[] paineis = {
+                panePreviewApresentacao, panePreviewApi1, panePreviewApi2, panePreviewApi3,
+                panePreviewApi4, panePreviewApi5, panePreviewApi6
+        };
+        for (VBox pane : paineis) {
+            if (pane != null) pane.setVisible(false);
+        }
+    }
+
+    private void mapearCampos() {
         camposApresentacaoMap.put("Informações Pessoais", "nome_completo");
         camposApresentacaoMap.put("Histórico Acadêmico", "historico_academico");
         camposApresentacaoMap.put("Motivação para entrar na Fatec", "motivacao_fatec");
@@ -109,7 +179,6 @@ public class ModalFeedbackController {
         camposApresentacaoMap.put("Contatos", "contatos_email");
         camposApresentacaoMap.put("Principais Conhecimentos", "principais_conhecimentos");
 
-        // 3. Mapear os campos da API
         camposApiMap.put("Empresa Parceira", "empresa_parceira");
         camposApiMap.put("Problema", "problema");
         camposApiMap.put("Solução Resumo", "solucao_resumo");
@@ -118,29 +187,6 @@ public class ModalFeedbackController {
         camposApiMap.put("Contribuições", "contribuicoes");
         camposApiMap.put("Hard Skills", "hard_skills");
         camposApiMap.put("Soft Skills", "soft_skills");
-
-        // 4. Configurar Factory e Listeners
-        setupListViewApresentacao();
-        setupListViewApi(listCamposApi1);
-        setupListViewApi(listCamposApi2);
-        setupListViewApi(listCamposApi3);
-        setupListViewApi(listCamposApi4);
-        setupListViewApi(listCamposApi5);
-        setupListViewApi(listCamposApi6);
-
-        // 5. Configurar o listener das Abas
-        tabPane.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldTab, newTab) -> carregarDadosAba(newTab)
-        );
-
-        // 6. Ocultar painéis de preview
-        panePreviewApresentacao.setVisible(false);
-        panePreviewApi1.setVisible(false);
-        panePreviewApi2.setVisible(false);
-        panePreviewApi3.setVisible(false);
-        panePreviewApi4.setVisible(false);
-        panePreviewApi5.setVisible(false);
-        panePreviewApi6.setVisible(false);
     }
 
     private void setupListViewApresentacao() {
@@ -176,7 +222,9 @@ public class ModalFeedbackController {
         );
     }
 
-    private void setupListViewApi(ListView<String> listView) {
+    private void setupListViewApi(ListView<String> listView, int apiIndex) {
+        if (listView == null) return;
+
         listView.setCellFactory(param -> new ListCell<>() {
             private final HBox hbox = new HBox();
             private final Label labelTitulo = new Label();
@@ -197,27 +245,46 @@ public class ModalFeedbackController {
                 } else {
                     labelTitulo.setText(item);
                     String coluna = camposApiMap.get(item);
-                    int status = getStatusFromApiCache(coluna);
-                    atualizarStatusLabel(labelStatus, status);
+                    if (apiIndexAtual == apiIndex) {
+                        int status = getStatusFromApiCache(coluna);
+                        atualizarStatusLabel(labelStatus, status);
+                    }
                     setGraphic(hbox);
                 }
             }
         });
 
         listView.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> exibirCampoApi(newVal)
+                (obs, oldVal, newVal) -> {
+                    if (newVal != null && tabPane.getSelectionModel().getSelectedItem() == getTabApi(apiIndex)) {
+                        exibirCampoApi(newVal);
+                    }
+                }
         );
     }
 
-    /**
-     * Ponto de entrada chamado pelo EditorOrientadorController.
-     */
-    public void initData(Long trabalhoId, String versao) {
-        this.trabalhoId = trabalhoId;
-        this.versao = versao;
-        this.lblVersao.setText(versao);
+    private void setupToggleBinding(ToggleButton toggle, VBox pane) {
+        if (toggle == null || pane == null) return;
 
-        // Pega o orientador logado
+        pane.visibleProperty().bind(toggle.selectedProperty());
+        pane.managedProperty().bind(toggle.selectedProperty());
+
+        toggle.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (pane.getParent() != null && pane.getParent() instanceof SplitPane) {
+                SplitPane splitPane = (SplitPane) pane.getParent();
+                splitPane.requestLayout();
+                if(newVal) {
+                    splitPane.setDividerPositions(0.5);
+                }
+            }
+        });
+    }
+
+    public void initData(Long trabalhoId, String versaoAtual) {
+        this.trabalhoId = trabalhoId;
+        this.versaoAtual = versaoAtual;
+        this.lblVersao.setText(versaoAtual);
+
         User user = Session.getUser();
         if (user == null) {
             erro("Sessão do orientador expirou. Feche este modal e abra novamente.", null);
@@ -225,114 +292,119 @@ public class ModalFeedbackController {
         }
         this.orientadorId = user.getId();
 
-        carregarDadosAba(tabApresentacao); // Carrega a primeira aba
+        try {
+            this.versaoAnteriorCorrigida = versoesDao.findUltimaVersaoCorrigida(trabalhoId)
+                    .map(VersaoHistoricoDTO::versao)
+                    .orElse(null);
+        } catch (SQLException e) {
+            erro("Falha ao buscar histórico de versões", e);
+        }
+
+        carregarDadosAba(tabApresentacao);
     }
 
-    /**
-     * Roteador: Chamado quando o usuário troca de aba.
-     */
     private void carregarDadosAba(Tab aba) {
-        if (aba == tabApresentacao) carregarAbaApresentacao();
-        else if (aba == tabApi1) carregarAbaApi(1);
-        else if (aba == tabApi2) carregarAbaApi(2);
-        else if (aba == tabApi3) carregarAbaApi(3);
-        else if (aba == tabApi4) carregarAbaApi(4);
-        else if (aba == tabApi5) carregarAbaApi(5);
-        else if (aba == tabApi6) carregarAbaApi(6);
-        else if (aba == tabResumo) carregarAbaResumo();
-        else if (aba == tabFinais) carregarAbaFinais();
+        try {
+            if (aba == tabApresentacao) carregarAbaApresentacao();
+            else if (aba == tabApi1) carregarAbaApi(1);
+            else if (aba == tabApi2) carregarAbaApi(2);
+            else if (aba == tabApi3) carregarAbaApi(3);
+            else if (aba == tabApi4) carregarAbaApi(4);
+            else if (aba == tabApi5) carregarAbaApi(5);
+            else if (aba == tabApi6) carregarAbaApi(6);
+            else if (aba == tabResumo) carregarAbaResumo();
+            else if (aba == tabFinais) carregarAbaFinais();
+        } catch (SQLException e) {
+            erro("Falha crítica ao carregar dados da aba", e);
+        }
     }
 
     // --- Lógica da Aba Apresentação ---
 
-    private void carregarAbaApresentacao() {
-        try {
-            camposApresentacaoCache = dao.carregarCamposApresentacao(trabalhoId);
+    private void carregarAbaApresentacao() throws SQLException {
+        camposApresentacaoCache = dao.carregarCamposApresentacao(trabalhoId, versaoAtual);
+
+        if (versaoAnteriorCorrigida != null) {
+            // USA O NOVO MÉTODO SOBRECARREGADO
+            camposApresentacaoCache_Anterior = dao.carregarCamposApresentacao(trabalhoId, versaoAnteriorCorrigida);
+            lblTituloAnterior.setText("Versão Anterior (" + versaoAnteriorCorrigida + ")");
+            btnToggleCorrecao.setDisable(false);
+        } else {
+            btnToggleCorrecao.setDisable(true);
+            btnToggleCorrecao.setSelected(false);
+        }
+
+        if (listCamposApresentacao.getItems().isEmpty()) {
             ObservableList<String> nomesCampos = FXCollections.observableArrayList(camposApresentacaoMap.keySet());
             listCamposApresentacao.setItems(nomesCampos);
-            panePreviewApresentacao.setVisible(true);
-            listCamposApresentacao.getSelectionModel().selectFirst();
-        } catch (SQLException e) {
-            erro("Falha ao carregar campos da Apresentação", e);
         }
+
+        panePreviewApresentacao.setVisible(true);
+        listCamposApresentacao.getSelectionModel().selectFirst();
     }
 
     private void exibirCampoApresentacao(String nomeCampo) {
-        if (nomeCampo == null || camposApresentacaoCache == null) return;
+        if (nomeCampo == null) return;
         this.campoApresentacaoSelecionado = camposApresentacaoMap.get(nomeCampo);
         if (campoApresentacaoSelecionado == null) return;
 
         lblCampoTitulo.setText(nomeCampo);
 
-        String markdown = "";
-        int status = 0;
+        if (camposApresentacaoCache != null) {
+            String markdownAtual = getApresentacaoMarkdown(camposApresentacaoCache, campoApresentacaoSelecionado);
+            int statusAtual = getStatusFromApresentacaoCache(campoApresentacaoSelecionado);
 
-        switch (campoApresentacaoSelecionado) {
-            // ... (o switch case para preencher markdown e status) ...
-            case "nome_completo" -> {
-                markdown = camposApresentacaoCache.nomeCompleto();
-                status = camposApresentacaoCache.nomeCompletoStatus();
-            }
-            case "historico_academico" -> {
-                markdown = camposApresentacaoCache.historicoAcademico();
-                status = camposApresentacaoCache.historicoAcademicoStatus();
-            }
-            case "motivacao_fatec" -> {
-                markdown = camposApresentacaoCache.motivacaoFatec();
-                status = camposApresentacaoCache.motivacaoFatecStatus();
-            }
-            case "historico_profissional" -> {
-                markdown = camposApresentacaoCache.historicoProfissional();
-                status = camposApresentacaoCache.historicoProfissionalStatus();
-            }
-            case "contatos_email" -> {
-                markdown = camposApresentacaoCache.contatosEmail();
-                status = camposApresentacaoCache.contatosEmailStatus();
-            }
-            case "principais_conhecimentos" -> {
-                markdown = camposApresentacaoCache.principaisConhecimentos();
-                status = camposApresentacaoCache.principaisConhecimentosStatus();
-            }
+            renderMarkdown(webApresentacao_Atual, markdownAtual);
+            atualizarStatusLabel(lblCampoStatusApresentacao, statusAtual);
+            carregarUltimoParecer(txtParecerApresentacao_Atual, "APRESENTACAO", campoApresentacaoSelecionado, versaoAtual, false); // <-- false
         }
 
-        renderMarkdown(webApresentacao, markdown);
-        atualizarStatusLabel(lblCampoStatusApresentacao, status);
-
-        // Carrega o último parecer salvo para este campo
-        carregarUltimoParecer(txtParecerApresentacao, "APRESENTACAO", campoApresentacaoSelecionado);
+        if (versaoAnteriorCorrigida != null && camposApresentacaoCache_Anterior != null) {
+            String markdownAnterior = getApresentacaoMarkdown(camposApresentacaoCache_Anterior, campoApresentacaoSelecionado);
+            renderMarkdown(webApresentacao_Anterior, markdownAnterior);
+            carregarUltimoParecer(txtParecerApresentacao_Anterior, "APRESENTACAO", campoApresentacaoSelecionado, versaoAnteriorCorrigida, true); // <-- true
+        }
     }
 
     @FXML private void onAprovarCampo() {
-        atualizarStatusCampoApresentacao(1); // 1 = Aprovado
+        atualizarStatusCampoApresentacao(1);
     }
 
     @FXML private void onReprovarCampo() {
-        atualizarStatusCampoApresentacao(2); // 2 = Reprovado
+        atualizarStatusCampoApresentacao(2);
     }
 
     private void atualizarStatusCampoApresentacao(int novoStatus) {
         if (campoApresentacaoSelecionado == null) return;
         try {
-            String comentario = txtParecerApresentacao.getText();
+            String comentario = txtParecerApresentacao_Atual.getText();
 
-            // 1. Atualiza o status na tabela tg_apresentacao
-            dao.atualizarStatusCampoApresentacao(trabalhoId, versao, campoApresentacaoSelecionado, novoStatus);
-            // 2. Salva o parecer (comentário) na tabela pareceres
-            dao.salvarParecer(trabalhoId, versao, orientadorId, "APRESENTACAO", campoApresentacaoSelecionado, novoStatus, comentario);
+            dao.atualizarStatusCampoApresentacao(trabalhoId, versaoAtual, campoApresentacaoSelecionado, novoStatus);
+            dao.salvarParecer(trabalhoId, versaoAtual, orientadorId, "APRESENTACAO", campoApresentacaoSelecionado, novoStatus, comentario);
 
-            // 3. Atualiza a UI
             atualizarStatusLabel(lblCampoStatusApresentacao, novoStatus);
-            camposApresentacaoCache = dao.carregarCamposApresentacao(trabalhoId);
+            camposApresentacaoCache = dao.carregarCamposApresentacao(trabalhoId, versaoAtual);
             listCamposApresentacao.refresh();
 
             info("Parecer salvo com sucesso!");
-
         } catch (SQLException e) {
             erro("Falha ao salvar parecer do campo", e);
         }
     }
 
-    // ... (getStatusFromApresentacaoCache) ...
+    private String getApresentacaoMarkdown(ApresentacaoCamposDTO cache, String coluna) {
+        if (cache == null) return "";
+        return switch (coluna) {
+            case "nome_completo" -> cache.nomeCompleto();
+            case "historico_academico" -> cache.historicoAcademico();
+            case "motivacao_fatec" -> cache.motivacaoFatec();
+            case "historico_profissional" -> cache.historicoProfissional();
+            case "contatos_email" -> cache.contatosEmail();
+            case "principais_conhecimentos" -> cache.principaisConhecimentos();
+            default -> "";
+        };
+    }
+
     private int getStatusFromApresentacaoCache(String coluna) {
         if (camposApresentacaoCache == null || coluna == null) return 0;
         return switch (coluna) {
@@ -349,113 +421,115 @@ public class ModalFeedbackController {
 
     // --- Lógica das Abas de API ---
 
-    private void carregarAbaApi(int apiIndex) {
+    private void carregarAbaApi(int apiIndex) throws SQLException {
         this.apiIndexAtual = apiIndex;
-        try {
-            camposApiCache = dao.carregarCamposApi(trabalhoId, apiIndex);
-            ObservableList<String> nomesCampos = FXCollections.observableArrayList(camposApiMap.keySet());
 
-            ListView<String> currentListView = getListViewApi(apiIndex);
-            currentListView.setItems(nomesCampos);
+        // 1. Carrega dados da VERSÃO ATUAL
+        camposApiCache = dao.carregarCamposApi(trabalhoId, versaoAtual, apiIndex);
 
-            getPanePreviewApi(apiIndex).setVisible(true);
-            currentListView.getSelectionModel().selectFirst();
+        // 2. Carrega dados da VERSÃO ANTERIOR (se existir)
+        ToggleButton toggle = getToggleApi(apiIndex);
+        Label lblTituloAnterior = getLabelTituloAnteriorApi(apiIndex);
 
-        } catch (SQLException e) {
-            erro("Falha ao carregar campos da API " + apiIndex, e);
+        if (versaoAnteriorCorrigida != null) {
+            camposApiCache_Anterior = dao.carregarCamposApi(trabalhoId, versaoAnteriorCorrigida, apiIndex);
+            if (lblTituloAnterior != null) lblTituloAnterior.setText("Versão Anterior (" + versaoAnteriorCorrigida + ")");
+            if (toggle != null) toggle.setDisable(false);
+        } else {
+            if (toggle != null) {
+                toggle.setDisable(true);
+                toggle.setSelected(false);
+            }
         }
+
+        // 3. Preenche a lista da esquerda
+        ListView<String> currentListView = getListViewApi(apiIndex);
+        if (currentListView.getItems().isEmpty()) {
+            ObservableList<String> nomesCampos = FXCollections.observableArrayList(camposApiMap.keySet());
+            currentListView.setItems(nomesCampos);
+        }
+
+        VBox previewPane = getPanePreviewApi(apiIndex);
+        if (previewPane != null) previewPane.setVisible(true);
+        currentListView.getSelectionModel().selectFirst();
     }
 
     private void exibirCampoApi(String nomeCampo) {
-        if (nomeCampo == null || camposApiCache == null) return;
-
+        if (nomeCampo == null) return;
         this.campoApiSelecionado = camposApiMap.get(nomeCampo);
         if (campoApiSelecionado == null) return;
 
         Label currentTitulo = getLabelTituloApi(apiIndexAtual);
         Label currentStatus = getLabelStatusApi(apiIndexAtual);
-        WebView currentWeb = getWebViewApi(apiIndexAtual);
-        TextArea currentParecer = getTextAreaParecerApi(apiIndexAtual);
+        WebView currentWeb = getWebViewApi_Atual(apiIndexAtual);
+        TextArea currentParecer = getTextAreaParecerApi_Atual(apiIndexAtual);
+
+        if (currentTitulo == null) return;
 
         currentTitulo.setText(nomeCampo);
 
-        String markdown = "";
-        int status = 0;
+        if (camposApiCache != null) {
+            String markdownAtual = getApiMarkdown(camposApiCache, campoApiSelecionado);
+            int statusAtual = getStatusFromApiCache(campoApiSelecionado);
 
-        switch (campoApiSelecionado) {
-            case "empresa_parceira" -> {
-                markdown = camposApiCache.empresaParceira();
-                status = camposApiCache.empresaParceiraStatus();
-            }
-            case "problema" -> {
-                markdown = camposApiCache.problema();
-                status = camposApiCache.problemaStatus();
-            }
-            case "solucao_resumo" -> {
-                markdown = camposApiCache.solucaoResumo();
-                status = camposApiCache.solucaoResumoStatus();
-            }
-            case "link_repositorio" -> {
-                markdown = camposApiCache.linkRepositorio();
-                status = camposApiCache.linkRepositorioStatus();
-            }
-            case "tecnologias" -> {
-                markdown = camposApiCache.tecnologias();
-                status = camposApiCache.tecnologiasStatus();
-            }
-            case "contribuicoes" -> {
-                markdown = camposApiCache.contribuicoes();
-                status = camposApiCache.contribuicoesStatus(); // CORRIGIDO
-            }
-            case "hard_skills" -> {
-                markdown = camposApiCache.hardSkills();
-                status = camposApiCache.hardSkillsStatus(); // CORRIGIDO
-            }
-            case "soft_skills" -> {
-                markdown = camposApiCache.softSkills();
-                status = camposApiCache.softSkillsStatus(); // CORRIGIDO
-            }
+            renderMarkdown(currentWeb, markdownAtual);
+            atualizarStatusLabel(currentStatus, statusAtual);
+            carregarUltimoParecer(currentParecer, "API" + apiIndexAtual, campoApiSelecionado, versaoAtual, false); // <-- false
         }
 
-        renderMarkdown(currentWeb, markdown);
-        atualizarStatusLabel(currentStatus, status);
+        if (versaoAnteriorCorrigida != null && camposApiCache_Anterior != null) {
+            WebView webAnterior = getWebViewApi_Anterior(apiIndexAtual);
+            TextArea parecerAnterior = getTextAreaParecerApi_Anterior(apiIndexAtual);
 
-        carregarUltimoParecer(currentParecer, "API" + apiIndexAtual, campoApiSelecionado);
+            String markdownAnterior = getApiMarkdown(camposApiCache_Anterior, campoApiSelecionado);
+            renderMarkdown(webAnterior, markdownAnterior);
+            carregarUltimoParecer(parecerAnterior, "API" + apiIndexAtual, campoApiSelecionado, versaoAnteriorCorrigida, true); // <-- true
+        }
     }
 
     @FXML private void onAprovarCampoApi() {
-        atualizarStatusCampoApi(1); // 1 = Aprovado
+        atualizarStatusCampoApi(1);
     }
 
     @FXML private void onReprovarCampoApi() {
-        atualizarStatusCampoApi(2); // 2 = Reprovado
+        atualizarStatusCampoApi(2);
     }
 
     private void atualizarStatusCampoApi(int novoStatus) {
         if (campoApiSelecionado == null) return;
         try {
-            TextArea currentParecer = getTextAreaParecerApi(apiIndexAtual);
+            TextArea currentParecer = getTextAreaParecerApi_Atual(apiIndexAtual);
             String comentario = currentParecer.getText();
             String secao = "API" + apiIndexAtual;
 
-            // 1. Atualiza o status na tabela tg_secao
-            dao.atualizarStatusCampoApi(trabalhoId, versao, apiIndexAtual, campoApiSelecionado, novoStatus);
-            // 2. Salva o parecer
-            dao.salvarParecer(trabalhoId, versao, orientadorId, secao, campoApiSelecionado, novoStatus, comentario);
+            dao.atualizarStatusCampoApi(trabalhoId, versaoAtual, apiIndexAtual, campoApiSelecionado, novoStatus);
+            dao.salvarParecer(trabalhoId, versaoAtual, orientadorId, secao, campoApiSelecionado, novoStatus, comentario);
 
-            // 3. Atualiza a UI
             atualizarStatusLabel(getLabelStatusApi(apiIndexAtual), novoStatus);
-            camposApiCache = dao.carregarCamposApi(trabalhoId, apiIndexAtual);
+            camposApiCache = dao.carregarCamposApi(trabalhoId, versaoAtual, apiIndexAtual);
             getListViewApi(apiIndexAtual).refresh();
 
             info("Parecer salvo com sucesso!");
-
         } catch (SQLException e) {
             erro("Falha ao atualizar status do campo de API", e);
         }
     }
 
-    // ... (getStatusFromApiCache) ...
+    private String getApiMarkdown(ApiCamposDTO cache, String coluna) {
+        if (cache == null) return "";
+        return switch (coluna) {
+            case "empresa_parceira" -> cache.empresaParceira();
+            case "problema" -> cache.problema();
+            case "solucao_resumo" -> cache.solucaoResumo();
+            case "link_repositorio" -> cache.linkRepositorio();
+            case "tecnologias" -> cache.tecnologias();
+            case "contribuicoes" -> cache.contribuicoes();
+            case "hard_skills" -> cache.hardSkills();
+            case "soft_skills" -> cache.softSkills();
+            default -> "";
+        };
+    }
+
     private int getStatusFromApiCache(String coluna) {
         if (camposApiCache == null || coluna == null) return 0;
         return switch (coluna) {
@@ -464,9 +538,9 @@ public class ModalFeedbackController {
             case "solucao_resumo" -> camposApiCache.solucaoResumoStatus();
             case "link_repositorio" -> camposApiCache.linkRepositorioStatus();
             case "tecnologias" -> camposApiCache.tecnologiasStatus();
-            case "contribuicoes" -> camposApiCache.contribuicoesStatus(); // CORRIGIDO
-            case "hard_skills" -> camposApiCache.hardSkillsStatus(); // CORRIGIDO
-            case "soft_skills" -> camposApiCache.softSkillsStatus(); // CORRIGIDO
+            case "contribuicoes" -> camposApiCache.contribuicoesStatus();
+            case "hard_skills" -> camposApiCache.hardSkillsStatus();
+            case "soft_skills" -> camposApiCache.softSkillsStatus();
             default -> 0;
         };
     }
@@ -474,34 +548,37 @@ public class ModalFeedbackController {
 
     // --- Lógica da Aba Resumo ---
 
-    private void carregarAbaResumo() {
-        try {
-            ResumoCamposDTO dto = dao.carregarCamposResumo(trabalhoId);
-            renderMarkdown(webResumo, dto.resumoMd());
-            atualizarStatusLabel(lblResumoVersaoStatus, dto.versaoValidada());
-            carregarUltimoParecer(txtParecerResumo, "RESUMO", "resumo_md");
-        } catch (SQLException e) {
-            erro("Falha ao carregar aba Resumo", e);
+    private void carregarAbaResumo() throws SQLException {
+        ResumoCamposDTO dtoAtual = dao.carregarCamposResumo(trabalhoId, versaoAtual);
+        renderMarkdown(webResumo_Atual, dtoAtual.resumoMd());
+        atualizarStatusLabel(lblResumoVersaoStatus, dtoAtual.versaoValidada());
+        carregarUltimoParecer(txtParecerResumo_Atual, "RESUMO", "resumo_md", versaoAtual, false); // <-- false
+
+        if (versaoAnteriorCorrigida != null) {
+            ResumoCamposDTO dtoAnterior = dao.carregarCamposResumo(trabalhoId, versaoAnteriorCorrigida);
+            lblTituloAnteriorResumo.setText("Versão Anterior (" + versaoAnteriorCorrigida + ")");
+            renderMarkdown(webResumo_Anterior, dtoAnterior.resumoMd());
+            carregarUltimoParecer(txtParecerResumo_Anterior, "RESUMO", "resumo_md", versaoAnteriorCorrigida, true); // <-- true
+            btnToggleCorrecaoResumo.setDisable(false);
+        } else {
+            btnToggleCorrecaoResumo.setDisable(true);
+            btnToggleCorrecaoResumo.setSelected(false);
         }
     }
 
     @FXML private void onAprovarResumo() {
-        atualizarStatusResumo(1); // 1 = Aprovado
+        atualizarStatusResumo(1);
     }
 
     @FXML private void onReprovarResumo() {
-        atualizarStatusResumo(2); // 2 = Reprovado
+        atualizarStatusResumo(2);
     }
 
     private void atualizarStatusResumo(int novoStatus) {
         try {
-            String comentario = txtParecerResumo.getText();
-            // 1. Atualiza status
-            dao.atualizarStatusResumo(trabalhoId, versao, novoStatus);
-            // 2. Salva parecer
-            dao.salvarParecer(trabalhoId, versao, orientadorId, "RESUMO", "resumo_md", novoStatus, comentario);
-
-            // 3. Atualiza UI
+            String comentario = txtParecerResumo_Atual.getText();
+            dao.atualizarStatusResumo(trabalhoId, versaoAtual, novoStatus);
+            dao.salvarParecer(trabalhoId, versaoAtual, orientadorId, "RESUMO", "resumo_md", novoStatus, comentario);
             atualizarStatusLabel(lblResumoVersaoStatus, novoStatus);
             info("Parecer salvo com sucesso!");
         } catch (SQLException e) {
@@ -512,14 +589,23 @@ public class ModalFeedbackController {
 
     // --- Lógica da Aba Finais ---
 
-    private void carregarAbaFinais() {
-        try {
-            ApresentacaoCamposDTO dto = dao.carregarCamposFinais(trabalhoId);
-            renderMarkdown(webFinais, dto.consideracoesFinais());
-            atualizarStatusLabel(lblFinaisStatus, dto.consideracoesFinaisStatus());
-            carregarUltimoParecer(txtParecerFinais, "FINAIS", "consideracoes_finais");
-        } catch (SQLException e) {
-            erro("Falha ao carregar aba Finais", e);
+    private void carregarAbaFinais() throws SQLException {
+        // CORRIGIDO: Chamando o método sobrecarregado correto
+        ApresentacaoCamposDTO dtoAtual = dao.carregarCamposApresentacao(trabalhoId, versaoAtual);
+        renderMarkdown(webFinais_Atual, dtoAtual.consideracoesFinais());
+        atualizarStatusLabel(lblFinaisStatus, dtoAtual.consideracoesFinaisStatus());
+        carregarUltimoParecer(txtParecerFinais_Atual, "FINAIS", "consideracoes_finais", versaoAtual, false); // <-- false
+
+        if (versaoAnteriorCorrigida != null) {
+            // CORRIGIDO: Chamando o método sobrecarregado correto
+            ApresentacaoCamposDTO dtoAnterior = dao.carregarCamposApresentacao(trabalhoId, versaoAnteriorCorrigida);
+            lblTituloAnteriorFinais.setText("Versão Anterior (" + versaoAnteriorCorrigida + ")");
+            renderMarkdown(webFinais_Anterior, dtoAnterior.consideracoesFinais());
+            carregarUltimoParecer(txtParecerFinais_Anterior, "FINAIS", "consideracoes_finais", versaoAnteriorCorrigida, true); // <-- true
+            btnToggleCorrecaoFinais.setDisable(false);
+        } else {
+            btnToggleCorrecaoFinais.setDisable(true);
+            btnToggleCorrecaoFinais.setSelected(false);
         }
     }
 
@@ -533,15 +619,12 @@ public class ModalFeedbackController {
 
     private void atualizarStatusFinais(int novoStatus) {
         try {
-            String comentario = txtParecerFinais.getText();
+            String comentario = txtParecerFinais_Atual.getText();
             String campoChave = "consideracoes_finais";
 
-            // 1. Atualiza status (é um campo da tabela apresentacao)
-            dao.atualizarStatusCampoApresentacao(trabalhoId, versao, campoChave, novoStatus);
-            // 2. Salva parecer
-            dao.salvarParecer(trabalhoId, versao, orientadorId, "FINAIS", campoChave, novoStatus, comentario);
+            dao.atualizarStatusCampoApresentacao(trabalhoId, versaoAtual, campoChave, novoStatus);
+            dao.salvarParecer(trabalhoId, versaoAtual, orientadorId, "FINAIS", campoChave, novoStatus, comentario);
 
-            // 3. Atualiza UI
             atualizarStatusLabel(lblFinaisStatus, novoStatus);
             info("Parecer salvo com sucesso!");
         } catch (SQLException e) {
@@ -551,45 +634,26 @@ public class ModalFeedbackController {
 
 
     // --- Handshake (Finalizar Devolutiva) ---
-
     @FXML
     private void onFinalizarDevolutiva() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Finalizar Devolutiva");
         confirm.setHeaderText("Enviar feedback para o aluno?");
         confirm.setContentText("Isso irá atualizar o status do TG do aluno para 'Aprovado' ou 'Reprovado' (com pendências).\n\nEsta ação não pode ser desfeita.");
-
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) {
-            return; // Usuário cancelou
+            return;
         }
-
         try {
-            // 1. Verifica o número de pendências (0 ou 2)
-            int pendencias = dao.countPendenciasByVersao(trabalhoId, versao);
+            int pendencias = dao.countPendenciasByVersao(trabalhoId, versaoAtual);
+            String novoStatus = (pendencias == 0) ? "APROVADO" : "REPROVADO";
+            String msgSucesso = (pendencias == 0) ? "TG Aprovado! O aluno foi notificado." : "Devolutiva enviada com " + pendencias + " pendências. O aluno foi notificado.";
 
-            String novoStatus;
-            String msgSucesso;
-
-            if (pendencias == 0) {
-                // TUDO APROVADO
-                novoStatus = "APROVADO";
-                msgSucesso = "TG Aprovado! O aluno foi notificado.";
-            } else {
-                // AINDA TEM PENDÊNCIAS (0 ou 2)
-                novoStatus = "REPROVADO";
-                msgSucesso = "Devolutiva enviada com " + pendencias + " pendências. O aluno foi notificado.";
-            }
-
-            // 2. ATUALIZADO: Abre uma conexão para esta operação
             try (Connection con = Database.get()) {
                 tgDao.updateStatus(con, trabalhoId, novoStatus);
             }
-
-            // 3. Informa o orientador e fecha o modal
             info(msgSucesso);
             fecharModal();
-
         } catch (Exception e) {
             erro("Falha grave ao finalizar a devolutiva.", e);
         }
@@ -598,14 +662,30 @@ public class ModalFeedbackController {
 
     // --- Métodos Utilitários ---
 
-    /**
-     * NOVO: Carrega o último comentário salvo em um TextArea.
-     */
-    private void carregarUltimoParecer(TextArea textArea, String secao, String campoChave) {
+    private void carregarUltimoParecer(TextArea textArea, String secao, String campoChave, String versaoAlvo, boolean isReadOnly) {
         if (textArea == null) return;
         try {
-            Optional<String> parecer = dao.findUltimoParecer(trabalhoId, versao, secao, campoChave);
-            textArea.setText(parecer.orElse("")); // Preenche com o parecer ou com vazio
+            if (versaoAlvo == null) {
+                textArea.setText("Não há versão anterior corrigida.");
+                textArea.setDisable(true);
+                return;
+            }
+
+            // Define se o campo é editável (será true para o painel "Anterior")
+            textArea.setDisable(isReadOnly);
+
+            Optional<String> parecer = dao.findUltimoParecer(trabalhoId, versaoAlvo, secao, campoChave);
+
+            // --- ESTA É A CORREÇÃO ---
+            if (isReadOnly) {
+                // Se for o painel "Anterior", mostra a mensagem
+                textArea.setText(parecer.orElse("Nenhum parecer registrado para esta versão."));
+            } else {
+                // Se for o painel "Atual" (o de digitação), deixa em branco
+                textArea.setText(parecer.orElse(""));
+            }
+            // --- FIM DA CORREÇÃO ---
+
         } catch (SQLException e) {
             textArea.setText("Erro ao carregar parecer: " + e.getMessage());
         }
@@ -617,12 +697,14 @@ public class ModalFeedbackController {
         stage.close();
     }
 
-    // ... (renderMarkdown, atualizarStatusLabel, helpers de API, erro, info) ...
-
     private void renderMarkdown(WebView webView, String markdown) {
         if (webView == null) return;
         String md = (markdown == null) ? "" : markdown;
-        String htmlBody = mdRenderer.render(mdParser.parse(md));
+
+        // CORRIGIDO: O erro de sintaxe estava aqui.
+        Node document = mdParser.parse(md);
+        String htmlBody = mdRenderer.render(document);
+
         String page =
                 "<!doctype html><html><head>" +
                         "<meta charset='UTF-8'>" +
@@ -638,91 +720,98 @@ public class ModalFeedbackController {
                         "</body></html>";
         webView.getEngine().loadContent(page);
     }
+
     private void atualizarStatusLabel(Label label, int status) {
         if (label == null) return;
         label.getStyleClass().removeAll("badge-ok", "badge-pendente", "badge-reprovado");
         switch (status) {
-            case 1 -> {
-                label.setText("Aprovado");
-                label.getStyleClass().add("badge-ok");
-            }
-            case 2 -> {
-                label.setText("Reprovado");
-                label.getStyleClass().add("badge-reprovado");
-            }
-            default -> {
-                label.setText("Pendente");
-                label.getStyleClass().add("badge-pendente");
-            }
+            case 1 -> { label.setText("Aprovado"); label.getStyleClass().add("badge-ok"); }
+            case 2 -> { label.setText("Reprovado"); label.getStyleClass().add("badge-reprovado"); }
+            default -> { label.setText("Pendente"); label.getStyleClass().add("badge-pendente"); }
         }
+    }
+
+    // --- Helpers de Roteamento de API (Completos) ---
+
+    private Tab getTabApi(int index) {
+        return switch (index) {
+            case 1 -> tabApi1; case 2 -> tabApi2; case 3 -> tabApi3;
+            case 4 -> tabApi4; case 5 -> tabApi5; case 6 -> tabApi6;
+            default -> null;
+        };
     }
     private ListView<String> getListViewApi(int index) {
         return switch (index) {
-            case 1 -> listCamposApi1;
-            case 2 -> listCamposApi2;
-            case 3 -> listCamposApi3;
-            case 4 -> listCamposApi4;
-            case 5 -> listCamposApi5;
-            case 6 -> listCamposApi6;
+            case 1 -> listCamposApi1; case 2 -> listCamposApi2; case 3 -> listCamposApi3;
+            case 4 -> listCamposApi4; case 5 -> listCamposApi5; case 6 -> listCamposApi6;
             default -> null;
         };
     }
     private VBox getPanePreviewApi(int index) {
         return switch (index) {
-            case 1 -> panePreviewApi1;
-            case 2 -> panePreviewApi2;
-            case 3 -> panePreviewApi3;
-            case 4 -> panePreviewApi4;
-            case 5 -> panePreviewApi5;
-            case 6 -> panePreviewApi6;
+            case 1 -> panePreviewApi1; case 2 -> panePreviewApi2; case 3 -> panePreviewApi3;
+            case 4 -> panePreviewApi4; case 5 -> panePreviewApi5; case 6 -> panePreviewApi6;
             default -> null;
         };
     }
     private Label getLabelTituloApi(int index) {
         return switch (index) {
-            case 1 -> lblCampoTituloApi1;
-            case 2 -> lblCampoTituloApi2;
-            case 3 -> lblCampoTituloApi3;
-            case 4 -> lblCampoTituloApi4;
-            case 5 -> lblCampoTituloApi5;
-            case 6 -> lblCampoTituloApi6;
+            case 1 -> lblCampoTituloApi1; case 2 -> lblCampoTituloApi2; case 3 -> lblCampoTituloApi3;
+            case 4 -> lblCampoTituloApi4; case 5 -> lblCampoTituloApi5; case 6 -> lblCampoTituloApi6;
             default -> null;
         };
     }
     private Label getLabelStatusApi(int index) {
         return switch (index) {
-            case 1 -> lblCampoStatusApi1;
-            case 2 -> lblCampoStatusApi2;
-            case 3 -> lblCampoStatusApi3;
-            case 4 -> lblCampoStatusApi4;
-            case 5 -> lblCampoStatusApi5;
-            case 6 -> lblCampoStatusApi6;
+            case 1 -> lblCampoStatusApi1; case 2 -> lblCampoStatusApi2; case 3 -> lblCampoStatusApi3;
+            case 4 -> lblCampoStatusApi4; case 5 -> lblCampoStatusApi5; case 6 -> lblCampoStatusApi6;
             default -> null;
         };
     }
-    private WebView getWebViewApi(int index) {
+    private WebView getWebViewApi_Atual(int index) {
         return switch (index) {
-            case 1 -> webApi1;
-            case 2 -> webApi2;
-            case 3 -> webApi3;
-            case 4 -> webApi4;
-            case 5 -> webApi5;
-            case 6 -> webApi6;
+            case 1 -> webApi1_Atual; case 2 -> webApi2_Atual; case 3 -> webApi3_Atual;
+            case 4 -> webApi4_Atual; case 5 -> webApi5_Atual; case 6 -> webApi6_Atual;
             default -> null;
         };
     }
-    // NOVO: Helper para pegar o TextArea de parecer da API correta
-    private TextArea getTextAreaParecerApi(int index) {
+    private WebView getWebViewApi_Anterior(int index) {
         return switch (index) {
-            case 1 -> txtParecerApi1;
-            case 2 -> txtParecerApi2;
-            case 3 -> txtParecerApi3;
-            case 4 -> txtParecerApi4;
-            case 5 -> txtParecerApi5;
-            case 6 -> txtParecerApi6;
+            case 1 -> webApi1_Anterior; case 2 -> webApi2_Anterior; case 3 -> webApi3_Anterior;
+            case 4 -> webApi4_Anterior; case 5 -> webApi5_Anterior; case 6 -> webApi6_Anterior;
             default -> null;
         };
     }
+    private TextArea getTextAreaParecerApi_Atual(int index) {
+        return switch (index) {
+            case 1 -> txtParecerApi1_Atual; case 2 -> txtParecerApi2_Atual; case 3 -> txtParecerApi3_Atual;
+            case 4 -> txtParecerApi4_Atual; case 5 -> txtParecerApi5_Atual; case 6 -> txtParecerApi6_Atual;
+            default -> null;
+        };
+    }
+    private TextArea getTextAreaParecerApi_Anterior(int index) {
+        return switch (index) {
+            case 1 -> txtParecerApi1_Anterior; case 2 -> txtParecerApi2_Anterior; case 3 -> txtParecerApi3_Anterior;
+            case 4 -> txtParecerApi4_Anterior; case 5 -> txtParecerApi5_Anterior; case 6 -> txtParecerApi6_Anterior;
+            default -> null;
+        };
+    }
+    private ToggleButton getToggleApi(int index) {
+        return switch (index) {
+            case 1 -> btnToggleCorrecaoApi1; case 2 -> btnToggleCorrecaoApi2; case 3 -> btnToggleCorrecaoApi3;
+            case 4 -> btnToggleCorrecaoApi4; case 5 -> btnToggleCorrecaoApi5; case 6 -> btnToggleCorrecaoApi6;
+            default -> null;
+        };
+    }
+    private Label getLabelTituloAnteriorApi(int index) {
+        return switch (index) {
+            case 1 -> lblTituloAnteriorApi1; case 2 -> lblTituloAnteriorApi2; case 3 -> lblTituloAnteriorApi3;
+            case 4 -> lblTituloAnteriorApi4; case 5 -> lblTituloAnteriorApi5; case 6 -> lblTituloAnteriorApi6;
+            default -> null;
+        };
+    }
+
+
     private void erro(String msg, Exception e) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Ops!");
@@ -730,7 +819,7 @@ public class ModalFeedbackController {
         a.showAndWait();
         if (e != null) e.printStackTrace();
     }
-    private void info(String msg) { // NOVO
+    private void info(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
         a.setHeaderText(null);
         a.setContentText(msg);
