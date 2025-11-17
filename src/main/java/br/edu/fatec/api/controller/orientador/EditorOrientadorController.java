@@ -338,6 +338,7 @@ public class EditorOrientadorController extends BaseController {
 
             Scene scene = new Scene(root);
             modalStage.setScene(scene);
+            modalStage.setMaximized(true);
             modalStage.showAndWait(); // Exibe e espera o modal ser fechado
 
             // Recarrega o status geral na tela principal
@@ -375,6 +376,7 @@ public class EditorOrientadorController extends BaseController {
 
             Scene scene = new Scene(root);
             modalStage.setScene(scene);
+            modalStage.setMaximized(true);
             modalStage.showAndWait();
 
         } catch (Exception e) {
