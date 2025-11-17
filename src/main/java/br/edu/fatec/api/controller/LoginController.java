@@ -15,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import br.edu.fatec.api.dao.JdbcSolicitacaoOrientacaoDao;
+import java.sql.SQLException;
 
 public class LoginController {
 
@@ -22,11 +24,16 @@ public class LoginController {
     private final LoginService loginService = new LoginService(new JdbcLoginDao());
 
     // ajuste os fx:id conforme seu FXML
-    @FXML private VBox allView;
-    @FXML private TextField txtEmail;
-    @FXML private PasswordField pfSenha;
-    @FXML private Label lblErro;
-    @FXML private Button btnEnter;
+    @FXML
+    private VBox allView;
+    @FXML
+    private TextField txtEmail;
+    @FXML
+    private PasswordField pfSenha;
+    @FXML
+    private Label lblErro;
+    @FXML
+    private Button btnEnter;
 
     @FXML
     public void initialize() {
@@ -46,16 +53,35 @@ public class LoginController {
         loginService.login(email, senha).ifPresentOrElse((User u) -> {
             lblErro.setText("");
             Session.setUser(u);
+
             switch (u.getRole()) {
                 case ALUNO:
+                    // NOVA LÓGICA: Verificar se aluno precisa solicitar orientação
+                    JdbcSolicitacaoOrientacaoDao solicitacaoDao = new JdbcSolicitacaoOrientacaoDao();
+                    try {
+                        boolean temOrientacao = solicitacaoDao.alunoTemOrientacaoAtiva(u.getId());
+                        boolean temSolicitacaoPendente = solicitacaoDao.alunoTemSolicitacaoPendente(u.getId());
+
+                        if (!temOrientacao && !temSolicitacaoPendente) {
+                            // Primeiro acesso - redirecionar para solicitação
+                            SceneManager.go("aluno/SolicitacaoOrientacaoAluno.fxml");
+                            return;
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    // Se já tem orientação, vai para dashboard normal
                     SceneManager.go("aluno/Dashboard.fxml");
                     break;
+
                 case ORIENTADOR:
                     SceneManager.go("orientador/VisaoGeral.fxml");
                     break;
+
                 case COORDENADOR:
                     SceneManager.go("coordenacao/VisaoGeral.fxml");
                     break;
+
                 default:
                     lblErro.setText("Perfil desconhecido.");
             }

@@ -397,4 +397,8 @@ public class HistoricoOrientadorController extends BaseController {
         public Long getTrabalhoId() { return trabalhoId; }
         public SimpleStringProperty nomeProperty() { return nome; }
     }
+
+    public void goSolicitacoes() {
+        SceneManager.go("orientador/SolicitacoesOrientador.fxml");
+    }
 }

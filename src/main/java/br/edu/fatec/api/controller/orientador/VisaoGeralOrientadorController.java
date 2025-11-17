@@ -104,4 +104,8 @@ public class VisaoGeralOrientadorController extends BaseController {
     public void logout(){
         SceneManager.go("login/Login.fxml");
     }
+
+    public void goSolicitacoes() {
+        SceneManager.go("orientador/SolicitacoesOrientador.fxml");
+    }
 }

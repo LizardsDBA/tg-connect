@@ -441,4 +441,8 @@ public class EditorOrientadorController extends BaseController {
             ctrl.onReady();
         });
     }
+
+    public void goSolicitacoes() {
+        SceneManager.go("orientador/SolicitacoesOrientador.fxml");
+    }
 }

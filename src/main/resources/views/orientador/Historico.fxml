@@ -32,12 +32,14 @@
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Visão Geral" onAction="#goVisaoGeral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                    styleClass="sidebar-link" text="Painel de Alunos" onAction="#goPainel"/>
+                    styleClass="sidebar-link" text="Painel" onAction="#goPainel"/>
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
             <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                    onAction="#goSolicitacoes" styleClass="sidebar-link" text="Solicitações"/>
         </VBox>
 
         <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">

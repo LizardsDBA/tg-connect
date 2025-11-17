@@ -241,6 +241,22 @@ CREATE TABLE IF NOT EXISTS entregas (
     FOREIGN KEY (trabalho_id) REFERENCES trabalhos_graduacao(id)
     ) ENGINE=InnoDB;
 
+
+CREATE TABLE IF NOT EXISTS solicitacoes_orientacao (
+ id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+ aluno_id            BIGINT NOT NULL,
+ orientador_id       BIGINT NOT NULL,
+ status              ENUM('PENDENTE','APROVADA','RECUSADA') NOT NULL DEFAULT 'PENDENTE',
+ justificativa       TEXT NULL,
+ data_solicitacao    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ data_resposta       DATETIME NULL,
+
+ FOREIGN KEY (aluno_id) REFERENCES usuarios(id),
+ FOREIGN KEY (orientador_id) REFERENCES usuarios(id),
+ INDEX idx_aluno_status (aluno_id, status),
+ INDEX idx_orientador_status (orientador_id, status)
+) ENGINE=InnoDB;
+
 -- =========================================================
 -- SEEDS (senha padrão 123456) — idempotentes
 -- =========================================================

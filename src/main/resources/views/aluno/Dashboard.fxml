@@ -42,6 +42,7 @@
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>
 
+
         <!-- Main Content -->
         <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
 
