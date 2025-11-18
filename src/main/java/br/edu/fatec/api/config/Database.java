@@ -14,11 +14,11 @@ public final class Database {
 
     // credenciais root (apenas p/ bootstrap). Se não tiver, deixe em branco.
     private static final String ROOT_USER = "root";
-    private static final String ROOT_PASS = "210192";
+    private static final String ROOT_PASS = "123456";
 
     // usuário da aplicação
     private static final String APP_USER = "root";
-    private static final String APP_PASS = "210192";
+    private static final String APP_PASS = "123456";
 
     private Database() {}
 
