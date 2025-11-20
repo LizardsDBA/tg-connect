@@ -169,6 +169,54 @@
     -fx-border-color: #B20F19;
 }
 
+/* ===== LISTAS ===== */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #E6E6E6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: #E6E6E6;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10;
+}
+.list-cell:selected {
+    -fx-background-color: #A9BCC8;
+}
+.list-cell:selected .text{
+    -fx-fill: black;
+}
+
+/* ===== TABELAS ===== */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #E6E6E6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.table-view .column-header {
+    -fx-background-color: #3C5361;
+    -fx-border-color: #E6E6E6;
+    -fx-font-weight: bold;
+}
+.table-row-cell:odd {
+    -fx-background-color: #E6E6E6;
+}
+.table-view .column-header . text{
+    -fx-fill: white;
+}
+.table-row-cell:selected {
+    -fx-background-color: #A9BCC8;
+}
+.table-row-cell:selected .text,
+.table-cell:selected .text {
+    -fx-fill: black;
+}
+
 /* ===== PILLS/BADGES ===== */
 .pill {
     -fx-background-color: #edf2ff;
@@ -181,53 +229,6 @@
     -fx-font-size: 12;
 }
 
-
-/* ===== LISTAS ===== */
-.list-view {
-    -fx-background-color: black;
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1px;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-.list-cell {
-    -fx-background-color: transparent;
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 10;
-}
-.list-cell:selected {
-    -fx-background-color: #f2f7ff;
-    -fx-border-color: #cfe0ff;
-}
-.list-cell:selected .text{
-    -fx-fill: #000;
-}
-
-/* ===== TABELAS ===== */
-.table-view {
-    -fx-background-color: white;
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 1px;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-.table-view .column-header {
-    -fx-background-color: #f7f7f7;
-    -fx-border-color: #d6d6d6;
-    -fx-font-weight: bold;
-}
-.table-row-cell {
-    -fx-border-color: #d6d6d6;
-    -fx-border-width: 0 0 1 0;
-}
-.table-row-cell:selected {
-    -fx-background-color: #f2f7ff;
-}
-.table-row-cell:selected .text,
-.table-cell:selected .text {
-    -fx-fill: #000;
-}
 
 /* ===== BARRAS DE PROGRESSO ===== */
 .progress-bar {
