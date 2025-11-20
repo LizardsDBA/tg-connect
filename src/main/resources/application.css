@@ -182,14 +182,9 @@
 }
 
 
-
-
-/* ===== LABELS ===== */
-
-
 /* ===== LISTAS ===== */
 .list-view {
-    -fx-background-color: white;
+    -fx-background-color: black;
     -fx-border-color: #d6d6d6;
     -fx-border-width: 1px;
     -fx-border-radius: 8;

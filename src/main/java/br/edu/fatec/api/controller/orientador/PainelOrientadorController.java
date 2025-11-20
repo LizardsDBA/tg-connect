@@ -23,8 +23,6 @@ import java.util.function.Predicate;
 
 public class PainelOrientadorController extends BaseController {
 
-    // Sidebar – rota ativa
-    @FXML private Button btnPainel;
     @FXML private Button btnSouCoordenador;
 
     // Filtros
@@ -45,9 +43,6 @@ public class PainelOrientadorController extends BaseController {
 
     @FXML
     private void initialize() {
-        if (btnPainel != null && !btnPainel.getStyleClass().contains("active")) {
-            btnPainel.getStyleClass().add("active");
-        }
         if (tblPendencias != null) {
             tblPendencias.setPlaceholder(new Label("Sem pendências no momento."));
         }

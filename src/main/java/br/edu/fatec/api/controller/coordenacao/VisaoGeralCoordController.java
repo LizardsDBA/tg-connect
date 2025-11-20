@@ -10,8 +10,6 @@ import javafx.concurrent.Task;
 
 public class VisaoGeralCoordController extends BaseController {
 
-    // Sidebar – rota ativa
-    @FXML private Button btnVisaoGeral;
 
     // KPIs
     @FXML private Label lblAlunos; // Card do Meio
@@ -20,10 +18,6 @@ public class VisaoGeralCoordController extends BaseController {
 
     @FXML
     private void initialize() {
-        // Marca a rota ativa na sidebar
-        if (btnVisaoGeral != null && !btnVisaoGeral.getStyleClass().contains("active")) {
-            btnVisaoGeral.getStyleClass().add("active");
-        }
 
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");

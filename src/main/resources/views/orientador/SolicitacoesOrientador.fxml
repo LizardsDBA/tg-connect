@@ -43,7 +43,7 @@
                 <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
-                <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goHistorico" styleClass="sidebar-link" text="Histórico de Versões"/>

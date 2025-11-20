@@ -23,8 +23,6 @@ import java.time.LocalDateTime;
 
 public class AndamentoCoordController extends BaseController {
 
-    // Sidebar – rota ativa
-    @FXML private Button btnAndamento;
 
     // KPIs
     @FXML private Label lblAlunosAtivos, lblEmDia, lblAtrasados;
@@ -45,10 +43,6 @@ public class AndamentoCoordController extends BaseController {
 
     @FXML
     private void initialize() {
-        // Rota ativa
-        if (btnAndamento != null && !btnAndamento.getStyleClass().contains("active")) {
-            btnAndamento.getStyleClass().add("active");
-        }
 
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");

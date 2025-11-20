@@ -31,7 +31,7 @@
 
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
-            <Button fx:id="btnMapa" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goMapa" styleClass="sidebar-link" text="Mapa de Orientação"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>

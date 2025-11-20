@@ -31,7 +31,7 @@
             <Label styleClass="sidebar-title" text="Orientador"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
 
-            <Button fx:id="btnVisaoGeral" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goPainel" styleClass="sidebar-link" text="Painel"/>
@@ -39,7 +39,7 @@
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
-            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>

@@ -16,8 +16,6 @@ import br.edu.fatec.api.controller.orientador.HistoricoOrientadorController;
 
 public class VisaoGeralOrientadorController extends BaseController {
 
-    // Sidebar – rota ativa
-    @FXML private Button btnVisaoGeral;
     @FXML private Button btnSouCoordenador;
 
     // KPIs
@@ -31,9 +29,6 @@ public class VisaoGeralOrientadorController extends BaseController {
 
     @FXML
     private void initialize() {
-        if (btnVisaoGeral != null && !btnVisaoGeral.getStyleClass().contains("active")) {
-            btnVisaoGeral.getStyleClass().add("active");
-        }
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");
         }
