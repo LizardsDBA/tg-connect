@@ -18,8 +18,8 @@
             <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
             <Label styleClass="logo" text="API/TG"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Home" onAction="#goHome"/>
-            <Button text="Sair" onAction="#logout"/>
+            <Button text="HOME" onAction="#goHome"/>
+            <Button text="SAIR" onAction="#logout"/>
         </HBox>
     </top>
 

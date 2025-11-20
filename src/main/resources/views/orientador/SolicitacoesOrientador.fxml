@@ -17,14 +17,14 @@
             <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
             <Label styleClass="logo" text="API/TG"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnSouCoordenador" styleClass="btn-trade" text="Sou Coordenador" onAction="#goHomeCoord"/>
-            <Button text="Home" onAction="#goHome"/>
-            <Button text="Sair" onAction="#logout"/>
+            <Button fx:id="btnSouCoordenador" styleClass="btn-primary" text="Sou Coordenador" onAction="#goHomeCoord"/>
+            <Button text="HOME" onAction="#goHome"/>
+            <Button text="SAIR" onAction="#logout"/>
         </HBox>
     </top>
 
     <center>
-        <HBox fx:id="mainLayout" spacing="16.0">
+        <HBox fx:id="mainLayout" VBox.vgrow="ALWAYS" spacing="16.0">
             <padding>
                 <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
             </padding>
@@ -40,12 +40,12 @@
                 <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
-                <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                         onAction="#goHistorico" styleClass="sidebar-link" text="Histórico de Versões"/>
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goSolicitacoes" styleClass="sidebar-link active" text="Solicitações"/>
+                        onAction="#goSolicitacoes" styleClass="sidebar-link" text="Solicitações"/>
             </VBox>
 
             <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
@@ -130,13 +130,11 @@
     </center>
 
     <bottom>
-        <HBox alignment="CENTER" styleClass="footer" spacing="0">
-            <padding>
-                <Insets top="10.0" right="16.0" bottom="10.0" left="16.0"/>
-            </padding>
-            <Label text="TG Connect API 2025-2" styleClass="footer-text"/>
+        <HBox alignment="CENTER" styleClass="footer" spacing="12.0">
+            <padding><Insets top="12.0" right="16.0" bottom="12.0" left="16.0"/></padding>
+            <Label styleClass="subtle" text="TG Connect API 2025-2"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="Grupo LizardsDBA" styleClass="footer-text"/>
+            <Label styleClass="subtle" text="Grupo LizardsDBA"/>
         </HBox>
     </bottom>
 </BorderPane>

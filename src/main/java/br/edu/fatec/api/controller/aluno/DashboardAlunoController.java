@@ -12,14 +12,12 @@ import javafx.scene.control.Label;
 
 public class DashboardAlunoController extends BaseController {
 
-    @FXML private Button btnDashboard;
     @FXML private Label lblConclusao, lblPendencias, lblUltimaVersao;
 
     private final DashboardAlunoService service = new DashboardAlunoService();
 
     @FXML
     private void initialize() {
-        if (btnDashboard != null) btnDashboard.getStyleClass().add("active");
 
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");

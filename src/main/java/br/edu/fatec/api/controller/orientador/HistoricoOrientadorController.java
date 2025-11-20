@@ -5,6 +5,7 @@ import br.edu.fatec.api.dao.JdbcFeedbackDao;
 import br.edu.fatec.api.dto.HistoricoItemDTO;
 import br.edu.fatec.api.dto.VersaoHistoricoDTO;
 import br.edu.fatec.api.model.Mensagem;
+import br.edu.fatec.api.model.auth.Role;
 import br.edu.fatec.api.model.auth.User;
 import br.edu.fatec.api.nav.SceneManager;
 import br.edu.fatec.api.nav.Session;
@@ -27,6 +28,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class HistoricoOrientadorController extends BaseController {
+
+    @FXML private Button btnSouCoordenador;
+    @FXML private Button btnToggleSidebar;
+    private Long professorId;
 
     // --- CAMPOS FXML ---
     @FXML private TableView<AlunoTableItem> tblAlunos;
@@ -60,9 +65,8 @@ public class HistoricoOrientadorController extends BaseController {
      */
     @FXML
     private void initialize() {
-        if (btnToggleSidebar != null) {
-            btnToggleSidebar.setText("☰");
-        }
+
+        initUserAndLoad();
 
         // Configurar sessão
         User u = Session.getUser();
@@ -140,6 +144,20 @@ public class HistoricoOrientadorController extends BaseController {
 
         // Carrega os dados na primeira vez que a tela abre
         onRefreshData();
+    }
+
+    private void initUserAndLoad() {
+        User user = Session.getUser();
+        if (user != null) {
+            this.professorId = user.getId();
+            carregarOrientandos();
+            boolean isCoord = (user.getRole() == Role.COORDENADOR);
+            if (btnSouCoordenador != null) {
+                btnSouCoordenador.setVisible(isCoord);
+                btnSouCoordenador.setManaged(isCoord);
+            }
+        }
+        if (btnToggleSidebar != null) btnToggleSidebar.setText("☰");
     }
 
     /**
@@ -362,6 +380,7 @@ public class HistoricoOrientadorController extends BaseController {
     }
 
     // --- NAVEGAÇÃO (Sidebar) ---
+    public void goHomeCoord(){ SceneManager.go("coordenacao/VisaoGeral.fxml"); }
     public void goHome() { SceneManager.go("orientador/VisaoGeral.fxml"); }
     public void logout() { SceneManager.go("login/Login.fxml"); }
     public void goVisaoGeral() { SceneManager.go("orientador/VisaoGeral.fxml"); }

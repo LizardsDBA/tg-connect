@@ -15,8 +15,8 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button onAction="#goHome" text="Home"/>
-        <Button onAction="#logout" text="Sair"/>
+        <Button onAction="#goHome" text="HOME"/>
+        <Button onAction="#logout" text="SAIR"/>
     </HBox>
 
     <!-- Main Layout with Sidebar -->
@@ -76,7 +76,7 @@
                 <bottom>
                     <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="chat-input">
                         <TextField fx:id="txtMessage" HBox.hgrow="ALWAYS" promptText="Escreva uma mensagem..." onAction="#enviarMensagem"/>
-                        <Button fx:id="btnSend" text="Enviar" onAction="#enviarMensagem"/>
+                        <Button fx:id="btnSend" styleClass="btn-primary" text="Enviar" onAction="#enviarMensagem"/>
                     </HBox>
                 </bottom>
             </BorderPane>

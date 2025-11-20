@@ -15,9 +15,9 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="btnSouCoordenador" onAction="#goHomeCoord" styleClass="btn-trade" text="Sou Coordenador"/>
-        <Button onAction="#goHome" text="Home"/>
-        <Button onAction="#logout" text="Sair"/>
+        <Button fx:id="btnSouCoordenador" onAction="#goHomeCoord" styleClass="btn-primary" text="Sou Coordenador"/>
+        <Button onAction="#goHome" text="HOME"/>
+        <Button onAction="#logout" text="SAIR"/>
     </HBox>
 
     <!-- Main (Sidebar + Content) -->
@@ -33,7 +33,7 @@
 
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
-            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"

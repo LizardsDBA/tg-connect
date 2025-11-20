@@ -15,9 +15,9 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="Sou Orientador" styleClass="btn-trade" onAction="#goHomeOrient"/>
-        <Button text="Home" onAction="#goHome"/>
-        <Button text="Sair" onAction="#logout"/>
+        <Button text="Sou Orientador" styleClass="btn-primary" onAction="#goHomeOrient"/>
+        <Button text="HOME" onAction="#goHome"/>
+        <Button text="SAIR" onAction="#logout"/>
     </HBox>
 
     <!-- Main Layout with Sidebar -->
@@ -29,7 +29,7 @@
             <Label styleClass="sidebar-title" text="Coordenador"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
 
-            <Button fx:id="btnVisaoGeral" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goVisaoGeral" styleClass="sidebar-link" text="Visão Geral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goMapa" styleClass="sidebar-link" text="Mapa de Orientação"/>

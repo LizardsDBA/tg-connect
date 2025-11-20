@@ -45,7 +45,6 @@ import java.util.List;
  */
 public class ChatOrientadorController extends BaseController {
 
-    @FXML private Button btnChat;
     @FXML private Button btnSouCoordenador;
 
     // COMPONENTES FXML
@@ -85,10 +84,6 @@ public class ChatOrientadorController extends BaseController {
      */
     @FXML
     private void initialize() {
-
-        if (btnChat != null && !btnChat.getStyleClass().contains("active")) {
-            btnChat.getStyleClass().add("active");
-        }
 
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");

@@ -18,8 +18,6 @@ import java.util.List;
 
 public class MapaCoordController extends BaseController {
 
-    // Sidebar – rota ativa
-    @FXML private Button btnMapa;
 
     // Filtros
     @FXML private TextField txtBusca;
@@ -34,10 +32,6 @@ public class MapaCoordController extends BaseController {
 
     @FXML
     private void initialize() {
-        // Ativa rota na sidebar
-        if (btnMapa != null && !btnMapa.getStyleClass().contains("active")) {
-            btnMapa.getStyleClass().add("active");
-        }
 
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");

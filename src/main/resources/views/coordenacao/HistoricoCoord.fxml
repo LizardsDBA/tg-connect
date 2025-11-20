@@ -16,9 +16,9 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="Sou Orientador" styleClass="btn-trade" onAction="#goHomeOrient"/>
-        <Button text="Home" onAction="#goHome"/>
-        <Button text="Sair" onAction="#logout"/>
+        <Button text="Sou Orientador" styleClass="btn-primary" onAction="#goHomeOrient"/>
+        <Button text="HOME" onAction="#goHome"/>
+        <Button text="SAIR" onAction="#logout"/>
     </HBox>
 
     <!-- Main Layout with Sidebar -->
@@ -36,7 +36,7 @@
                     styleClass="sidebar-link" text="Visão Geral" onAction="#goVisaoGeral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Mapa de Orientação" onAction="#goMapa"/>
-            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" onAction="#goAndamento" styleClass="sidebar-link" text="Andamento Geral"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
         </VBox>

@@ -16,9 +16,9 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="btnSouCoordenador" styleClass="btn-trade" text="Sou Coordenador" onAction="#goHomeCoord"/>
-        <Button text="Home" onAction="#goHome"/>
-        <Button text="Sair" onAction="#logout"/>
+        <Button fx:id="btnSouCoordenador" styleClass="btn-primary" text="Sou Coordenador" onAction="#goHomeCoord"/>
+        <Button text="HOME" onAction="#goHome"/>
+        <Button text="SAIR" onAction="#logout"/>
     </HBox>
 
     <!-- Main Layout with Sidebar -->
@@ -37,7 +37,7 @@
             <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goEditor" styleClass="sidebar-link" text="Feedback"/>
-            <Button fx:id="btnChat" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goChat" styleClass="sidebar-link" text="Chat"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     styleClass="sidebar-link" text="Histórico de Versões" onAction="#goHistorico"/>
@@ -78,7 +78,7 @@
 
                     <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="chat-input">
                         <TextField fx:id="txtMessage" HBox.hgrow="ALWAYS" promptText="Digite sua mensagem..." onAction="#enviarMensagem"/>
-                        <Button fx:id="btnSend" text="Enviar" onAction="#enviarMensagem"/>
+                        <Button fx:id="btnSend" styleClass="btn-primary" text="Enviar" onAction="#enviarMensagem"/>
                     </HBox>
                 </VBox>
             </HBox>
