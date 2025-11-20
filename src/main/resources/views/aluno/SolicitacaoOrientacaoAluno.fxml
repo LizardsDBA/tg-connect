@@ -10,7 +10,6 @@
             styleClass="main-container"
             stylesheets="@/application.css">
 
-    <!-- Header -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="header">
             <padding>
@@ -24,14 +23,12 @@
         </HBox>
     </top>
 
-    <!-- Main Content -->
     <center>
         <HBox fx:id="mainLayout" spacing="16.0">
             <padding>
                 <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
             </padding>
 
-            <!-- Sidebar -->
             <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
                 <Label styleClass="sidebar-title" text="Aluno"/>
                 <Label styleClass="sidebar-group" text="GERAL"/>
@@ -51,23 +48,40 @@
                         onAction="#goConclusao" styleClass="sidebar-link" text="Conclusão"/>
             </VBox>
 
-            <!-- Main Content -->
             <VBox spacing="20" HBox.hgrow="ALWAYS" styleClass="card" alignment="TOP_CENTER">
                 <padding>
                     <Insets top="40" right="40" bottom="40" left="40"/>
                 </padding>
 
                 <Label text="Solicitação de Orientação" styleClass="title"/>
-                <Label text="Escolha um professor orientador para acompanhar seu Trabalho de Graduação"
+                <Label text="Defina o seu tema e escolha um professor orientador."
                        styleClass="subtitle" wrapText="true"/>
 
                 <Separator/>
 
-                <!-- Container: Formulário de Solicitação -->
                 <VBox fx:id="containerSolicitacao" spacing="20" visible="false" managed="false" VBox.vgrow="ALWAYS">
-                    <Label text="Orientadores Disponíveis" styleClass="subtitle"/>
 
-                    <TableView fx:id="tblOrientadores" VBox.vgrow="ALWAYS" minHeight="300">
+                    <VBox spacing="10">
+                        <Label text="Dados do Trabalho" styleClass="subtitle"/>
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="100" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+
+                            <Label text="Título do TG:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="field-label"/>
+                            <TextField fx:id="txtTituloTg" promptText="Ex: Sistema de Gestão para..." GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Tema:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="field-label"/>
+                            <TextField fx:id="txtTemaTg" promptText="Ex: Desenvolvimento Web, Inteligência Artificial..." GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        </GridPane>
+                    </VBox>
+
+                    <Separator/>
+
+                    <Label text="Selecione um Orientador" styleClass="subtitle"/>
+
+                    <TableView fx:id="tblOrientadores" VBox.vgrow="NEVER" prefHeight="250">
                         <columns>
                             <TableColumn fx:id="colNome" text="Nome" prefWidth="250"/>
                             <TableColumn fx:id="colEmail" text="E-mail" prefWidth="250"/>
@@ -79,7 +93,6 @@
                     </HBox>
                 </VBox>
 
-                <!-- Container: Aguardando Aprovação -->
                 <VBox fx:id="containerAguardando" spacing="15" visible="false" managed="false">
                     <Label text="Solicitação Enviada" styleClass="subtitle"/>
 
@@ -99,7 +112,6 @@
                            wrapText="true" styleClass="subtle"/>
                 </VBox>
 
-                <!-- Container: Solicitação Recusada -->
                 <VBox fx:id="containerRecusada" spacing="15" visible="false" managed="false">
                     <Label text="Solicitação Recusada" styleClass="subtitle" style="-fx-text-fill: #b20f19;"/>
 
@@ -125,7 +137,6 @@
         </HBox>
     </center>
 
-    <!-- Footer -->
     <bottom>
         <HBox alignment="CENTER" styleClass="footer" spacing="0">
             <padding>
