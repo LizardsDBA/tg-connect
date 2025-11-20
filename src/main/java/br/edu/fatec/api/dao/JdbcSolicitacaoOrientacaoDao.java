@@ -120,9 +120,11 @@ public class JdbcSolicitacaoOrientacaoDao {
     public List<SolicitacaoOrientacao> listarSolicitacoesPorOrientador(Long orientadorId, StatusSolicitacao status) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT s.id, s.aluno_id, s.orientador_id, s.status, s.justificativa, " +
-                        "s.data_solicitacao, s.data_resposta, u.nome as nome_aluno " +
+                        "s.data_solicitacao, s.data_resposta, u.nome as nome_aluno, " +
+                        "tg.titulo, tg.tema " + // <-- Campos novos
                         "FROM solicitacoes_orientacao s " +
                         "JOIN usuarios u ON s.aluno_id = u.id " +
+                        "LEFT JOIN trabalhos_graduacao tg ON tg.aluno_id = u.id " + // <-- JOIN
                         "WHERE s.orientador_id = ?"
         );
 
@@ -150,7 +152,6 @@ public class JdbcSolicitacaoOrientacaoDao {
         }
         return lista;
     }
-
     public Optional<SolicitacaoOrientacao> buscarPorId(Long id) throws SQLException {
         String sql = "SELECT s.*, u.nome as nome_aluno, o.nome as nome_orientador " +
                 "FROM solicitacoes_orientacao s " +
@@ -268,9 +269,13 @@ public class JdbcSolicitacaoOrientacaoDao {
         try {
             String nomeAluno = rs.getString("nome_aluno");
             sol.setNomeAluno(nomeAluno);
-        } catch (SQLException e) {
-            // Ignora se coluna não existir
-        }
+        } catch (SQLException e) { /* ignora */ }
+
+        // --- NOVOS CAMPOS ---
+        try {
+            sol.setTituloTg(rs.getString("titulo"));
+            sol.setTemaTg(rs.getString("tema"));
+        } catch (SQLException e) { /* ignora se a coluna não vier */ }
 
         return sol;
     }

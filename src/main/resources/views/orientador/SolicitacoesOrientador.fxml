@@ -9,7 +9,6 @@
             fx:controller="br.edu.fatec.api.controller.orientador.SolicitacoesOrientadorController"
             stylesheets="@/application.css">
 
-    <!-- Header -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="header">
             <padding>
@@ -24,14 +23,12 @@
         </HBox>
     </top>
 
-    <!-- Main Content -->
     <center>
         <HBox fx:id="mainLayout" spacing="16.0">
             <padding>
                 <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
             </padding>
 
-            <!-- Sidebar -->
             <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
                 <Label styleClass="sidebar-title" text="Orientador"/>
                 <Label styleClass="sidebar-group" text="GERAL"/>
@@ -51,7 +48,6 @@
                         onAction="#goSolicitacoes" styleClass="sidebar-link active" text="Solicitações"/>
             </VBox>
 
-            <!-- Main Content -->
             <VBox HBox.hgrow="ALWAYS" spacing="16.0" styleClass="card">
                 <Label styleClass="subtle" text="Orientador / Solicitações"/>
 
@@ -87,6 +83,21 @@
                             <Label fx:id="lblNomeAluno" style="-fx-font-size: 14; -fx-font-weight: bold;"/>
                         </VBox>
 
+                        <VBox spacing="8">
+                            <Label text="Proposta de TG:" styleClass="field-label"/>
+                            <GridPane hgap="10" vgap="5">
+                                <columnConstraints>
+                                    <ColumnConstraints minWidth="60" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                </columnConstraints>
+
+                                <Label text="Título:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                                <Label fx:id="lblTituloTg" text="-" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                <Label text="Tema:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                                <Label fx:id="lblTemaTg" text="-" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                            </GridPane>
+                        </VBox>
                         <VBox spacing="5">
                             <Label text="Data da Solicitação:" styleClass="field-label"/>
                             <Label fx:id="lblDataSolicitacao" styleClass="subtle"/>
@@ -118,7 +129,6 @@
         </HBox>
     </center>
 
-    <!-- Footer -->
     <bottom>
         <HBox alignment="CENTER" styleClass="footer" spacing="0">
             <padding>
