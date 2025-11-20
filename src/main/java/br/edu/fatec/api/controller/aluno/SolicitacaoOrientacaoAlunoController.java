@@ -239,47 +239,47 @@ public class SolicitacaoOrientacaoAlunoController extends BaseController {
 
     // ============ MÉTODOS DE NAVEGAÇÃO ============
 
-    public void goHome() {
-        SceneManager.go("aluno/Dashboard.fxml");
-    }
-
+//    public void goHome() {
+//        SceneManager.go("aluno/Dashboard.fxml");
+//    }
+//
     public void logout() {
         SceneManager.go("login/Login.fxml");
     }
-
-    public void goDashboard() {
-        SceneManager.go("aluno/Dashboard.fxml");
-    }
-
-    public void goInbox() {
-        SceneManager.go("aluno/Inbox.fxml", c -> {
-            InboxAlunoController ctrl = (InboxAlunoController) c;
-            User u = Session.getUser();
-            if (u == null) {
-                SceneManager.go("login/Login.fxml");
-                return;
-            }
-            ctrl.setAlunoContext(u.getId());
-            ctrl.onReady();
-        });
-    }
-
-    public void goEditor() {
-        SceneManager.go("aluno/Editor.fxml", c -> {
-            EditorAlunoController ctrl = (EditorAlunoController) c;
-            ctrl.onReady();
-        });
-    }
-
-    public void goComparar() {
-        SceneManager.go("aluno/Comparar.fxml");
-    }
-
-    public void goConclusao() {
-        SceneManager.go("aluno/Conclusao.fxml");
-    }
-
-    public void goHistorico() {
-        SceneManager.go("aluno/Historico.fxml");
-    }
+//
+//    public void goDashboard() {
+//        SceneManager.go("aluno/Dashboard.fxml");
+//    }
+//
+//    public void goInbox() {
+//        SceneManager.go("aluno/Inbox.fxml", c -> {
+//            InboxAlunoController ctrl = (InboxAlunoController) c;
+//            User u = Session.getUser();
+//            if (u == null) {
+//                SceneManager.go("login/Login.fxml");
+//                return;
+//            }
+//            ctrl.setAlunoContext(u.getId());
+//            ctrl.onReady();
+//        });
+//    }
+//
+//    public void goEditor() {
+//        SceneManager.go("aluno/Editor.fxml", c -> {
+//            EditorAlunoController ctrl = (EditorAlunoController) c;
+//            ctrl.onReady();
+//        });
+//    }
+//
+//    public void goComparar() {
+//        SceneManager.go("aluno/Comparar.fxml");
+//    }
+//
+//    public void goConclusao() {
+//        SceneManager.go("aluno/Conclusao.fxml");
+//    }
+//
+//    public void goHistorico() {
+//        SceneManager.go("aluno/Historico.fxml");
+//    }
 }
