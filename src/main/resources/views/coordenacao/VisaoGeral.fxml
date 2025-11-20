@@ -15,7 +15,7 @@
         <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
         <Label styleClass="logo" text="API/TG"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="Sou Orientador" styleClass="btn-trade" onAction="#goHomeOrient"/>
+        <Button text="Sou Orientador" styleClass="btn-primary" onAction="#goHomeOrient"/>
         <Button text="HOME" onAction="#goHome"/>
         <Button text="SAIR" onAction="#logout"/>
     </HBox>

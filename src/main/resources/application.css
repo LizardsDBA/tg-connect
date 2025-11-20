@@ -308,9 +308,6 @@
 .scroll-pane { -fx-background-color: transparent; }
 .scroll-bar:horizontal { -fx-opacity: 0; -fx-max-height: 0; }
 
-
-
-
 /* ===== ESPAÇAMENTOS ===== */
 .spacing-small { -fx-spacing: 8; }
 .spacing-medium { -fx-spacing: 12; }
@@ -347,74 +344,52 @@
 .similarity-progress-bar { }
 .similarity-percentage { -fx-font-weight: bold; }
 
-/* ===== TABS DO EDITOR (dentro do card) ===== */
+/* ===== TABS DO EDITOR ===== */
 .editor-tabs {
     -fx-background-color: transparent; /* o card já provê o fundo ao redor */
 }
-
-/* tira o fundo cinza nativo atrás das abas */
 .editor-tabs > .tab-header-area > .tab-header-background {
     -fx-background-color: transparent;
 }
-
-/* linha discreta separando cabeçalho do conteúdo (mesma borda usada no app) */
 .editor-tabs > .tab-header-area {
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #E6E6E6;
     -fx-border-width: 0 0 1px 0;
     -fx-padding: 0;
     -fx-min-height: 40;
 }
-
-/* aba padrão (não selecionada): minimalista, mesma tipografia */
 .editor-tabs .tab {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-border-color: transparent transparent #d6d6d6 transparent;
-    -fx-border-width: 0 0 1px 0;
     -fx-padding: 8 12;
 }
 .editor-tabs .tab .tab-label {
-    -fx-text-fill: #6f6f6f;
+    -fx-text-fill: #242424;
     -fx-font-size: 14px;
-    -fx-font-weight: 600; /* consistente com botões */
+    -fx-font-weight: 600;
 }
-.editor-tabs .tab:hover .tab-label {
-    -fx-text-fill: #1a1a1a;
-}
-
-/* aba selecionada: fundo branco, cantos 12 no topo, mesma borda do card */
 .editor-tabs .tab:selected {
-    -fx-background-color: #f2f7ff;
-    -fx-background-insets: 0;
+    -fx-background-color: #3C5361;
     -fx-background-radius: 12 12 0 0;
-    -fx-border-radius: 12 12 0 0;
-    -fx-border-width: 1px 1px 0 1px;
-    -fx-border-color: #d6d6d6 #d6d6d6 transparent #d6d6d6;
+    -fx-border-color: transparent;
 }
 .editor-tabs .tab:selected .tab-label {
-    -fx-text-fill: #1a1a1a;
+    -fx-text-fill: white;
 }
-
-/* área de conteúdo: “continuação” do card (fundo branco, borda #d6d6d6, raio 12) */
 .editor-tabs > .tab-content-area {
     -fx-background-color: white;
     -fx-background-insets: 0;
-    -fx-background-radius: 0 12 12 12;  /* emenda com a aba selecionada */
+    -fx-background-radius: 0 12 12 12;
     -fx-border-color: #d6d6d6;
     -fx-border-radius: 0 12 12 12;
     -fx-border-width: 1px;
-    -fx-padding: 14; /* casa com o padding do .card */
+    -fx-padding: 14;
 }
-
-/* ScrollPanes internos sem “cinza” de fundo */
 .editor-tabs .scroll-pane,
 .editor-tabs .scroll-pane .viewport,
 .editor-tabs .scroll-pane .content {
     -fx-background-color: transparent;
 }
-
-/* TitledPane “flat” combinando com o padrão do app */
 .editor-tabs .titled-pane > .title {
     -fx-background-color: transparent;
     -fx-border-color: #d6d6d6;
@@ -425,8 +400,6 @@
     -fx-background-color: transparent;
     -fx-padding: 8 0 0 0;
 }
-
-/* Inputs dentro das abas — exatamente seu padrão de campos */
 .editor-tabs .text-field,
 .editor-tabs .text-area {
     -fx-background-color: white;
@@ -443,36 +416,30 @@
     -fx-border-color: #3b7dd8;
     -fx-border-width: 2px;
 }
-
 .status-badge { -fx-font-weight: bold; }
 .badge-ok { -fx-text-fill: #0a7a0a; }
 .badge-pendente { -fx-text-fill: #b35a00; }
 .badge-reprovado { -fx-text-fill: #ff0000; }
 
 /* ===== Barra de Progresso colorida ===== */
-
 /* Reset e padding menor */
 .progress-bar {
-    -fx-accent: #4CAF50; /* verde padrão */
+    -fx-accent: #4CAF50;
     -fx-background-insets: 0;
     -fx-padding: 1;
 }
-
 /* Vermelho até 30% */
 .progress-bar:low {
-    -fx-accent: #e74c3c; /* vermelho */
+    -fx-accent: #e74c3c;
 }
-
 /* Amarelo entre 30% e 70% */
 .progress-bar:medium {
-    -fx-accent: #f1c40f; /* amarelo */
+    -fx-accent: #f1c40f;
 }
-
 /* Verde acima de 70% */
 .progress-bar:high {
-    -fx-accent: #2ecc71; /* verde */
+    -fx-accent: #2ecc71;
 }
-
 /* Label ao lado da barra */
 .table-cell .label {
     -fx-font-weight: bold;
