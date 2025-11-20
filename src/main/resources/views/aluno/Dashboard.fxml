@@ -28,7 +28,7 @@
             <Label styleClass="sidebar-title" text="Aluno"/>
             <Label styleClass="sidebar-group" text="GERAL"/>
 
-            <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goDashboard" styleClass="sidebar-link" text="Dashboard"/>
             <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
                     onAction="#goInbox" styleClass="sidebar-link" text="Inbox"/>
