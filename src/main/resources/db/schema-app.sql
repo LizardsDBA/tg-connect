@@ -274,6 +274,9 @@ INSERT INTO usuarios (nome, email, senha_hash, tipo)
 SELECT 'Coordenador', 'coordenador@exemplo.com', SHA2('123456',256), 'COORDENADOR'
     WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='coordenador@exemplo.com');
 
+INSERT INTO usuarios (nome, email, senha_hash, tipo, ativo, created_at, updated_at)
+SELECT 'aluno novo', 'novo@exemplo.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ALUNO', 1, '2025-11-10 20:23:04', '2025-11-10 20:23:04'
+WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='novo@exemplo.com');
 -- Orientação (ativa)
 SET @aluno_id := (SELECT id FROM usuarios WHERE email='aluno@exemplo.com');
 SET @orientador_id := (SELECT id FROM usuarios WHERE email='orientador@exemplo.com');

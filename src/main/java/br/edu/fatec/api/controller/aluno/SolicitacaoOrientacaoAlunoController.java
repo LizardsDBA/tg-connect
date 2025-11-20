@@ -25,6 +25,10 @@ public class SolicitacaoOrientacaoAlunoController extends BaseController {
     @FXML private VBox containerAguardando;
     @FXML private VBox containerRecusada;
 
+    // Novos campos de Título e Tema
+    @FXML private TextField txtTituloTg;
+    @FXML private TextField txtTemaTg;
+
     @FXML private TableView<OrientadorDisponivel> tblOrientadores;
     @FXML private TableColumn<OrientadorDisponivel, String> colNome;
     @FXML private TableColumn<OrientadorDisponivel, String> colEmail;
@@ -164,6 +168,19 @@ public class SolicitacaoOrientacaoAlunoController extends BaseController {
 
     private void enviarSolicitacao() {
         OrientadorDisponivel selecionado = tblOrientadores.getSelectionModel().getSelectedItem();
+        String titulo = txtTituloTg.getText();
+        String tema = txtTemaTg.getText();
+
+        // Validação dos campos
+        if (titulo == null || titulo.trim().isEmpty()) {
+            mostrarAviso("Título Obrigatório", "Por favor, preencha o título do seu TG.");
+            return;
+        }
+
+        if (tema == null || tema.trim().isEmpty()) {
+            mostrarAviso("Tema Obrigatório", "Por favor, preencha o tema do seu TG.");
+            return;
+        }
 
         if (selecionado == null) {
             mostrarAviso("Nenhum orientador selecionado", "Selecione um orientador da lista");
@@ -178,7 +195,9 @@ public class SolicitacaoOrientacaoAlunoController extends BaseController {
         confirmacao.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    dao.criarSolicitacao(alunoId, selecionado.id());
+                    // Chama o novo método que salva TG e Solicitação
+                    dao.criarSolicitacao(alunoId, selecionado.id(), titulo, tema);
+
                     mostrarSucesso("Solicitação enviada",
                             "Sua solicitação foi enviada para " + selecionado.nome());
                     verificarStatus();

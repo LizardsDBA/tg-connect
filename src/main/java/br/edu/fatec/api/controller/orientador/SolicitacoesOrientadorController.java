@@ -34,6 +34,10 @@ public class SolicitacoesOrientadorController extends BaseController {
     @FXML private Label lblStatusAtual;
     @FXML private TextArea txtJustificativa;
 
+    // NOVOS LABELS
+    @FXML private Label lblTituloTg;
+    @FXML private Label lblTemaTg;
+
     @FXML private Button btnAprovar;
     @FXML private Button btnRecusar;
     @FXML private Button btnSouCoordenador;
@@ -118,6 +122,11 @@ public class SolicitacoesOrientadorController extends BaseController {
         this.solicitacaoSelecionada = sol;
 
         lblNomeAluno.setText(sol.getNomeAluno());
+
+        // ATUALIZADO: Preenche título e tema (com fallback se for nulo)
+        if (lblTituloTg != null) lblTituloTg.setText(sol.getTituloTg() != null ? sol.getTituloTg() : "Não informado");
+        if (lblTemaTg != null) lblTemaTg.setText(sol.getTemaTg() != null ? sol.getTemaTg() : "Não informado");
+
         lblDataSolicitacao.setText(sol.getDataSolicitacao().format(formatter));
         lblStatusAtual.setText(traduzirStatus(sol.getStatus()));
 

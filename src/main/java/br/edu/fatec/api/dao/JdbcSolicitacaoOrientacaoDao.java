@@ -58,21 +58,61 @@ public class JdbcSolicitacaoOrientacaoDao {
         }
     }
 
-    public Long criarSolicitacao(Long alunoId, Long orientadorId) throws SQLException {
-        String sql = "INSERT INTO solicitacoes_orientacao (aluno_id, orientador_id, status) VALUES (?, ?, 'PENDENTE')";
+    /**
+     * Cria a solicitação E o registro inicial do TG (sem orientador).
+     */
+    public Long criarSolicitacao(Long alunoId, Long orientadorId, String titulo, String tema) throws SQLException {
+        String sqlSolicitacao = "INSERT INTO solicitacoes_orientacao (aluno_id, orientador_id, status) VALUES (?, ?, 'PENDENTE')";
 
-        try (Connection con = Database.get();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        // Cria ou atualiza o TG existente (caso tenha sido reprovado antes)
+        String sqlTG = """
+            INSERT INTO trabalhos_graduacao (aluno_id, titulo, tema, versao_atual, percentual_conclusao, status)
+            VALUES (?, ?, ?, 'v1', 0.00, 'EM_ANDAMENTO')
+            ON DUPLICATE KEY UPDATE 
+                titulo = VALUES(titulo), 
+                tema = VALUES(tema),
+                orientador_id = NULL -- Limpa orientador anterior se houver
+        """;
 
-            ps.setLong(1, alunoId);
-            ps.setLong(2, orientadorId);
-            ps.executeUpdate();
+        Connection con = null;
+        try {
+            con = Database.get();
+            con.setAutoCommit(false);
 
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
+            // 1. Cria/Atualiza o TG com os dados do aluno
+            try (PreparedStatement psTg = con.prepareStatement(sqlTG)) {
+                psTg.setLong(1, alunoId);
+                psTg.setString(2, titulo);
+                psTg.setString(3, tema);
+                psTg.executeUpdate();
+            }
+
+            // 2. Cria a solicitação de orientação
+            long solicitacaoId;
+            try (PreparedStatement psSol = con.prepareStatement(sqlSolicitacao, Statement.RETURN_GENERATED_KEYS)) {
+                psSol.setLong(1, alunoId);
+                psSol.setLong(2, orientadorId);
+                psSol.executeUpdate();
+
+                try (ResultSet rs = psSol.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        solicitacaoId = rs.getLong(1);
+                    } else {
+                        throw new SQLException("Falha ao obter ID da solicitação criada");
+                    }
                 }
-                throw new SQLException("Falha ao obter ID da solicitação criada");
+            }
+
+            con.commit();
+            return solicitacaoId;
+
+        } catch (SQLException e) {
+            if (con != null) con.rollback();
+            throw e;
+        } finally {
+            if (con != null) {
+                con.setAutoCommit(true);
+                con.close();
             }
         }
     }
@@ -80,9 +120,11 @@ public class JdbcSolicitacaoOrientacaoDao {
     public List<SolicitacaoOrientacao> listarSolicitacoesPorOrientador(Long orientadorId, StatusSolicitacao status) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT s.id, s.aluno_id, s.orientador_id, s.status, s.justificativa, " +
-                        "s.data_solicitacao, s.data_resposta, u.nome as nome_aluno " +
+                        "s.data_solicitacao, s.data_resposta, u.nome as nome_aluno, " +
+                        "tg.titulo, tg.tema " + // <-- Campos novos
                         "FROM solicitacoes_orientacao s " +
                         "JOIN usuarios u ON s.aluno_id = u.id " +
+                        "LEFT JOIN trabalhos_graduacao tg ON tg.aluno_id = u.id " + // <-- JOIN
                         "WHERE s.orientador_id = ?"
         );
 
@@ -110,7 +152,6 @@ public class JdbcSolicitacaoOrientacaoDao {
         }
         return lista;
     }
-
     public Optional<SolicitacaoOrientacao> buscarPorId(Long id) throws SQLException {
         String sql = "SELECT s.*, u.nome as nome_aluno, o.nome as nome_orientador " +
                 "FROM solicitacoes_orientacao s " +
@@ -142,26 +183,26 @@ public class JdbcSolicitacaoOrientacaoDao {
             SolicitacaoOrientacao sol = buscarPorId(solicitacaoId)
                     .orElseThrow(() -> new SQLException("Solicitação não encontrada"));
 
-            String sqlUpdate = "UPDATE solicitacoes_orientacao SET status = 'APROVADA', data_resposta = NOW() WHERE id = ?";
-            try (PreparedStatement ps = con.prepareStatement(sqlUpdate)) {
+            // 1. Atualiza status da solicitação
+            String sqlUpdateSol = "UPDATE solicitacoes_orientacao SET status = 'APROVADA', data_resposta = NOW() WHERE id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sqlUpdateSol)) {
                 ps.setLong(1, solicitacaoId);
                 ps.executeUpdate();
             }
 
-            String sqlInsert = "INSERT INTO orientacoes (aluno_id, orientador_id, ativo) VALUES (?, ?, TRUE)";
-            try (PreparedStatement ps = con.prepareStatement(sqlInsert)) {
+            // 2. Cria o vínculo na tabela orientacoes
+            String sqlInsertOrientacao = "INSERT INTO orientacoes (aluno_id, orientador_id, ativo) VALUES (?, ?, TRUE)";
+            try (PreparedStatement ps = con.prepareStatement(sqlInsertOrientacao)) {
                 ps.setLong(1, sol.getAlunoId());
                 ps.setLong(2, sol.getOrientadorId());
                 ps.executeUpdate();
             }
 
-            String sqlTG = "INSERT INTO trabalhos_graduacao (aluno_id, orientador_id, titulo, tema, versao_atual, percentual_conclusao) " +
-                    "VALUES (?, ?, ?, ?, 'v1', 0.00)";
-            try (PreparedStatement ps = con.prepareStatement(sqlTG)) {
-                ps.setLong(1, sol.getAlunoId());
-                ps.setLong(2, sol.getOrientadorId());
-                ps.setString(3, "Portfólio TG - " + sol.getNomeAluno());
-                ps.setString(4, "Histórico de APIs");
+            // 3. VINCULA o orientador ao TG já existente (criado na solicitação)
+            String sqlUpdateTG = "UPDATE trabalhos_graduacao SET orientador_id = ? WHERE aluno_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sqlUpdateTG)) {
+                ps.setLong(1, sol.getOrientadorId());
+                ps.setLong(2, sol.getAlunoId());
                 ps.executeUpdate();
             }
 
@@ -225,13 +266,16 @@ public class JdbcSolicitacaoOrientacaoDao {
         Timestamp tr = rs.getTimestamp("data_resposta");
         if (tr != null) sol.setDataResposta(tr.toLocalDateTime());
 
-        // Tenta buscar nome_aluno (pode não existir em algumas queries)
         try {
             String nomeAluno = rs.getString("nome_aluno");
             sol.setNomeAluno(nomeAluno);
-        } catch (SQLException e) {
-            // Coluna não existe nesta query, ignora
-        }
+        } catch (SQLException e) { /* ignora */ }
+
+        // --- NOVOS CAMPOS ---
+        try {
+            sol.setTituloTg(rs.getString("titulo"));
+            sol.setTemaTg(rs.getString("tema"));
+        } catch (SQLException e) { /* ignora se a coluna não vier */ }
 
         return sol;
     }
