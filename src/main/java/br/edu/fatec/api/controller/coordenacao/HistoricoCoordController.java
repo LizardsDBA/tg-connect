@@ -15,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.sql.SQLException;
@@ -38,10 +37,8 @@ public class HistoricoCoordController extends BaseController {
     @FXML private Label lblAlunoSelecionado;
     @FXML private Label lblVersaoSelecionada;
     @FXML private Label lblDataEnvio;
-    @FXML private VBox feedbackContainer;
     @FXML private VBox previewContainer;
 
-    private final JdbcFeedbackDao feedbackDao = new JdbcFeedbackDao();
     private final JdbcVersoesTrabalhoDao versoesDao = new JdbcVersoesTrabalhoDao();
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 

@@ -9,7 +9,6 @@ import br.edu.fatec.api.nav.Session;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.sql.SQLException;
