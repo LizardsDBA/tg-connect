@@ -26,6 +26,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.data.MutableDataSet;
+import java.util.Collections;
 
 public class HistoricoOrientadorController extends BaseController {
 
@@ -59,12 +64,22 @@ public class HistoricoOrientadorController extends BaseController {
     private final ObservableList<AlunoTableItem> alunos = FXCollections.observableArrayList();
     private Long orientadorId;
     private AlunoTableItem alunoSelecionado; // Salva o aluno, não só o ID
+    // Ferramentas do Flexmark (Java)
+    private Parser parser;
+    private HtmlRenderer renderer;
 
     /**
      * Método principal, executado quando a tela é carregada UMA VEZ.
      */
     @FXML
     private void initialize() {
+
+        // --- CONFIGURAÇÃO FLEXMARK ---
+        MutableDataSet options = new MutableDataSet();
+        options.set(Parser.EXTENSIONS, Collections.singletonList(TablesExtension.create()));
+
+        this.parser = Parser.builder(options).build();
+        this.renderer = HtmlRenderer.builder(options).build();
 
         initUserAndLoad();
 
@@ -325,40 +340,90 @@ public class HistoricoOrientadorController extends BaseController {
 
     // --- Métodos de Renderização e Helpers (sem alteração) ---
     private void renderMarkdown(String markdown) {
-        WebEngine engine = webPreview.getEngine();
-        String escapedMarkdown = escapeForJavaScript(markdown);
+        if (webPreview == null) return;
 
-        String html = String.format("""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                            line-height: 1.6; padding: 20px; color: #333; background: #fff;
-                            max-width: 100%%; margin: 0 auto;
-                        }
-                        h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-                        h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }
-                        pre { background-color: #f6f8fa; border-radius: 3px; padding: 16px; overflow: auto; }
-                        code { background-color: #f6f8fa; border-radius: 3px; padding: 2px 4px; font-family: 'Courier New', monospace; }
-                        table { border-collapse: collapse; }
-                        table th, table td { border: 1px solid #dfe2e5; padding: 6px 13px; }
-                    </style>
-                    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-                </head>
-                <body>
-                    <div id="content"></div>
-                    <script>
-                        const markdown = `%s`;
-                        document.getElementById('content').innerHTML = marked.parse(markdown);
-                    </script>
-                </body>
-                </html>
-                """, escapedMarkdown);
+        // 1. Converte Markdown para HTML usando Java (Flexmark)
+        String md = (markdown == null) ? "" : markdown;
+        String htmlBody = renderer.render(parser.parse(md));
 
-        engine.loadContent(html);
+        // 2. Monta o HTML final (CORRIGIDO: Note os '%%' no CSS)
+        String htmlCompleto = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        color: #24292e;
+                        background-color: #ffffff;
+                        padding: 20px;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        margin-top: 24px;
+                        margin-bottom: 16px;
+                        font-weight: 600;
+                        line-height: 1.25;
+                        border-bottom: 1px solid #eaecef;
+                        padding-bottom: 0.3em;
+                    }
+                    p { margin-bottom: 16px; }
+                    code {
+                        padding: 0.2em 0.4em;
+                        margin: 0;
+                        font-size: 85%%; /* Corrigido: %% */
+                        background-color: #f6f8fa;
+                        border-radius: 3px;
+                        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+                    }
+                    pre {
+                        padding: 16px;
+                        overflow: auto;
+                        font-size: 85%%; /* Corrigido: %% */
+                        line-height: 1.45;
+                        background-color: #f6f8fa;
+                        border-radius: 3px;
+                    }
+                    pre code {
+                        background-color: transparent;
+                        padding: 0;
+                    }
+                    blockquote {
+                        padding: 0 1em;
+                        color: #6a737d;
+                        border-left: 0.25em solid #dfe2e5;
+                        margin: 0 0 16px 0;
+                    }
+                    table {
+                        border-collapse: collapse;
+                        width: 100%%; /* Corrigido: %% */
+                        margin-bottom: 16px;
+                    }
+                    table th, table td {
+                        padding: 6px 13px;
+                        border: 1px solid #dfe2e5;
+                    }
+                    table th {
+                        font-weight: 600;
+                        background-color: #f6f8fa;
+                    }
+                    tr:nth-child(2n) {
+                        background-color: #f8f8f8;
+                    }
+                    ul, ol { padding-left: 2em; margin-bottom: 16px; }
+                    hr { height: 0.25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; }
+                </style>
+            </head>
+            <body>
+                %s
+            </body>
+            </html>
+            """.formatted(htmlBody);
+
+        // 3. Carrega no WebView
+        webPreview.getEngine().loadContent(htmlCompleto);
     }
 
     private String escapeForJavaScript(String str) {

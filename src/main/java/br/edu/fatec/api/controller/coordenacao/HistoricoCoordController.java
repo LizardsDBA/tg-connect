@@ -20,6 +20,11 @@ import javafx.scene.web.WebView;
 
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.data.MutableDataSet;
+import java.util.Collections;
 import java.util.List;
 
 public class HistoricoCoordController extends BaseController {
@@ -29,7 +34,6 @@ public class HistoricoCoordController extends BaseController {
     @FXML private TextField txtBuscaAluno;
 
     @FXML private ListView<VersaoHistoricoDTO> listVersions;
-    @FXML private TextArea txtMarkdownSource;
     @FXML private WebView webPreview;
     @FXML private Label lblAlunoSelecionado;
     @FXML private Label lblVersaoSelecionada;
@@ -45,9 +49,18 @@ public class HistoricoCoordController extends BaseController {
     private Long orientadorId;
     private Long alunoSelecionadoId;
     private Long trabalhoIdSelecionado;
+    // Ferramentas do Flexmark (Java)
+    private Parser parser;
+    private HtmlRenderer renderer;
 
     @FXML
     private void initialize() {
+        // --- CONFIGURAÇÃO FLEXMARK ---
+        MutableDataSet options = new MutableDataSet();
+        options.set(Parser.EXTENSIONS, Collections.singletonList(TablesExtension.create()));
+
+        this.parser = Parser.builder(options).build();
+        this.renderer = HtmlRenderer.builder(options).build();
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setText("☰");
         }
@@ -188,96 +201,95 @@ public class HistoricoCoordController extends BaseController {
         lblVersaoSelecionada.setText(versao.versao());
         lblDataEnvio.setText(versao.createdAt().format(dateFormatter));
 
-        // Exibir markdown
-        txtMarkdownSource.setText(versao.conteudoMd());
-
         // Renderizar preview
         renderMarkdown(versao.conteudoMd());
     }
 
     private void renderMarkdown(String markdown) {
-        WebEngine engine = webPreview.getEngine();
+        if (webPreview == null) return;
 
-        String escapedMarkdown = escapeForJavaScript(markdown);
+        // 1. Converte Markdown para HTML usando Java (Flexmark)
+        String md = (markdown == null) ? "" : markdown;
+        String htmlBody = renderer.render(parser.parse(md));
 
-        String html = String.format("""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                            line-height: 1.6;
-                            padding: 20px;
-                            color: #333;
-                            background: #fff;
-                            max-width: 100%%;
-                            margin: 0 auto;
-                        }
-                        h1, h2, h3, h4, h5, h6 {
-                            margin-top: 24px;
-                            margin-bottom: 16px;
-                            font-weight: 600;
-                            line-height: 1.25;
-                        }
-                        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-                        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-                        h3 { font-size: 1.25em; }
-                        p { margin-bottom: 16px; }
-                        ul, ol { padding-left: 2em; margin-bottom: 16px; }
-                        code {
-                            background-color: #f6f8fa;
-                            border-radius: 3px;
-                            padding: 2px 4px;
-                            font-family: 'Courier New', Courier, monospace;
-                            font-size: 85%%;
-                        }
-                        pre {
-                            background-color: #f6f8fa;
-                            border-radius: 3px;
-                            padding: 16px;
-                            overflow: auto;
-                            margin-bottom: 16px;
-                        }
-                        table {
-                            border-collapse: collapse;
-                            width: 100%%;
-                            margin-bottom: 16px;
-                        }
-                        table th, table td {
-                            border: 1px solid #dfe2e5;
-                            padding: 6px 13px;
-                        }
-                        table th {
-                            background-color: #f6f8fa;
-                            font-weight: 600;
-                        }
-                        strong { font-weight: 600; }
-                    </style>
-                    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-                </head>
-                <body>
-                    <div id="content"></div>
-                    <script>
-                        const markdown = `%s`;
-                        document.getElementById('content').innerHTML = marked.parse(markdown);
-                    </script>
-                </body>
-                </html>
-                """, escapedMarkdown);
+        // 2. Monta o HTML final (CORRIGIDO: Note os '%%' no CSS)
+        String htmlCompleto = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        color: #24292e;
+                        background-color: #ffffff;
+                        padding: 20px;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        margin-top: 24px;
+                        margin-bottom: 16px;
+                        font-weight: 600;
+                        line-height: 1.25;
+                        border-bottom: 1px solid #eaecef;
+                        padding-bottom: 0.3em;
+                    }
+                    p { margin-bottom: 16px; }
+                    code {
+                        padding: 0.2em 0.4em;
+                        margin: 0;
+                        font-size: 85%%; /* Corrigido: %% */
+                        background-color: #f6f8fa;
+                        border-radius: 3px;
+                        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+                    }
+                    pre {
+                        padding: 16px;
+                        overflow: auto;
+                        font-size: 85%%; /* Corrigido: %% */
+                        line-height: 1.45;
+                        background-color: #f6f8fa;
+                        border-radius: 3px;
+                    }
+                    pre code {
+                        background-color: transparent;
+                        padding: 0;
+                    }
+                    blockquote {
+                        padding: 0 1em;
+                        color: #6a737d;
+                        border-left: 0.25em solid #dfe2e5;
+                        margin: 0 0 16px 0;
+                    }
+                    table {
+                        border-collapse: collapse;
+                        width: 100%%; /* Corrigido: %% */
+                        margin-bottom: 16px;
+                    }
+                    table th, table td {
+                        padding: 6px 13px;
+                        border: 1px solid #dfe2e5;
+                    }
+                    table th {
+                        font-weight: 600;
+                        background-color: #f6f8fa;
+                    }
+                    tr:nth-child(2n) {
+                        background-color: #f8f8f8;
+                    }
+                    ul, ol { padding-left: 2em; margin-bottom: 16px; }
+                    hr { height: 0.25em; padding: 0; margin: 24px 0; background-color: #e1e4e8; border: 0; }
+                </style>
+            </head>
+            <body>
+                %s
+            </body>
+            </html>
+            """.formatted(htmlBody);
 
-        engine.loadContent(html);
-    }
-
-    private String escapeForJavaScript(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\")
-                .replace("`", "\\`")
-                .replace("$", "\\$")
-                .replace("\r\n", "\\n")
-                .replace("\n", "\\n")
-                .replace("\r", "\\n");
+        // 3. Carrega no WebView
+        webPreview.getEngine().loadContent(htmlCompleto);
     }
 
     // Navegação
