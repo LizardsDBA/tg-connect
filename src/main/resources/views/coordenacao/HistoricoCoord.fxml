@@ -46,7 +46,7 @@
 
             <!-- Título -->
             <VBox spacing="6.0">
-                <Label styleClass="title" text="Histórico de Versões — Orientador"/>
+                <Label styleClass="title" text="Histórico de Versões — Coordenador"/>
                 <Label styleClass="subtitle"
                        text="Selecione um aluno para visualizar o histórico completo de versões do TG."/>
             </VBox>
@@ -56,7 +56,7 @@
 
                 <!-- Painel Esquerdo: Lista de Alunos -->
                 <VBox spacing="8.0" style="-fx-padding: 8;">
-                    <Label text="Meus Orientandos" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label text="Tg Alunos (Geral)" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
 
                     <!-- Busca -->
                     <TextField fx:id="txtBuscaAluno" promptText="Buscar aluno..."
@@ -99,28 +99,17 @@
                             <HBox spacing="16.0" alignment="CENTER_LEFT">
                                 <VBox spacing="4.0">
                                     <Label text="Versão:" style="-fx-font-size: 12px; -fx-text-fill: #6f6f6f;"/>
-                                    <Label fx:id="lblVersaoSelecionada" text="—"
-                                           style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                                    <Label fx:id="lblVersaoSelecionada" text="—" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
                                 </VBox>
                                 <VBox spacing="4.0">
                                     <Label text="Data:" style="-fx-font-size: 12px; -fx-text-fill: #6f6f6f;"/>
                                     <Label fx:id="lblDataEnvio" text="—" style="-fx-font-size: 14px;"/>
                                 </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
                             </HBox>
 
                             <!-- Split Horizontal: Markdown + Preview -->
                             <SplitPane orientation="HORIZONTAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
-
-                                <!-- Markdown Source -->
-                                <VBox spacing="4.0">
-                                    <Label text="Markdown" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
-                                    <TextArea fx:id="txtMarkdownSource" editable="false" wrapText="true"
-                                              VBox.vgrow="ALWAYS"
-                                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;
-                                                     -fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;
-                                                     -fx-control-inner-background: #f8f9fa;"/>
-                                </VBox>
-
                                 <!-- Preview -->
                                 <VBox spacing="4.0">
                                     <Label text="Preview" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
