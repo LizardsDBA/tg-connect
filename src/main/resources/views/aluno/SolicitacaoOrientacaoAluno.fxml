@@ -18,7 +18,7 @@
             <Button fx:id="btnToggleSidebar" text="☰" onAction="#toggleSidebar" styleClass="toggle-sidebar"/>
             <Label styleClass="logo" text="API/TG"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="HOME" onAction="#goHome"/>
+<!--            <Button text="HOME" onAction="#goHome"/>-->
             <Button text="SAIR" onAction="#logout"/>
         </HBox>
     </top>
@@ -29,24 +29,24 @@
                 <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
             </padding>
 
-            <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">
-                <Label styleClass="sidebar-title" text="Aluno"/>
-                <Label styleClass="sidebar-group" text="GERAL"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goDashboard" styleClass="sidebar-link" text="Dashboard"/>
+<!--            <VBox fx:id="sidebar" minWidth="240.0" spacing="8.0" styleClass="sidebar">-->
+<!--                <Label styleClass="sidebar-title" text="Aluno"/>-->
+<!--                <Label styleClass="sidebar-group" text="GERAL"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goDashboard" styleClass="sidebar-link" text="Dashboard"/>-->
 
-                <Label styleClass="sidebar-group" text="FERRAMENTAS"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goEditor" styleClass="sidebar-link" text="Editor de TG"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goInbox" styleClass="sidebar-link" text="Mensagens"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goComparar" styleClass="sidebar-link" text="Comparar Versões"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goHistorico" styleClass="sidebar-link" text="Histórico"/>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"
-                        onAction="#goConclusao" styleClass="sidebar-link" text="Conclusão"/>
-            </VBox>
+<!--                <Label styleClass="sidebar-group" text="FERRAMENTAS"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goEditor" styleClass="sidebar-link" text="Editor de TG"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goInbox" styleClass="sidebar-link" text="Mensagens"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goComparar" styleClass="sidebar-link" text="Comparar Versões"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goHistorico" styleClass="sidebar-link" text="Histórico"/>-->
+<!--                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308"-->
+<!--                        onAction="#goConclusao" styleClass="sidebar-link" text="Conclusão"/>-->
+<!--            </VBox>-->
 
             <VBox spacing="20" HBox.hgrow="ALWAYS" styleClass="card" alignment="TOP_CENTER">
                 <padding>
