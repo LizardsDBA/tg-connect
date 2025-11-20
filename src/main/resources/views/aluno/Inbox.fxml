@@ -76,7 +76,7 @@
                 <bottom>
                     <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="chat-input">
                         <TextField fx:id="txtMessage" HBox.hgrow="ALWAYS" promptText="Escreva uma mensagem..." onAction="#enviarMensagem"/>
-                        <Button fx:id="btnSend" text="Enviar" onAction="#enviarMensagem"/>
+                        <Button fx:id="btnSend" styleClass="btn-primary" text="Enviar" onAction="#enviarMensagem"/>
                     </HBox>
                 </bottom>
             </BorderPane>

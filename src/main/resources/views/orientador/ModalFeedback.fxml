@@ -26,7 +26,7 @@
         <Label fx:id="lblVersao" styleClass="subtitle" text="—" />
     </HBox>
 
-    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" styleClass="editor-tabs">
         <tabs>
 
             <Tab fx:id="tabApresentacao" text="Apresentação">
@@ -45,6 +45,9 @@
                                 </HBox>
 
                                 <SplitPane fx:id="splitPaneComparacao" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+                                    <padding>
+                                        <Insets left="10.0" right="10.0" top="10.0" bottom="10.0" />
+                                    </padding>
                                     <VBox fx:id="paneVersaoAnterior" spacing="8.0" visible="false" managed="false">
                                         <padding>
                                             <Insets right="5.0" />
@@ -66,8 +69,8 @@
                                         <Label text="Comentário do Orientador (Novo Parecer):" styleClass="field-label" />
                                         <TextArea fx:id="txtParecerApresentacao_Atual" prefRowCount="4" promptText="Digite seu feedback para este campo..." wrapText="true" />
                                         <HBox spacing="8.0">
-                                            <Button fx:id="btnAprovarCampo" onAction="#onAprovarCampo" text="Aprovar Campo" />
-                                            <Button fx:id="btnReprovarCampo" onAction="#onReprovarCampo" text="Reprovar Campo" />
+                                            <Button fx:id="btnAprovarCampo" styleClass="btn-aprovar" onAction="#onAprovarCampo" text="Aprovar Campo" />
+                                            <Button fx:id="btnReprovarCampo" styleClass="btn-reprovar" onAction="#onReprovarCampo" text="Reprovar Campo" />
                                         </HBox>
                                     </VBox>
                                 </SplitPane>

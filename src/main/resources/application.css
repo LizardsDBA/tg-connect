@@ -40,7 +40,7 @@
 
 /* ===== BOTÕES ===== */
 /* Botão padrão */
-.button {
+.button, .toggle-button {
     -fx-background-color: linear-gradient(#ffffff, #cccccc);
     -fx-border-color: #b3b3b3;
     -fx-border-width: 2px;
@@ -55,7 +55,7 @@
     -fx-border-insets: 0;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 3, 0, 0, 1);
 }
-.button:hover, .button:focused {
+.button:hover, .button:focused, .toggle-button:hover, .toggle-button:focused {
     -fx-border-color: #b20f19;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
@@ -70,6 +70,16 @@
     -fx-background-color: linear-gradient(#ffffff, #cccccc);
     -fx-border-color: #58050a;
     -fx-text-fill: #58050a;
+}
+.btn-aprovar{
+    -fx-background-color: #7ee47e;
+    -fx-text-fill: #002500;
+    -fx-border-color: #279727;
+}
+.btn-reprovar{
+    -fx-background-color: #dd5656;
+    -fx-text-fill: #330202;
+    -fx-border-color: #ac0808;
 }
 
 /* ===== CAMPOS DE ENTRADA ===== */
@@ -220,7 +230,7 @@
 /* ===== PILLS/BADGES ===== */
 .pill {
     -fx-background-color: #edf2ff;
-    -fx-text-fill: #315ea8;
+    -fx-text-fill: #B20F19;
     -fx-border-color: #cfe0ff;
     -fx-border-width: 1px;
     -fx-padding: 2 8;
@@ -239,7 +249,7 @@
     -fx-background-radius: 999;
 }
 .progress-bar .bar {
-    -fx-background-color: linear-gradient(#69a7ff, #3b7dd8);
+    -fx-background-color: linear-gradient(#B20F19, #58050A);
     -fx-background-radius: 999;
 }
 
@@ -284,7 +294,7 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-border-width: 1px;
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #CCCCCC;
     -fx-background-color: white;
     -fx-wrap-text: true;
 }
@@ -292,8 +302,8 @@
 /* Bubble do aluno (self) */
 .msg-self,
 .chat-message-me { /* compat */
-    -fx-background-color: #e6f4ff;
-    -fx-border-color: #cfe0ff;
+    -fx-background-color: #CEDEE8;
+    -fx-border-color: #A9BCC8;
 }
 
 /* Bubble do orientador (peer) */
@@ -380,7 +390,7 @@
     -fx-background-color: white;
     -fx-background-insets: 0;
     -fx-background-radius: 0 12 12 12;
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #E6E6E6;
     -fx-border-radius: 0 12 12 12;
     -fx-border-width: 1px;
     -fx-padding: 14;
@@ -392,7 +402,7 @@
 }
 .editor-tabs .titled-pane > .title {
     -fx-background-color: transparent;
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #E6E6E6;
     -fx-border-width: 0 0 1px 0;
     -fx-padding: 8 0 8 0;
 }
@@ -403,7 +413,7 @@
 .editor-tabs .text-field,
 .editor-tabs .text-area {
     -fx-background-color: white;
-    -fx-border-color: #d6d6d6;
+    -fx-border-color: #E6E6E6;
     -fx-border-width: 1px;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
@@ -413,7 +423,7 @@
 }
 .editor-tabs .text-field:focused,
 .editor-tabs .text-area:focused {
-    -fx-border-color: #3b7dd8;
+    -fx-border-color: #B20F19;
     -fx-border-width: 2px;
 }
 .status-badge { -fx-font-weight: bold; }
@@ -474,4 +484,11 @@
     -fx-border-color: #ced4da; /* Cinza */
     -fx-border-width: 1px;
     -fx-border-radius: 8px;
+}
+
+.split-pane{
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+
 }
