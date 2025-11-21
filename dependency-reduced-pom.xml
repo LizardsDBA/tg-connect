@@ -71,22 +71,13 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>api-tg-platform-1.0.0-shaded</finalName>
+              <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}-shaded</finalName>
               <transformers>
                 <transformer>
                   <mainClass>br.edu.fatec.api.App</mainClass>
                 </transformer>
               </transformers>
               <createDependencyReducedPom>true</createDependencyReducedPom>
-              <artifactSet>
-                <excludes>
-                  <exclude>org.openjfx:javafx-base</exclude>
-                  <exclude>org.openjfx:javafx-controls</exclude>
-                  <exclude>org.openjfx:javafx-graphics</exclude>
-                  <exclude>org.openjfx:javafx-fxml</exclude>
-                  <exclude>org.openjfx:javafx-web</exclude>
-                </excludes>
-              </artifactSet>
             </configuration>
           </execution>
         </executions>
@@ -109,24 +100,6 @@
     </profile>
   </profiles>
   <dependencies>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-controls</artifactId>
-      <version>21.0.4</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-fxml</artifactId>
-      <version>21.0.4</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-web</artifactId>
-      <version>17.0.2</version>
-      <scope>compile</scope>
-    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -154,6 +127,7 @@
     <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.target>21</maven.compiler.target>
+    <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
     <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javafx.version>21.0.4</javafx.version>

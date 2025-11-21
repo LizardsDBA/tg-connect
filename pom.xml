@@ -29,6 +29,7 @@
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
         <exec.maven.plugin.version>3.1.0</exec.maven.plugin.version>
         <maven.surefire.plugin.version>3.0.0</maven.surefire.plugin.version>
+        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
@@ -50,7 +51,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-web</artifactId>
-            <version>17.0.2</version>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
         </dependency>
 
         <!-- mysql JDBC - versão estável -->
@@ -163,7 +169,7 @@
                         </goals>
                         <configuration>
                             <!-- Nome do JAR gerado -->
-                            <finalName>api-tg-platform-1.0.0-shaded</finalName>
+                            <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}-shaded</finalName>
 
                             <!-- Classe principal da aplicação -->
                             <transformers>
@@ -175,18 +181,6 @@
 
                             <!-- Opcional: reduz o pom pra evitar conflito -->
                             <createDependencyReducedPom>true</createDependencyReducedPom>
-
-                            <!-- Importante: NÃO sombrear os módulos JavaFX,
-                                 pra continuar usando eles via module-path -->
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.openjfx:javafx-base</exclude>
-                                    <exclude>org.openjfx:javafx-controls</exclude>
-                                    <exclude>org.openjfx:javafx-graphics</exclude>
-                                    <exclude>org.openjfx:javafx-fxml</exclude>
-                                    <exclude>org.openjfx:javafx-web</exclude>
-                                </excludes>
-                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>
