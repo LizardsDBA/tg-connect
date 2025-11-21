@@ -42,7 +42,6 @@ public class HistoricoOrientadorController extends BaseController {
     @FXML private TableColumn<AlunoTableItem, String> colNome;
     @FXML private TextField txtBuscaAluno;
     @FXML private ListView<HistoricoItemDTO> listVersions;
-    @FXML private TextArea txtMarkdownSource;
     @FXML private WebView webPreview;
     @FXML private Label lblAlunoSelecionado;
     @FXML private Label lblVersaoSelecionada;
@@ -246,7 +245,6 @@ public class HistoricoOrientadorController extends BaseController {
 
         // Limpar seleções e filtros anteriores
         listVersions.getItems().clear();
-        txtMarkdownSource.clear();
         webPreview.getEngine().loadContent("");
         feedbackContainer.setVisible(false);
         feedbackContainer.setManaged(false);
@@ -306,10 +304,7 @@ public class HistoricoOrientadorController extends BaseController {
     private void exibirVersao(VersaoHistoricoDTO versao) {
         lblVersaoSelecionada.setText(versao.versao());
         lblDataEnvio.setText(versao.createdAt().format(dateFormatter));
-        txtMarkdownSource.setText(versao.conteudoMd());
         renderMarkdown(versao.conteudoMd());
-        txtMarkdownSource.setVisible(true);
-        txtMarkdownSource.setManaged(true);
         webPreview.setVisible(true);
         webPreview.setManaged(true);
 
@@ -326,9 +321,6 @@ public class HistoricoOrientadorController extends BaseController {
     private void exibirFeedback(Mensagem msg) {
         lblVersaoSelecionada.setText("Feedback (Chat)");
         lblDataEnvio.setText(msg.getCreatedAt().format(dateFormatter));
-        txtMarkdownSource.setText("");
-        txtMarkdownSource.setVisible(false);
-        txtMarkdownSource.setManaged(false);
         webPreview.setVisible(false);
         webPreview.setManaged(false);
         renderMarkdown("### Este item é um feedback (mensagem de chat)\n\nNão há preview de TG associado.");
