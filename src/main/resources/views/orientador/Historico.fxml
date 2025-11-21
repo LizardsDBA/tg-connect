@@ -105,21 +105,11 @@
                                 </VBox>
                             </HBox>
 
-                            <SplitPane orientation="HORIZONTAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
-                                <VBox spacing="4.0">
-                                    <Label text="Markdown" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
-                                    <TextArea fx:id="txtMarkdownSource" editable="false" wrapText="true"
-                                              VBox.vgrow="ALWAYS"
-                                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;
-                                                     -fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;
-                                                     -fx-control-inner-background: #f8f9fa;"/>
-                                </VBox>
-                                <VBox spacing="4.0">
-                                    <Label text="Preview" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
-                                    <WebView fx:id="webPreview" VBox.vgrow="ALWAYS"
-                                             style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
-                                </VBox>
-                            </SplitPane>
+                            <VBox spacing="4.0" VBox.vgrow="ALWAYS">
+                                <Label text="Visualização do Trabalho" style="-fx-font-size: 13px; -fx-font-weight: 600;"/>
+                                <WebView fx:id="webPreview" VBox.vgrow="ALWAYS"
+                                         style="-fx-border-color: #d6d6d6; -fx-border-width: 1; -fx-border-radius: 4;"/>
+                            </VBox>
 
                             <VBox fx:id="feedbackContainer" spacing="4.0" managed="false" visible="false"
                                   style="-fx-background-color: #d1ecf1; -fx-border-color: #17a2b8;
