@@ -20,10 +20,8 @@ import java.sql.SQLException;
 
 public class LoginController {
 
-
     private final LoginService loginService = new LoginService(new JdbcLoginDao());
 
-    // ajuste os fx:id conforme seu FXML
     @FXML
     private VBox allView;
     @FXML
@@ -40,7 +38,7 @@ public class LoginController {
         allView.addEventFilter(KeyEvent.KEY_PRESSED, evt -> {
             if (evt.getCode() == KeyCode.ENTER) {
                 btnEnter.fire();
-                evt.consume(); // evita propagação se quiser
+                evt.consume();
             }
         });
     }
@@ -56,22 +54,32 @@ public class LoginController {
 
             switch (u.getRole()) {
                 case ALUNO:
-                    // NOVA LÓGICA: Verificar se aluno precisa solicitar orientação
+                    // LÓGICA CORRIGIDA: Verificar status do aluno
                     JdbcSolicitacaoOrientacaoDao solicitacaoDao = new JdbcSolicitacaoOrientacaoDao();
                     try {
                         boolean temOrientacao = solicitacaoDao.alunoTemOrientacaoAtiva(u.getId());
                         boolean temSolicitacaoPendente = solicitacaoDao.alunoTemSolicitacaoPendente(u.getId());
 
-                        if (!temOrientacao && !temSolicitacaoPendente) {
-                            // Primeiro acesso - redirecionar para solicitação
+                        // FLUXO CORRIGIDO:
+                        // 1. Se tem solicitação pendente → tela de solicitação (mostra status pendente)
+                        if (temSolicitacaoPendente) {
                             SceneManager.go("aluno/SolicitacaoOrientacaoAluno.fxml");
                             return;
                         }
+
+                        // 2. Se não tem orientação e não tem solicitação pendente → tela de solicitação (nova)
+                        if (!temOrientacao) {
+                            SceneManager.go("aluno/SolicitacaoOrientacaoAluno.fxml");
+                            return;
+                        }
+
+                        // 3. Se tem orientação ativa → dashboard normal
+                        SceneManager.go("aluno/Dashboard.fxml");
+
                     } catch (SQLException e) {
                         e.printStackTrace();
+                        lblErro.setText("Erro ao verificar status do aluno");
                     }
-                    // Se já tem orientação, vai para dashboard normal
-                    SceneManager.go("aluno/Dashboard.fxml");
                     break;
 
                 case ORIENTADOR:
